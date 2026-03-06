@@ -8,5 +8,7 @@ urlpatterns = [
     path("assignments/submit_assignment/", views.student_submit_assignment, name="submit_assignment"),
     path("profile/", views.student_profile, name="student_profile"),
     path("profile/edit/", views.edit_student_profile, name="edit_student_profile"),
+    path('chat/', views.llama_chat, name='ai_chat'),
+    path('chat-page/', views.chat_page, name='chat_page'),  
     
 ]

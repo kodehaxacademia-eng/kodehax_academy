@@ -1,0 +1,33 @@
+{% extends "student/assignment/assignment.html" %}
+
+{% block assignment_content %}
+
+<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
+    <div>
+        <h2 class="text-xl font-bold tracking-tight text-slate-900">Available Assignments</h2>
+        <p class="text-sm text-slate-500 mt-1">Review current tasks and their deadlines.</p>
+    </div>
+</div>
+
+<div class="overflow-hidden rounded-xl border border-slate-200">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-100">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Title</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Description</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Due Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+                <tr class="transition-colors duration-150 hover:bg-slate-50">
+                    <td class="px-4 py-3 text-sm font-medium text-slate-800">Assignment 1</td>
+                    <td class="px-4 py-3 text-sm text-slate-700">Intro to Python</td>
+                    <td class="px-4 py-3 text-sm text-slate-700">10 June</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Panel{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pageFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-enter {
+            animation: pageFadeIn 0.45s ease-out;
+        }
+    </style>
+    {% block extra_styles %}{% endblock %}
+</head>
+
+<body class="min-h-screen bg-slate-100 text-slate-800">
+
+<div class="relative min-h-screen lg:flex">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 -translate-x-full border-r border-slate-200 bg-white/95 text-slate-700 shadow-xl backdrop-blur transition-transform duration-300 lg:static lg:translate-x-0 lg:shadow-none">
+        <div class="flex h-full flex-col">
+            <div class="p-6 border-b border-slate-200">
+                <h2 class="text-xl font-bold tracking-tight text-slate-900">Student Panel</h2>
+                <p class="text-sm text-slate-500 mt-1">Learning Workspace</p>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="{% url 'student_dashboard' %}" class="group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 {% if 'dashboard' in request.path %}bg-slate-900 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                    Dashboard
+                </a>
+
+                <a href="{% url 'student_assignments' %}" class="group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 {% if 'assignments' in request.path %}bg-slate-900 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                    Assignments
+                </a>
+
+                <a href="{% url 'student_dashboard' %}" class="group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 text-slate-700 hover:bg-slate-100">
+                    Chatroom
+                </a>
+
+                <a href="{% url 'student_profile' %}" class="group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 {% if 'profile' in request.path %}bg-slate-900 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                    Profile
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-slate-200">
+                <a href="{% url 'home' %}" class="inline-flex w-full items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition-colors duration-200 hover:bg-rose-100">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="fixed inset-0 z-30 hidden bg-slate-900/40 backdrop-blur-[1px] lg:hidden"></div>
+
+    <div class="flex-1 min-w-0">
+        <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/90 px-4 py-4 shadow-sm backdrop-blur sm:px-6">
+            <div class="mx-auto flex max-w-7xl items-center justify-between">
+                <button type="button" onclick="toggleSidebar(true)" class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition-colors duration-200 hover:bg-slate-50 lg:hidden" aria-label="Open sidebar">
+                    <span class="text-xl leading-none">&#9776;</span>
+                </button>
+
+                <h1 class="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
+                    {% block header %}Student Dashboard{% endblock %}
+                </h1>
+
+                <div class="hidden sm:block text-sm text-slate-500">
+                    {{ request.user.username }}
+                </div>
+            </div>
+        </header>
+
+        <main class="p-4 sm:p-6">
+            <div class="mx-auto max-w-7xl page-enter rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+function toggleSidebar(open){
+    const sidebar = document.getElementById("sidebar");
+    const backdrop = document.getElementById("sidebarBackdrop");
+    if (open) {
+        sidebar.classList.remove("-translate-x-full");
+        backdrop.classList.remove("hidden");
+        return;
+    }
+    sidebar.classList.add("-translate-x-full");
+    backdrop.classList.add("hidden");
+}
+
+window.addEventListener("resize", function () {
+    if (window.innerWidth >= 1024) {
+        toggleSidebar(false);
+    }
+});
+</script>
+{% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

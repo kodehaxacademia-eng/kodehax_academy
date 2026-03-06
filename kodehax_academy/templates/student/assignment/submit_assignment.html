@@ -1,0 +1,29 @@
+{% extends "student/assignment/assignment.html" %}
+
+{% block assignment_content %}
+
+<h2 class="text-xl font-semibold mb-4">Submit Assignment</h2>
+
+<form method="POST" enctype="multipart/form-data">
+
+    {% csrf_token %}
+
+    <div class="mb-4">
+        <label class="block mb-1">Assignment</label>
+        <select class="w-full border p-2 rounded">
+            <option>Select Assignment</option>
+        </select>
+    </div>
+
+    <div class="mb-4">
+        <label class="block mb-1">Upload File</label>
+        <input type="file" class="w-full border p-2 rounded">
+    </div>
+
+    <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        Submit
+    </button>
+
+</form>
+
+{% endblock %}

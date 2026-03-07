@@ -1,0 +1,65 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Performance - {{ classroom.name }}{% endblock %}
+{% block page_title %}Student Performance{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <section class="glass-card hover-lift p-6 reveal">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <p class="text-xs uppercase tracking-[0.14em] text-slate-500">Classroom</p>
+        <h3 class="text-3xl font-black text-slate-800 mt-1">{{ classroom.name }}</h3>
+        <p class="text-slate-600 mt-2">Overview of student performance and grades.</p>
+      </div>
+      <a href="{% url 'class_detail' classroom.id %}" class="btn-muted px-4 py-2 text-sm text-center">
+        Back To Class
+      </a>
+    </div>
+  </section>
+
+  <section class="glass-card hover-lift p-6 reveal delay-1">
+    <h4 class="text-xl font-bold text-slate-800 mb-5">Student List</h4>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left min-w-[620px]">
+        <thead>
+          <tr class="text-sm text-slate-500 border-b border-slate-200">
+            <th class="py-3 font-semibold">Student</th>
+            <th class="py-3 font-semibold">Email</th>
+            <th class="py-3 font-semibold">Submissions</th>
+            <th class="py-3 font-semibold">Average Score</th>
+            <th class="py-3 font-semibold">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for data in student_data %}
+          <tr class="table-row border-b border-slate-100">
+            <td class="py-3.5 font-medium text-slate-700">
+              {{ data.student.username }}
+            </td>
+            <td class="py-3.5 text-slate-600">
+              {{ data.student.email }}
+            </td>
+            <td class="py-3.5 text-slate-600">
+              {{ data.submissions }}
+            </td>
+            <td class="py-3.5 font-semibold text-blue-600">
+              {{ data.avg_score }}
+            </td>
+            <td class="py-3.5">
+              <a href="{% url 'student_performance' classroom.id data.student.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">
+                View Details
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="py-10 text-center text-slate-500">No students enrolled.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

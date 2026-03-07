@@ -1,0 +1,214 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}AI Tools - Teacher Hub{% endblock %}
+{% block page_title %}AI Teaching Tools{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css">
+<style>
+  .ai-output {
+    line-height: 1.8;
+    color: #1e293b;
+  }
+
+  .ai-output h1, .ai-output h2, .ai-output h3, .ai-output h4 {
+    color: #0f172a;
+    font-weight: 800;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .ai-output p {
+    margin: 0.55rem 0;
+  }
+
+  .ai-output ul, .ai-output ol {
+    margin: 0.75rem 0 0.75rem 1.25rem;
+  }
+
+  .ai-output pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 0.85rem;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    border: 1px solid #1e293b;
+  }
+
+  .ai-output code {
+    background: #e2e8f0;
+    color: #0f172a;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.4rem;
+    font-size: 0.92em;
+  }
+
+  .ai-output pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+
+  .ai-output blockquote {
+    border-left: 4px solid #93c5fd;
+    padding-left: 0.85rem;
+    color: #334155;
+    margin: 0.9rem 0;
+  }
+
+  .ai-output table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+
+  .ai-output th, .ai-output td {
+    border: 1px solid #cbd5e1;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+  }
+
+  .ai-output th {
+    background: #eff6ff;
+    color: #0f172a;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <section class="glass-card hover-lift p-6 md:p-8 reveal relative overflow-hidden">
+    <div class="absolute -top-16 -right-12 h-48 w-48 rounded-full bg-cyan-200/30 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -left-12 h-52 w-52 rounded-full bg-blue-200/30 blur-3xl pointer-events-none"></div>
+    <div class="relative">
+      <p class="text-xs uppercase tracking-[0.14em] text-slate-500">AI Assistant</p>
+      <h3 class="text-3xl md:text-4xl font-black text-slate-800 mt-2">Smart Content Studio</h3>
+      <p class="text-slate-600 mt-3 max-w-2xl">Generate classroom-ready quizzes and structured lecture notes, then instantly push quiz questions into assignments.</p>
+    </div>
+  </section>
+
+  <section class="glass-card hover-lift p-6 reveal delay-1">
+    <form method="POST" class="space-y-6">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="generate">
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-2">Topic or Subject</label>
+        <input type="text" name="topic" required value="{{ topic|default:'' }}" placeholder="Example: Neural Networks" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition">
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <button type="submit" name="tool" value="quiz" class="btn-primary px-6 py-2.5">Generate Quiz</button>
+        <button type="submit" name="tool" value="notes" class="btn-muted px-6 py-2.5 border-emerald-200 hover:bg-emerald-50">Generate Lecture Notes</button>
+      </div>
+    </form>
+  </section>
+
+  {% if upload_success %}
+  <div class="reveal delay-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 font-medium">
+    {{ upload_success }}
+  </div>
+  {% endif %}
+
+  {% if upload_error %}
+  <div class="reveal delay-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700 font-medium">
+    {{ upload_error }}
+  </div>
+  {% endif %}
+
+  {% if result %}
+  <section class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+    <article class="xl:col-span-3 glass-card hover-lift p-6 reveal delay-2">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <h4 class="text-xl font-bold text-slate-800">AI Output</h4>
+        <span class="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-full uppercase tracking-wider">{{ tool_used|default:"content" }}</span>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 max-h-[520px] overflow-y-auto custom-scroll">
+        <div id="ai-output-render" class="ai-output"></div>
+        <textarea id="ai-output-raw" class="hidden">{{ result }}</textarea>
+      </div>
+    </article>
+
+    {% if tool_used == "quiz" %}
+    <aside class="xl:col-span-2 glass-card hover-lift p-6 reveal delay-3">
+      <h4 class="text-lg font-bold text-slate-800">Upload Quiz To Assignment</h4>
+      <p class="text-sm text-slate-600 mt-2">Creates an assignment from the generated quiz. Answer key is removed automatically.</p>
+
+      <form method="POST" class="mt-5 space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_quiz">
+        <textarea name="quiz_content" class="hidden">{{ result }}</textarea>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Classroom</label>
+          <select name="class_id" required class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition">
+            <option value="">Select classroom</option>
+            {% for class in classes %}
+            <option value="{{ class.id }}">{{ class.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Assignment Title</label>
+          <input type="text" name="assignment_title" placeholder="Example: AI Quiz - Chapter 2" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Due Date (optional)</label>
+          <input type="datetime-local" name="due_date" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition">
+        </div>
+
+        <button type="submit" class="btn-primary w-full px-4 py-2.5">Upload To Assignments</button>
+      </form>
+    </aside>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+  (function () {
+    const output = document.getElementById("ai-output-render");
+    const raw = document.getElementById("ai-output-raw");
+    if (!output || !raw) return;
+
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      highlight: function (code, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+          return hljs.highlight(code, { language: lang }).value;
+        }
+        return hljs.highlightAuto(code).value;
+      }
+    });
+
+    const markdown = raw.value || "";
+    const parsed = marked.parse(markdown);
+    output.innerHTML = DOMPurify.sanitize(parsed);
+
+    output.querySelectorAll("pre code").forEach((block) => {
+      hljs.highlightElement(block);
+    });
+
+    if (window.renderMathInElement) {
+      renderMathInElement(output, {
+        throwOnError: false,
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true }
+        ]
+      });
+    }
+  })();
+</script>
+{% endblock %}

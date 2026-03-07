@@ -1,0 +1,103 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Profile - {{ teacher.username }}{% endblock %}
+{% block page_title %}Teacher Profile{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- PROFILE HEADER -->
+  <section class="glass-card hover-lift p-6 reveal">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div class="flex items-center gap-6">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-3xl font-black text-white shadow-lg">
+          {{ teacher.username|first|upper }}
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-[0.14em] text-slate-500">Teacher Profile</p>
+          <h3 class="text-3xl font-black text-slate-800 mt-1">{{ teacher.username }}</h3>
+          <p class="text-slate-600">{{ teacher.email }}</p>
+        </div>
+      </div>
+      <button class="btn-primary px-6 py-2.5 text-sm">
+        Edit Profile
+      </button>
+    </div>
+  </section>
+
+  <!-- STATISTICS CARDS -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal delay-1">
+    <div class="glass-card p-6 hover-lift">
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Classes</p>
+      <p class="text-3xl font-black text-blue-600 mt-2">{{ stats.class_count }}</p>
+    </div>
+    <div class="glass-card p-6 hover-lift">
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Assignments</p>
+      <p class="text-3xl font-black text-emerald-600 mt-2">{{ stats.assignment_count }}</p>
+    </div>
+    <div class="glass-card p-6 hover-lift">
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Students</p>
+      <p class="text-3xl font-black text-violet-600 mt-2">{{ stats.student_count }}</p>
+    </div>
+    <div class="glass-card p-6 hover-lift">
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Submissions</p>
+      <p class="text-3xl font-black text-amber-600 mt-2">{{ stats.submission_count }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- CLASSES OVERVIEW -->
+    <section class="glass-card hover-lift p-6 reveal delay-2 lg:col-span-2">
+      <h4 class="text-xl font-bold text-slate-800 mb-5">Your Classrooms</h4>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="text-sm text-slate-500 border-b border-slate-200">
+              <th class="py-3 font-semibold">Class Name</th>
+              <th class="py-3 font-semibold text-center">Students</th>
+              <th class="py-3 font-semibold text-center">Assignments</th>
+              <th class="py-3 font-semibold text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for class in classes %}
+            <tr class="table-row border-b border-slate-100">
+              <td class="py-3.5 font-medium text-slate-700">{{ class.name }}</td>
+              <td class="py-3.5 text-slate-600 text-center">{{ class.students.count }}</td>
+              <td class="py-3.5 text-slate-600 text-center">{{ class.assignments.count }}</td>
+              <td class="py-3.5 text-right">
+                <a href="{% url 'class_detail' class.id %}" class="btn-muted px-3 py-1.5 text-xs inline-block">
+                  View Class
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="py-10 text-center text-slate-500">No classes created yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- RECENT ACTIVITY -->
+    <section class="glass-card hover-lift p-6 reveal delay-3">
+      <h4 class="text-xl font-bold text-slate-800 mb-5">Recent Activity</h4>
+      <div class="space-y-4">
+        <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+          <div class="w-2 h-2 mt-1.5 rounded-full bg-blue-500"></div>
+          <p class="text-sm text-slate-600">Created a new assignment</p>
+        </div>
+        <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+          <div class="w-2 h-2 mt-1.5 rounded-full bg-emerald-500"></div>
+          <p class="text-sm text-slate-600">New student joined a class</p>
+        </div>
+        <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+          <div class="w-2 h-2 mt-1.5 rounded-full bg-amber-500"></div>
+          <p class="text-sm text-slate-600">Assignment submissions received</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

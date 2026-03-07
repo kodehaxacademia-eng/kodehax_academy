@@ -1,0 +1,69 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Create Assignment{% endblock %}
+{% block page_title %}New Assignment{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <section class="glass-card hover-lift p-7 reveal">
+    <div class="mb-6">
+      <p class="text-xs uppercase tracking-[0.14em] text-slate-500">Classroom: {{ classroom.name }}</p>
+      <h3 class="text-3xl font-black text-slate-800 mt-1">Create Assignment</h3>
+      <p class="text-slate-600 mt-2">Define the task, set a deadline, and provide instructions for your students.</p>
+    </div>
+
+    {% if error %}
+    <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl mb-6 text-sm font-medium">
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="reveal delay-1">
+        <label class="block text-sm font-semibold text-slate-700 mb-2">Assignment Title</label>
+        <input type="text" name="title" required placeholder="e.g. Introduction to Python"
+               class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition">
+      </div>
+
+      <div class="reveal delay-2">
+        <label class="block text-sm font-semibold text-slate-700 mb-2">Instructions / Description</label>
+        <textarea name="description" rows="5" placeholder="Describe the requirements..."
+                  class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition"></textarea>
+      </div>
+
+      <div class="reveal delay-3">
+        <label class="block text-sm font-semibold text-slate-700 mb-2">Due Date & Time</label>
+        <input type="datetime-local" name="due_date" required
+               class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition">
+      </div>
+
+      <div class="pt-4 flex items-center justify-between reveal delay-4">
+        <a href="{% url 'class_detail' classroom.id %}" 
+           class="btn-muted px-5 py-2.5">
+          Cancel
+        </a>
+        <button type="submit" 
+                class="btn-primary px-6 py-2.5">
+          Create Assignment
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Ensure all interactive elements follow the theme
+  (() => {
+    const inputs = document.querySelectorAll('input[type="text"], input[type="datetime-local"], textarea');
+    inputs.forEach(el => {
+      if(!el.classList.contains('focus:ring-4')) {
+        el.classList.add('w-full', 'rounded-xl', 'border', 'border-slate-300', 'bg-white', 'px-4', 'py-2.5', 'transition', 'focus:outline-none', 'focus:ring-4', 'focus:ring-blue-100', 'focus:border-blue-400');
+      }
+    });
+  })();
+</script>
+{% endblock %}

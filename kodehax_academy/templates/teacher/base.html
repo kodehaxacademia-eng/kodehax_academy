@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Teacher Panel{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --panel-bg: #f1f5f9;
+      --sidebar-1: #0f172a;
+      --sidebar-2: #111827;
+      --surface: #ffffff;
+      --border: #dbe3ee;
+      --text: #1f2937;
+      --muted: #64748b;
+      --accent: #2563eb;
+    }
+
+    .glass-card {
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.96));
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+      border-radius: 1rem;
+    }
+
+    .reveal {
+      animation: revealUp 460ms ease both;
+    }
+
+    .delay-1 { animation-delay: 70ms; }
+    .delay-2 { animation-delay: 140ms; }
+    .delay-3 { animation-delay: 210ms; }
+    .delay-4 { animation-delay: 280ms; }
+
+    .nav-link {
+      transition: 180ms ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-link:hover {
+      transform: translateX(2px);
+      background: rgba(148, 163, 184, 0.16);
+      border-color: rgba(148, 163, 184, 0.25);
+    }
+
+    .nav-link.active {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(29, 78, 216, 0.2));
+      border-color: rgba(96, 165, 250, 0.5);
+      color: #ffffff;
+    }
+
+    .hover-lift {
+      transition: transform 220ms ease, box-shadow 220ms ease;
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 30px rgba(15, 23, 42, 0.12);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      transition: 180ms ease;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.22);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.04);
+      transform: translateY(-1px);
+    }
+
+    .btn-muted {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      transition: 180ms ease;
+    }
+
+    .btn-muted:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .table-row {
+      transition: 180ms ease;
+    }
+
+    .table-row:hover {
+      background: rgba(248, 250, 252, 0.9);
+      transform: translateX(2px);
+    }
+
+    @keyframes revealUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800">
+  <div class="flex h-screen">
+    <aside class="w-72 shrink-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800 text-slate-100 p-5 flex flex-col">
+      <div class="pb-5 mb-4 border-b border-slate-700/60 reveal">
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">KODEHAX</p>
+        <h1 class="text-2xl font-black mt-1">Teacher Hub</h1>
+      </div>
+
+      <nav class="flex-1 space-y-2 text-sm">
+        <a href="{% url 'teacher_dashboard' %}" class="nav-link {% if '/teacher/dashboard/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-1">
+          Dashboard
+        </a>
+        <a href="{% url 'create_class' %}" class="nav-link {% if '/teacher/class/create/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-2">
+          Create Classroom
+        </a>
+        {% if classroom %}
+        <a href="{% url 'assignment_list' classroom.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          Assignments
+        </a>
+        {% elif assignment %}
+        <a href="{% url 'assignment_list' assignment.classroom.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          Assignments
+        </a>
+        {% else %}
+        <a href="#" class="nav-link block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          Assignments
+        </a>
+        {% endif %}
+        <a href="#" class="nav-link block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          Announcements
+        </a>
+        <a href="#" class="nav-link block rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+          Performance
+        </a>
+        <a href="#" class="nav-link block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          Profile
+        </a>
+      </nav>
+
+      <div class="pt-4 mt-4 border-t border-slate-700/60 reveal">
+        <a href="#" class="block w-full text-center rounded-xl bg-rose-600/90 px-4 py-2.5 text-sm font-semibold hover:bg-rose-500 transition">
+          Logout
+        </a>
+      </div>
+    </aside>
+
+    <main class="flex-1 overflow-hidden">
+      <header class="h-20 bg-white/95 backdrop-blur border-b border-slate-200 flex items-center justify-between px-6">
+        <div class="reveal">
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Teacher Workspace</p>
+          <h2 class="text-xl font-bold">{% block page_title %}Teacher Dashboard{% endblock %}</h2>
+        </div>
+        <div class="flex items-center gap-3 reveal delay-1">
+          <div class="text-right">
+            <p class="text-xs text-slate-500">Logged in as</p>
+            <p class="font-semibold text-slate-700">{{ request.user.username }}</p>
+          </div>
+          <div class="h-11 w-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md"></div>
+        </div>
+      </header>
+
+      <div class="h-[calc(100vh-5rem)] overflow-y-auto p-6 bg-[radial-gradient(circle_at_0%_0%,_#e2e8f0_0,_transparent_30%),radial-gradient(circle_at_100%_100%,_#dbeafe_0,_transparent_35%),_var(--panel-bg)]">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

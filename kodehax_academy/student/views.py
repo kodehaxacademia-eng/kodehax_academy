@@ -6,6 +6,7 @@ import requests #type: ignore
 import re
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from chat.views import RESPONSE_STYLE_INSTRUCTION, format_ai_reply
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 MODEL = "llama3:latest"
@@ -19,7 +20,7 @@ def build_system_prompt(mode):
         "summarize": "You are a lesson summarizer. Summarize the given content in simple, student-friendly language.",
         "course_qa": "You are a course assistant. Answer only questions related to the course material provided.",
     }
-    return prompts.get(mode, prompts["tutor"])
+    return f"{prompts.get(mode, prompts['tutor'])}\n\n{RESPONSE_STYLE_INSTRUCTION}"
 
 @csrf_exempt
 def llama_chat(request):
@@ -41,21 +42,6 @@ def llama_chat(request):
     messages += history
     messages.append({"role": "user", "content": user_message})
 
-    # try:
-    #     response = requests.post(OLLAMA_URL, json={
-    #         "model": MODEL,
-    #         "messages": messages,
-    #         "stream": False
-    #     }, timeout=60)  # ← timeout added for slow responses
-    #     data = response.json()
-    #     reply = data["message"]["content"]
-    #     return JsonResponse({"reply": reply})
-    # except requests.exceptions.ConnectionError:
-    #     return JsonResponse({"error": "Cannot connect to Ollama. Make sure it is running."}, status=500)
-    # except requests.exceptions.Timeout:
-    #     return JsonResponse({"error": "Ollama took too long to respond. Try again."}, status=500)
-    # except Exception as e:
-    #     return JsonResponse({"error": str(e)}, status=500)
     try:
         response = requests.post(OLLAMA_URL, json={
             "model": MODEL,
@@ -63,7 +49,7 @@ def llama_chat(request):
             "stream": False
         }, timeout=60)
         data = response.json()
-        reply = data["message"]["content"]
+        reply = format_ai_reply(data["message"]["content"])
         has_code = bool(CODE_FENCE_PATTERN.search(reply))
         return JsonResponse({"reply": reply, "has_code": has_code})
     

@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
-from .forms import ClassRoomForm
+from django.urls import reverse
+from .forms import ClassRoomForm, TeacherProfileForm
 from django.contrib.auth.decorators import login_required
-from .models import ClassRoom, Assignment, Submission
+from .models import ClassRoom, Assignment, Submission, TeacherProfile
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Avg
@@ -13,9 +14,13 @@ from .services.ai_tools import generate_quiz, generate_notes, strip_quiz_answers
 def teacher_dashboard(request):
 
     classes = ClassRoom.objects.filter(teacher=request.user)
+    assignment_count = Assignment.objects.filter(classroom__teacher=request.user).count()
+    student_count = classes.aggregate(total=Count("students", distinct=True))["total"] or 0
 
     context = {
-        "classes": classes
+        "classes": classes,
+        "assignment_count": assignment_count,
+        "student_count": student_count,
     }
     return render(request, "teacher/dashboard.html", context)
 @login_required
@@ -260,11 +265,10 @@ def student_performance(request, class_id, student_id):
 def teacher_profile(request):
 
     teacher = request.user
+    profile, _ = TeacherProfile.objects.get_or_create(user=teacher)
 
     classes = ClassRoom.objects.filter(teacher=teacher)
-
     assignments = Assignment.objects.filter(classroom__teacher=teacher)
-
     submissions = Submission.objects.filter(
         assignment__classroom__teacher=teacher
     )
@@ -272,17 +276,44 @@ def teacher_profile(request):
     stats = {
         "class_count": classes.count(),
         "assignment_count": assignments.count(),
-        "student_count": sum([c.students.count() for c in classes]),
+        "student_count": classes.aggregate(total=Count("students", distinct=True))["total"] or 0,
         "submission_count": submissions.count(),
     }
 
     context = {
         "teacher": teacher,
         "classes": classes,
-        "stats": stats
+        "stats": stats,
+        "profile": profile,
+        "updated": request.GET.get("updated") == "1",
     }
 
     return render(request, "teacher/profile.html", context)
+
+
+@login_required
+def teacher_edit_profile(request):
+
+    teacher = request.user
+    profile, _ = TeacherProfile.objects.get_or_create(user=teacher)
+
+    if request.method == "POST":
+        profile_form = TeacherProfileForm(
+            request.POST,
+            request.FILES,
+            instance=profile
+        )
+        if profile_form.is_valid():
+            profile_form.save()
+            return redirect(f"{reverse('teacher_profile')}?updated=1")
+    else:
+        profile_form = TeacherProfileForm(instance=profile)
+
+    return render(request, "teacher/edit_profile.html", {
+        "teacher": teacher,
+        "profile": profile,
+        "profile_form": profile_form,
+    })
 
 @login_required
 def ai_tools(request):

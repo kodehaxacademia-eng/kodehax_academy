@@ -1,0 +1,141 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Edit Profile - {{ teacher.username }}{% endblock %}
+{% block page_title %}Edit Profile{% endblock %}
+
+{% block extra_head %}
+<style>
+  .edit-shell {
+    background: linear-gradient(160deg, #ffffff, #f5f5f5);
+    border: 1px solid #d4d4d8;
+    border-radius: 1rem;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .field-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #52525b;
+  }
+
+  .field-input {
+    width: 100%;
+    border: 1px solid #a1a1aa;
+    background: #ffffff;
+    border-radius: 0.75rem;
+    padding: 0.65rem 0.8rem;
+    color: #18181b;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .field-input:focus {
+    outline: none;
+    border-color: #18181b;
+    box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.12);
+  }
+
+  .fade-in { animation: fadeIn 300ms ease both; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto fade-in">
+  <section class="edit-shell p-6 md:p-7">
+    <div class="flex items-center justify-between gap-3 mb-6">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-zinc-500">Teacher Workspace</p>
+        <h2 class="text-2xl font-black text-zinc-900">Edit Profile</h2>
+      </div>
+      <a href="{% url 'teacher_profile' %}" class="rounded-xl border border-zinc-400 px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-100 transition">
+        Back to Profile
+      </a>
+    </div>
+
+    {% if profile_form.errors %}
+    <div class="mb-5 rounded-xl border border-zinc-400 bg-zinc-100 px-4 py-3 text-sm text-zinc-800">
+      Please fix the errors and submit again.
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="space-y-5">
+      {% csrf_token %}
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div>
+          <label class="field-label">Profile Picture</label>
+          <input type="file" name="{{ profile_form.profile_picture.html_name }}" id="{{ profile_form.profile_picture.id_for_label }}" accept="image/*" class="hidden">
+          <label for="{{ profile_form.profile_picture.id_for_label }}" class="block cursor-pointer rounded-2xl border border-dashed border-zinc-500 bg-zinc-100 p-4 text-center hover:bg-zinc-200 transition">
+            <div class="mx-auto h-28 w-28 overflow-hidden rounded-2xl border border-zinc-400 bg-white">
+              {% if profile.profile_picture %}
+              <img id="profilePreview" src="{{ profile.profile_picture.url }}" alt="Preview" class="h-full w-full object-cover">
+              {% else %}
+              <div id="profilePreviewFallback" class="h-full w-full flex items-center justify-center text-3xl font-black text-zinc-900">{{ teacher.username|first|upper }}</div>
+              <img id="profilePreview" src="" alt="Preview" class="hidden h-full w-full object-cover">
+              {% endif %}
+            </div>
+            <p class="mt-3 text-sm font-semibold text-zinc-800">Upload photo</p>
+          </label>
+          {% if profile_form.profile_picture.errors %}<p class="mt-1 text-xs text-red-700">{{ profile_form.profile_picture.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="field-label">Full Name</label>{{ profile_form.full_name }}</div>
+          <div><label class="field-label">Phone Number</label>{{ profile_form.phone_number }}</div>
+          <div><label class="field-label">Department</label>{{ profile_form.department }}</div>
+          <div><label class="field-label">Qualification</label>{{ profile_form.qualification }}</div>
+          <div><label class="field-label">Years of Experience</label>{{ profile_form.years_experience }}</div>
+          <div><label class="field-label">Website</label>{{ profile_form.website }}</div>
+          <div class="md:col-span-2"><label class="field-label">LinkedIn</label>{{ profile_form.linkedin }}</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4">
+        <div><label class="field-label">Bio</label>{{ profile_form.bio }}</div>
+        <div><label class="field-label">Address</label>{{ profile_form.address }}</div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="submit" class="rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition">Save Changes</button>
+        <a href="{% url 'teacher_profile' %}" class="rounded-xl border border-zinc-400 px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 transition">Cancel</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function () {
+    const input = document.getElementById("{{ profile_form.profile_picture.id_for_label }}");
+    const preview = document.getElementById("profilePreview");
+    const fallback = document.getElementById("profilePreviewFallback");
+
+    if (!input || !preview) return;
+
+    input.addEventListener("change", function (event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.classList.remove("hidden");
+        if (fallback) fallback.classList.add("hidden");
+      };
+      reader.readAsDataURL(file);
+    });
+  })();
+
+  document.querySelectorAll("input[type='text'], input[type='url'], input[type='number'], textarea").forEach(function (el) {
+    el.classList.add("field-input");
+  });
+</script>
+{% endblock %}

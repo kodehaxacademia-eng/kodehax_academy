@@ -127,3 +127,35 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender}: {self.message[:30]}"
+
+
+# -----------------------------
+# TEACHER PROFILE
+# -----------------------------
+class TeacherProfile(models.Model):
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="teacher_profile"
+    )
+
+    profile_picture = models.ImageField(
+        upload_to="teacher_profiles/",
+        blank=True,
+        null=True
+    )
+
+    full_name = models.CharField(max_length=120, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True)
+    department = models.CharField(max_length=120, blank=True)
+    qualification = models.CharField(max_length=120, blank=True)
+    years_experience = models.PositiveIntegerField(blank=True, null=True)
+    bio = models.TextField(blank=True)
+    address = models.TextField(blank=True)
+    website = models.URLField(blank=True)
+    linkedin = models.URLField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Profile - {self.user.username}"

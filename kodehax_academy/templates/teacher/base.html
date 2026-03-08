@@ -172,80 +172,81 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-800">
-  <div class="flex h-screen">
-    <aside class="w-72 shrink-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800 text-slate-100 p-5 flex flex-col relative overflow-hidden">
+  <div class="min-h-screen flex flex-col">
+    <aside class="shrink-0 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-slate-100 px-5 py-4 relative overflow-hidden border-b border-slate-700/70">
       <div class="ambient-orb orb-2"></div>
-      <div class="pb-5 mb-4 border-b border-slate-700/60 reveal relative overflow-hidden rounded-xl">
-        <div class="ambient-orb orb-1"></div>
-        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">KODEHAX</p>
-        <h1 class="text-2xl font-black mt-1">Teacher Hub</h1>
-      </div>
+      <div class="ambient-orb orb-1"></div>
+      <div class="relative">
+        <div class="flex items-center justify-between gap-4">
+          <div class="reveal">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">KODEHAX</p>
+            <h1 class="text-2xl font-black mt-1">Teacher Hub</h1>
+          </div>
+          <a href="{% url 'home' %}" class="rounded-xl bg-rose-600/90 px-4 py-2 text-sm font-semibold hover:bg-rose-500 transition reveal delay-1">
+            Logout
+          </a>
+        </div>
 
-      <nav class="flex-1 space-y-2 text-sm">
-        <a href="{% url 'teacher_dashboard' %}" class="nav-link {% if '/teacher/dashboard/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-1">
-          Dashboard
-        </a>
-        <a href="{% url 'create_class' %}" class="nav-link {% if '/teacher/class/create/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-2">
-          Create Classroom
-        </a>
-        {% if classroom %}
-        <a href="{% url 'assignment_list' classroom.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
-          Assignments
-        </a>
-        {% elif assignment %}
-        <a href="{% url 'assignment_list' assignment.classroom.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
-          Assignments
-        </a>
-        {% else %}
-        {% with first_class=request.user.teacher_classes.first %}
-        {% if first_class %}
-        <a href="{% url 'assignments_page' class_id=first_class.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
-          Assignments
-        </a>
-        {% else %}
-        <a href="#" class="nav-link block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
-          Assignments
-        </a>
-        {% endif %}
-        {% endwith %}
-        {% endif %}
-        <a href="{% url 'ai_tools' %}" class="nav-link {% if '/teacher/ai-tools/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-3">
-          AI Tools
-        </a>
-        {% if classroom %}
-        <a href="{% url 'performance_list' classroom.id %}" class="nav-link {% if '/performance/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-          Performance
-        </a>
-        {% elif assignment %}
-        <a href="{% url 'performance_list' assignment.classroom.id %}" class="nav-link {% if '/performance/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-          Performance
-        </a>
-        {% else %}
-        {% with first_class=request.user.teacher_classes.first %}
-        {% if first_class %}
-        <a href="{% url 'performance_list' first_class.id %}" class="nav-link {% if '/performance/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-          Performance
-        </a>
-        {% else %}
-        <a href="#" class="nav-link block rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-          Performance
-        </a>
-        {% endif %}
-        {% endwith %}
-        {% endif %}
-        <a href="{% url 'teacher_profile' %}" class="nav-link {% if '/teacher/profile/' in request.path %}active{% endif %} block rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-          Profile
-        </a>
-      </nav>
-
-      <div class="pt-4 mt-4 border-t border-slate-700/60 reveal">
-        <a href="{% url 'home' %}" class="block w-full text-center rounded-xl bg-rose-600/90 px-4 py-2.5 text-sm font-semibold hover:bg-rose-500 transition">
-          Logout
-        </a>
+        <nav class="mt-4 flex items-center gap-2 text-sm overflow-x-auto custom-scroll pb-1">
+          <a href="{% url 'teacher_dashboard' %}" class="nav-link {% if '/teacher/dashboard/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-1">
+            Dashboard
+          </a>
+          <a href="{% url 'create_class' %}" class="nav-link {% if '/teacher/class/create/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-2">
+            Create Classroom
+          </a>
+          {% if classroom %}
+          <a href="{% url 'assignment_list' classroom.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+            Assignments
+          </a>
+          {% elif assignment %}
+          <a href="{% url 'assignment_list' assignment.classroom.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+            Assignments
+          </a>
+          {% else %}
+          {% with first_class=request.user.teacher_classes.first %}
+          {% if first_class %}
+          <a href="{% url 'assignments_page' class_id=first_class.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+            Assignments
+          </a>
+          {% else %}
+          <a href="#" class="nav-link inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+            Assignments
+          </a>
+          {% endif %}
+          {% endwith %}
+          {% endif %}
+          <a href="{% url 'ai_tools' %}" class="nav-link {% if '/teacher/ai-tools/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+            AI Tools
+          </a>
+          {% if classroom %}
+          <a href="{% url 'performance_list' classroom.id %}" class="nav-link {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+            Performance
+          </a>
+          {% elif assignment %}
+          <a href="{% url 'performance_list' assignment.classroom.id %}" class="nav-link {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+            Performance
+          </a>
+          {% else %}
+          {% with first_class=request.user.teacher_classes.first %}
+          {% if first_class %}
+          <a href="{% url 'performance_list' first_class.id %}" class="nav-link {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+            Performance
+          </a>
+          {% else %}
+          <a href="#" class="nav-link inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+            Performance
+          </a>
+          {% endif %}
+          {% endwith %}
+          {% endif %}
+          <a href="{% url 'teacher_profile' %}" class="nav-link {% if '/teacher/profile/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+            Profile
+          </a>
+        </nav>
       </div>
     </aside>
 
-    <main class="flex-1 overflow-hidden">
+    <main class="flex-1 overflow-hidden flex flex-col">
       <header class="h-20 bg-white/95 backdrop-blur border-b border-slate-200 flex items-center justify-between px-6">
         <div class="reveal">
           <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Teacher Workspace</p>
@@ -256,11 +257,19 @@
             <p class="text-xs text-slate-500">Logged in as</p>
             <p class="font-semibold text-slate-700">{{ request.user.username }}</p>
           </div>
-          <div class="h-11 w-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md"></div>
+          <a href="{% url 'teacher_profile' %}" class="block h-11 w-11 rounded-full overflow-hidden shadow-md border border-slate-200 hover:scale-105 transition" title="Open Profile">
+            {% if nav_teacher_profile and nav_teacher_profile.profile_picture %}
+            <img src="{{ nav_teacher_profile.profile_picture.url }}" alt="Teacher profile" class="h-full w-full object-cover">
+            {% else %}
+            <div class="h-full w-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
+              {{ request.user.username|first|upper }}
+            </div>
+            {% endif %}
+          </a>
         </div>
       </header>
 
-      <div class="h-[calc(100vh-5rem)] overflow-y-auto custom-scroll p-6 bg-[radial-gradient(circle_at_0%_0%,_#e2e8f0_0,_transparent_30%),radial-gradient(circle_at_100%_100%,_#dbeafe_0,_transparent_35%),_var(--panel-bg)]">
+      <div class="flex-1 overflow-y-auto custom-scroll p-6 bg-[radial-gradient(circle_at_0%_0%,_#e2e8f0_0,_transparent_30%),radial-gradient(circle_at_100%_100%,_#dbeafe_0,_transparent_35%),_var(--panel-bg)]">
         {% block content %}{% endblock %}
       </div>
     </main>

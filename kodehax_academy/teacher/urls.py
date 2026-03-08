@@ -12,5 +12,6 @@ urlpatterns = [
     path("classes/<int:class_id>/performance/",views.performance_list,name="performance_list"),
     path("classes/<int:class_id>/performance/<int:student_id>/",views.student_performance,name="student_performance"),
     path("profile/",views.teacher_profile, name="teacher_profile"),
+    path("profile/edit/",views.teacher_edit_profile, name="teacher_edit_profile"),
     path("ai-tools/",views.ai_tools,name="ai_tools"),
 ]

@@ -2,56 +2,39 @@
 {% load static %}
 
 {% block title %}AI Assistant{% endblock %}
-{% block header %}Student AI Assistant{% endblock %}
+{% block page_title %}Student AI Assistant{% endblock %}
 
 {% block content %}
-<section class="chat-page">
-  <div class="mode-row">
-    <button onclick="setMode('tutor')" id="btn-tutor" class="mode-btn active-mode">AI Tutor</button>
-    <button onclick="setMode('course_qa')" id="btn-course_qa" class="mode-btn">Course Q&A</button>
-    <button onclick="setMode('quiz')" id="btn-quiz" class="mode-btn">Quiz Me</button>
-    <button onclick="setMode('summarize')" id="btn-summarize" class="mode-btn">Summarize</button>
-  </div>
+<div class="glass-card p-4">
+    <div class="mode-row">
+        <button onclick="setMode('tutor')" id="btn-tutor" class="mode-btn active-mode">AI Tutor</button>
+        <button onclick="setMode('course_qa')" id="btn-course_qa" class="mode-btn">Course Q&A</button>
+        <button onclick="setMode('quiz')" id="btn-quiz" class="mode-btn">Quiz Me</button>
+        <button onclick="setMode('summarize')" id="btn-summarize" class="mode-btn">Summarize</button>
+    </div>
 
-  <div id="chat-box" class="chat-shell">
-    <div class="placeholder" id="placeholder">Ask me anything about your course.</div>
-  </div>
+    <div id="chat-box" class="chat-shell">
+        <div class="placeholder" id="placeholder">Ask me anything about your course.</div>
+    </div>
 
-  <div class="chat-input-row">
-    <input
-      id="user-input"
-      type="text"
-      placeholder="Type your question and press Enter..."
-      onkeydown="if(event.key==='Enter') sendMessage()"
-    />
-    <button onclick="sendMessage()" id="send-btn" class="send-btn">Send</button>
-  </div>
-</section>
+    <div class="chat-input-row">
+        <input id="user-input" type="text" placeholder="Type your question and press Enter..." onkeydown="if(event.key==='Enter') sendMessage()" />
+        <button onclick="sendMessage()" id="send-btn" class="send-btn">Send</button>
+    </div>
+</div>
 
 <style>
   :root {
-    --chat-bg: #050505;
-    --chat-surface: #0c0c0d;
-    --chat-panel: #121215;
-    --chat-border: #242429;
-    --chat-text: #f3f4f6;
-    --chat-muted: #a3a3ad;
-    --chat-user-start: #1d4ed8;
-    --chat-user-end: #2563eb;
-    --chat-assistant-bg: #15151a;
-    --chat-code-bg: #0b0d12;
-    --chat-code-header: #171922;
-    --chat-accent: #60a5fa;
-  }
-
-  .chat-page {
-    background: radial-gradient(circle at 10% 0%, #141419 0%, transparent 35%),
-      radial-gradient(circle at 100% 100%, #111827 0%, transparent 45%),
-      var(--chat-bg);
-    border: 1px solid var(--chat-border);
-    border-radius: 18px;
-    padding: 1rem;
-    color: var(--chat-text);
+    --chat-surface: rgba(0,0,0,0.2);
+    --chat-border: var(--border);
+    --chat-text: var(--text);
+    --chat-muted: var(--muted);
+    --chat-user-start: #0e7490; /* cyan-700 */
+    --chat-user-end: #06b6d4; /* cyan-500 */
+    --chat-assistant-bg: rgba(0,0,0,0.25);
+    --chat-code-bg: #020617; /* slate-950 */
+    --chat-code-header: #1e293b; /* slate-800 */
+    --chat-accent: var(--accent); /* teal-500 from base */
   }
 
   .mode-row {
@@ -62,9 +45,9 @@
   }
 
   .mode-btn {
-    background: #0f0f12;
-    border: 1px solid #2b2b31;
-    color: #d4d4db;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--chat-border);
+    color: var(--chat-muted);
     border-radius: 999px;
     padding: 0.42rem 0.85rem;
     font-size: 0.82rem;
@@ -73,15 +56,15 @@
   }
 
   .mode-btn:hover {
-    border-color: #3f3f47;
-    color: #ffffff;
+    border-color: var(--muted);
+    color: var(--text);
   }
 
   .active-mode {
-    background: linear-gradient(135deg, #1e40af, #2563eb);
-    border-color: #2563eb;
-    color: #ffffff;
-    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+    background: var(--chat-accent);
+    border-color: transparent;
+    color: #000212;
+    box-shadow: 0 8px 18px rgba(20, 184, 166, 0.3);
   }
 
   .chat-shell {
@@ -136,8 +119,8 @@
     margin-left: auto;
     background: linear-gradient(135deg, var(--chat-user-start), var(--chat-user-end));
     color: #ffffff;
-    border-radius: 14px 14px 4px 14px;
-    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.24);
+    border-radius: 14px 14px 2px 14px;
+    box-shadow: 0 10px 20px rgba(6, 182, 212, 0.24);
   }
 
   .assistant-bubble {
@@ -145,7 +128,7 @@
     background: var(--chat-assistant-bg);
     border-color: var(--chat-border);
     color: var(--chat-text);
-    border-radius: 14px 14px 14px 4px;
+    border-radius: 14px 14px 14px 2px;
   }
 
   .assistant-name {
@@ -154,7 +137,7 @@
 
   .assistant-content {
     line-height: 1.6;
-    color: #e4e4ea;
+    color: var(--text);
     font-size: 0.92rem;
   }
 
@@ -162,7 +145,7 @@
   .assistant-content h2,
   .assistant-content h3 {
     margin: 0.5rem 0 0.35rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #f8fafc;
   }
 
@@ -171,7 +154,7 @@
   .assistant-content h3 { font-size: 0.93rem; }
 
   .assistant-content p {
-    margin: 0.35rem 0;
+    margin: 0.4rem 0;
     color: #d5d7df;
   }
 
@@ -186,10 +169,10 @@
   }
 
   .assistant-content blockquote {
-    border-left: 3px solid #334155;
+    border-left: 3px solid var(--border);
     margin: 0.5rem 0;
     padding: 0.2rem 0 0.2rem 0.75rem;
-    color: #cbd5e1;
+    color: var(--muted);
     background: #101219;
     border-radius: 0 8px 8px 0;
   }
@@ -206,7 +189,7 @@
 
   .code-card {
     margin: 0.5rem 0;
-    border: 1px solid #273145;
+    border: 1px solid var(--border);
     border-radius: 11px;
     overflow: hidden;
     background: var(--chat-code-bg);
@@ -218,7 +201,7 @@
     justify-content: space-between;
     padding: 0.43rem 0.65rem;
     background: var(--chat-code-header);
-    color: #d0d5e4;
+    color: var(--muted);
     font-size: 0.75rem;
     font-weight: 600;
   }
@@ -226,7 +209,7 @@
   .copy-btn {
     background: #111827;
     border: 1px solid #273449;
-    color: #dbeafe;
+    color: var(--muted);
     font-size: 0.68rem;
     border-radius: 6px;
     padding: 0.14rem 0.4rem;
@@ -241,7 +224,7 @@
     margin: 0;
     padding: 0.78rem 0.85rem;
     overflow-x: auto;
-    color: #dbe5ff;
+    color: #e0e7ff; /* indigo-100 */
     font-size: 0.83rem;
     line-height: 1.45;
     font-family: Consolas, "Courier New", monospace;
@@ -254,14 +237,14 @@
     gap: 0.22rem;
     padding: 0.58rem 0.72rem;
     border: 1px solid var(--chat-border);
-    border-radius: 12px;
-    background: #101116;
+    border-radius: 14px;
+    background: var(--chat-assistant-bg);
   }
 
   .typing-dot {
     width: 0.36rem;
     height: 0.36rem;
-    background: #60a5fa;
+    background: var(--chat-accent);
     border-radius: 999px;
     animation: pulseDot 1.1s infinite ease-in-out;
   }
@@ -270,7 +253,7 @@
   .typing-dot:nth-child(3) { animation-delay: 0.3s; }
 
   .typing-label {
-    color: #94a3b8;
+    color: var(--muted);
     margin-left: 0.3rem;
     font-size: 0.75rem;
   }
@@ -282,9 +265,9 @@
 
   .chat-input-row input {
     flex: 1;
-    background: #0f1014;
-    color: #f4f4f5;
-    border: 1px solid #2a2d36;
+    background: rgba(0,0,0,0.2);
+    color: var(--text);
+    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 0.58rem 0.78rem;
     font-size: 0.9rem;
@@ -293,23 +276,23 @@
   }
 
   .chat-input-row input::placeholder {
-    color: #7d8391;
+    color: var(--muted);
   }
 
   .chat-input-row input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
   }
 
   .send-btn {
     border: 0;
-    color: #fff;
-    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    color: #000212;
+    background: var(--accent);
     border-radius: 12px;
     padding: 0.58rem 1rem;
     font-weight: 600;
     font-size: 0.86rem;
-    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.26);
+    box-shadow: 0 10px 20px rgba(20, 184, 166, 0.3);
     transition: 180ms ease;
   }
 
@@ -321,6 +304,7 @@
     opacity: 0.65;
     cursor: not-allowed;
     box-shadow: none;
+    filter: none;
   }
 
   @keyframes bubbleIn {
@@ -345,6 +329,7 @@
     }
   }
 </style>
+
 {% endblock %}
 
 {% block extra_scripts %}

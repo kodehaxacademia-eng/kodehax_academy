@@ -6,10 +6,10 @@
 {% block extra_head %}
 <style>
   .mono-card {
-    background: linear-gradient(160deg, #ffffff, #f7f7f7);
-    border: 1px solid #d4d4d8;
+    background: linear-gradient(160deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.82));
+    border: 1px solid rgba(148, 163, 184, 0.32);
     border-radius: 1rem;
-    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.26);
   }
 
   .mono-grid {
@@ -43,7 +43,7 @@
         {% if profile.profile_picture %}
         <img src="{{ profile.profile_picture.url }}" alt="Profile picture" class="h-24 w-24 rounded-2xl object-cover border border-zinc-300">
         {% else %}
-        <div class="h-24 w-24 rounded-2xl bg-black text-white flex items-center justify-center text-3xl font-black">
+        <div class="h-24 w-24 rounded-2xl bg-gradient-to-br from-indigo-600 to-cyan-500 text-white flex items-center justify-center text-3xl font-black">
           {{ teacher.username|first|upper }}
         </div>
         {% endif %}
@@ -58,7 +58,7 @@
           </p>
         </div>
       </div>
-      <a href="{% url 'teacher_edit_profile' %}" class="inline-flex items-center justify-center rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition">
+      <a href="{% url 'teacher_edit_profile' %}" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition">
         Edit Profile
       </a>
     </div>

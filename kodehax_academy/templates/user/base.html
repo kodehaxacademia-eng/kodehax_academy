@@ -4,187 +4,359 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Kodehax Academy{% endblock %}</title>
-
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     animation: {
-                        "float-slow": "float 7s ease-in-out infinite",
-                        "fade-up": "fadeUp 0.75s ease-out both",
-                        "pulse-glow": "pulseGlow 2.4s ease-in-out infinite",
+                        "float-slow": "float 8s ease-in-out infinite",
+                        "fade-up": "fadeUp 0.65s ease-out both",
+                        "glow-pulse": "glowPulse 2.6s ease-in-out infinite"
                     },
                     keyframes: {
                         float: {
-                            "0%, 100%": { transform: "translateY(0)" },
-                            "50%": { transform: "translateY(-8px)" },
+                            "0%, 100%": { transform: "translateY(0px)" },
+                            "50%": { transform: "translateY(-10px)" }
                         },
                         fadeUp: {
-                            "0%": { opacity: "0", transform: "translateY(20px)" },
-                            "100%": { opacity: "1", transform: "translateY(0)" },
+                            "0%": { opacity: "0", transform: "translateY(14px)" },
+                            "100%": { opacity: "1", transform: "translateY(0)" }
                         },
-                        pulseGlow: {
-                            "0%, 100%": { boxShadow: "0 0 0 0 rgba(34, 197, 94, 0.35)" },
-                            "50%": { boxShadow: "0 0 0 10px rgba(34, 197, 94, 0)" },
-                        },
-                    },
-                },
-            },
+                        glowPulse: {
+                            "0%, 100%": { boxShadow: "0 0 0 0 rgba(99, 102, 241, 0.28)" },
+                            "50%": { boxShadow: "0 0 0 12px rgba(99, 102, 241, 0)" }
+                        }
+                    }
+                }
+            }
         };
     </script>
     <style>
-        .hero-grid {
-            background-image:
-                linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
-            background-size: 24px 24px;
+        :root {
+            --bg: #020617;
+            --surface: rgba(15, 23, 42, 0.72);
+            --surface-soft: rgba(30, 41, 59, 0.58);
+            --border: rgba(148, 163, 184, 0.28);
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --accent: #6366f1;
+            --accent-2: #0ea5e9;
         }
-        .portal-card {
-            transform-style: preserve-3d;
-            transition: transform 0.35s ease, box-shadow 0.35s ease;
-            will-change: transform;
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(ellipse 80% 70% at 50% -10%, rgba(99, 102, 241, 0.25), transparent),
+                radial-gradient(circle at 85% 15%, rgba(14, 165, 233, 0.18), transparent 34%),
+                radial-gradient(circle at 15% 80%, rgba(16, 185, 129, 0.15), transparent 32%);
+            color: var(--text);
+            color-scheme: dark;
+        }
+
+        .glass-card {
+            background: linear-gradient(180deg, var(--surface-soft), var(--surface));
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(2, 6, 23, 0.35);
+            position: relative;
+            overflow: hidden;
+            transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
+        }
+
+        .glass-card::before {
+            content: "";
+            position: absolute;
+            inset: -120% auto -120% -40%;
+            width: 36%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+            transform: translateX(-180%) rotate(12deg);
+            opacity: 0;
+            transition: transform 480ms ease, opacity 260ms ease;
+            pointer-events: none;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(129, 140, 248, 0.52);
+            box-shadow: 0 24px 50px rgba(2, 6, 23, 0.46);
+        }
+
+        .glass-card:hover::before {
+            transform: translateX(320%) rotate(12deg);
+            opacity: 1;
+        }
+
+        .home-grid {
+            background-image:
+                linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+            background-size: 26px 26px;
+            transition: background-position 320ms ease;
+        }
+
+        .home-grid:hover {
+            background-position: 12px 12px;
+        }
+
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            left: 0.65rem;
+            right: 0.65rem;
+            bottom: 0.35rem;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 220ms ease;
+        }
+
+        .nav-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #4f46e5);
+            color: #fff;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            transition: transform 180ms ease, filter 180ms ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.01);
+            filter: brightness(1.06);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 0.75rem;
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+            background: rgba(15, 23, 42, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-outline:hover {
+            border-color: rgba(129, 140, 248, 0.7);
+            background: rgba(79, 70, 229, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary::before,
+        .btn-outline::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.24) 50%, transparent 80%);
+            transform: translateX(-140%);
+            transition: transform 420ms ease;
+            pointer-events: none;
+        }
+
+        .btn-primary:hover::before,
+        .btn-outline:hover::before {
+            transform: translateX(140%);
+        }
+
+        .reveal { animation: fadeUp 0.65s ease both; }
+        .delay-1 { animation-delay: 80ms; }
+        .delay-2 { animation-delay: 160ms; }
+        .delay-3 { animation-delay: 240ms; }
+        .delay-4 { animation-delay: 320ms; }
+
+        .field {
+            width: 100%;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(2, 6, 23, 0.5);
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.75rem 0.9rem;
+            transition: 160ms ease;
+        }
+
+        .field::placeholder { color: #94a3b8; }
+
+        .field:focus {
+            outline: none;
+            border-color: rgba(129, 140, 248, 0.9);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        select:-webkit-autofill {
+            -webkit-text-fill-color: #e2e8f0;
+            -webkit-box-shadow: 0 0 0 1000px rgba(2, 6, 23, 0.95) inset;
+            box-shadow: 0 0 0 1000px rgba(2, 6, 23, 0.95) inset;
+            transition: background-color 9999s ease-in-out 0s;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .stat-chip {
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(2, 6, 23, 0.45);
+            border-radius: 0.9rem;
+            transition: transform 220ms ease, border-color 220ms ease, background 220ms ease;
+        }
+
+        .stat-chip:hover {
+            transform: translateY(-4px);
+            border-color: rgba(14, 165, 233, 0.45);
+            background: rgba(15, 23, 42, 0.72);
+        }
+
+        .accent-line {
+            height: 2px;
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.8), rgba(14, 165, 233, 0.2));
         }
     </style>
+    {% block extra_head %}{% endblock %}
 </head>
-
-<body class="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-emerald-50/40 to-cyan-50">
-
-    <!-- Navbar -->
-    <nav class="bg-slate-900/95 backdrop-blur text-white px-8 py-4 flex justify-between items-center sticky top-0 z-20 border-b border-white/10">
-        <h1 class="text-xl font-bold tracking-wide">Kodehax Academy</h1>
-
-        <div class="space-x-6">
-            <a href="/" class="transition hover:text-green-400">Home</a>
-            <a href="{% url 'student_login' %}" class="transition hover:text-green-400">Student</a>
-            <a href="{% url 'teacher_login' %}" class="transition hover:text-green-400">Teacher</a>
+<body class="min-h-screen flex flex-col">
+    <nav class="sticky top-0 z-20 border-b border-slate-700/60 bg-black/30 backdrop-blur-xl">
+        <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 text-white font-black">K</span>
+                <div>
+                    <p class="text-xs tracking-[0.2em] uppercase text-slate-400">Kodehax</p>
+                    <h1 class="text-white font-bold leading-tight">Academy</h1>
+                </div>
+            </a>
+            <div class="flex items-center gap-2 text-sm">
+                <a href="/" class="nav-link px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition">Home</a>
+                <a href="{% url 'student_login' %}" class="nav-link px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition">Student</a>
+                <a href="{% url 'teacher_login' %}" class="nav-link px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition">Teacher</a>
+            </div>
         </div>
     </nav>
 
-        <!-- Main Content -->
-    <main class="flex-grow flex flex-col items-center justify-center p-6">
+    <main class="flex-1 px-6 py-10">
         {% if messages %}
-        <div class="w-full fixed top-4 left-0 right-0 z-50 flex justify-center">
-            <div class="max-w-2xl w-full mx-4">
+        <div class="w-full fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
+            <div class="max-w-2xl w-full space-y-3">
                 {% for message in messages %}
                     {% if message.tags == "success" %}
-                        <div class="bg-green-500 text-white px-6 py-4 rounded-lg mb-3 shadow-lg flex items-center justify-between animate-fade-up">
+                        <div class="glass-card border-emerald-500/45 text-emerald-200 px-5 py-3 flex items-center justify-between reveal">
                             <span>{{ message }}</span>
-                            <button onclick="this.parentElement.style.display='none'" class="text-white hover:text-gray-200">
-                                ✕
-                            </button>
+                            <button onclick="this.parentElement.style.display='none'" class="text-emerald-300 hover:text-emerald-100">x</button>
                         </div>
                     {% elif message.tags == "error" %}
-                        <div class="bg-red-500 text-white px-6 py-4 rounded-lg mb-3 shadow-lg flex items-center justify-between animate-fade-up">
+                        <div class="glass-card border-rose-500/45 text-rose-200 px-5 py-3 flex items-center justify-between reveal">
                             <span>{{ message }}</span>
-                            <button onclick="this.parentElement.style.display='none'" class="text-white hover:text-gray-200">
-                                ✕
-                            </button>
+                            <button onclick="this.parentElement.style.display='none'" class="text-rose-300 hover:text-rose-100">x</button>
                         </div>
                     {% endif %}
                 {% endfor %}
             </div>
         </div>
         {% endif %}
+
         {% block content %}
-
-        <div class="max-w-6xl mx-auto py-12 px-6 hero-grid rounded-3xl border border-white/50 shadow-2xl shadow-slate-200/70 bg-white/70 backdrop-blur animate-fade-up">
-
-            <!-- Page Title -->
-            <div class="text-center mb-12">
-                <h1 class="text-4xl md:text-5xl font-bold text-gray-800 animate-float-slow">
-                    Welcome to Kodehax Academy
-                </h1>
-                <p class="text-gray-600 mt-4 max-w-2xl mx-auto">
-                    A platform for students to learn and teachers to manage courses efficiently.
-                </p>
-            </div>
-
-            <!-- Two Portal Sections -->
-            <div class="grid md:grid-cols-2 gap-10">
-
-                <!-- Student Section -->
-                <div class="portal-card bg-white/95 shadow-lg rounded-2xl p-8 text-center border border-emerald-100 hover:shadow-2xl hover:-translate-y-1 transition animate-fade-up [animation-delay:120ms]">
-
-                    <h2 class="text-2xl font-semibold text-green-600 mb-4">
-                        Student Portal
-                    </h2>
-
-                    <p class="text-gray-600 mb-6">
-                        Students can join classes, interact in chat rooms,
-                        access study materials and track learning progress.
-                    </p>
-
-                    <div class="flex justify-center gap-4">
-
-                        <a href="{% url 'student_login' %}" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition hover:scale-105 animate-pulse-glow">
-                            Login
-                        </a>
-
-                        <a href="{% url 'student_register' %}" class="border border-green-600 text-green-600 px-5 py-2 rounded-lg hover:bg-green-50 transition hover:scale-105">
-                            Register
-                        </a>
-
+        <div class="mx-auto max-w-7xl space-y-8">
+            <section class="glass-card home-grid p-8 md:p-10 reveal">
+                <div class="grid lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <p class="text-xs tracking-[0.18em] uppercase text-slate-400">Empowering Tech Careers</p>
+                        <h2 class="mt-3 text-4xl md:text-5xl font-black leading-tight text-white animate-float-slow">
+                            Kodehax Academy
+                        </h2>
+                        <p class="mt-4 text-slate-300 max-w-xl">
+                            Industry-focused learning for Full Stack Development, Data Science, Cyber Security, and AI/ML with practical projects and mentorship.
+                        </p>
+                        <div class="mt-6 flex flex-wrap gap-3">
+                            <a href="{% url 'student_register' %}" class="btn-primary px-5 py-2.5 animate-glow-pulse">Join as Student</a>
+                            <a href="{% url 'teacher_register' %}" class="btn-outline px-5 py-2.5">Join as Teacher</a>
+                        </div>
                     </div>
-
-                </div>
-
-
-                <!-- Teacher Section -->
-                <div class="portal-card bg-white/95 shadow-lg rounded-2xl p-8 text-center border border-blue-100 hover:shadow-2xl hover:-translate-y-1 transition animate-fade-up [animation-delay:240ms]">
-
-                    <h2 class="text-2xl font-semibold text-blue-600 mb-4">
-                        Teacher Portal
-                    </h2>
-
-                    <p class="text-gray-600 mb-6">
-                        Teachers can create courses, manage classrooms,
-                        communicate with students and monitor performance.
-                    </p>
-
-                    <div class="flex justify-center gap-4">
-
-                        <a href="{% url 'teacher_login' %}" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition hover:scale-105">
-                            Login
-                        </a>
-
-                        <a href="{% url 'teacher_register' %}" class="border border-blue-600 text-blue-600 px-5 py-2 rounded-lg hover:bg-blue-50 transition hover:scale-105">
-                            Register
-                        </a>
-
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="stat-chip p-4">
+                            <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Mode</p>
+                            <p class="mt-2 text-xl font-bold text-white">Live Online</p>
+                        </div>
+                        <div class="stat-chip p-4">
+                            <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Approach</p>
+                            <p class="mt-2 text-xl font-bold text-white">Hands-on</p>
+                        </div>
+                        <div class="stat-chip p-4">
+                            <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Focus</p>
+                            <p class="mt-2 text-xl font-bold text-white">Career Ready</p>
+                        </div>
+                        <div class="stat-chip p-4">
+                            <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Support</p>
+                            <p class="mt-2 text-xl font-bold text-white">Mentorship</p>
+                        </div>
                     </div>
-
                 </div>
+            </section>
 
-            </div>
+            <section class="grid md:grid-cols-3 gap-4 reveal delay-1">
+                <article class="glass-card p-5">
+                    <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Trust</p>
+                    <h3 class="mt-2 text-lg font-bold text-white">Transparent Training</h3>
+                    <p class="mt-2 text-slate-300 text-sm">Clear outcomes, practical curriculum, and mentor-led sessions without inflated promises.</p>
+                </article>
+                <article class="glass-card p-5">
+                    <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Learning</p>
+                    <h3 class="mt-2 text-lg font-bold text-white">Project Driven</h3>
+                    <p class="mt-2 text-slate-300 text-sm">Build portfolio-ready projects across modern tech stacks and real-world use cases.</p>
+                </article>
+                <article class="glass-card p-5">
+                    <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Career</p>
+                    <h3 class="mt-2 text-lg font-bold text-white">Industry Mentorship</h3>
+                    <p class="mt-2 text-slate-300 text-sm">Guidance for interviews, internships, and growth with personalized feedback.</p>
+                </article>
+            </section>
 
+            <section class="glass-card p-7 reveal delay-2">
+                <div class="flex items-center justify-between gap-4 flex-wrap">
+                    <h3 class="text-2xl font-black text-white">Course Tracks</h3>
+                    <p class="text-sm text-slate-400">Popular learning paths at Kodehax Academy</p>
+                </div>
+                <div class="accent-line my-4"></div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="stat-chip p-4"><p class="text-white font-semibold">Full Stack Development</p><p class="text-slate-400 text-sm mt-1">Frontend, backend, databases, deployment</p></div>
+                    <div class="stat-chip p-4"><p class="text-white font-semibold">Data Science & Analytics</p><p class="text-slate-400 text-sm mt-1">Data analysis, ML, BI, visualization</p></div>
+                    <div class="stat-chip p-4"><p class="text-white font-semibold">Cyber Security</p><p class="text-slate-400 text-sm mt-1">Defensive and offensive security basics</p></div>
+                    <div class="stat-chip p-4"><p class="text-white font-semibold">AI / ML</p><p class="text-slate-400 text-sm mt-1">Applied AI workflows and model thinking</p></div>
+                </div>
+            </section>
+
+            <section class="glass-card p-7 reveal delay-3">
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Get Started</p>
+                        <h3 class="mt-2 text-2xl font-black text-white">Choose your portal and begin</h3>
+                        <p class="mt-2 text-slate-300">Students learn and practice. Teachers create, manage, and track progress from one workspace.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3 md:justify-end">
+                        <a href="{% url 'student_login' %}" class="btn-primary px-5 py-2.5">Student Login</a>
+                        <a href="{% url 'teacher_login' %}" class="btn-outline px-5 py-2.5">Teacher Login</a>
+                    </div>
+                </div>
+            </section>
         </div>
-
         {% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white text-center py-3">
-        <p class="text-sm">&copy; 2026 Kodehax Academy</p>
+    <footer class="border-t border-slate-700/60 bg-black/30 backdrop-blur text-center py-4">
+        <p class="text-sm text-slate-400">&copy; 2026 Kodehax Academy</p>
     </footer>
 
-    <script>
-        const cards = document.querySelectorAll(".portal-card");
-        cards.forEach((card) => {
-            card.addEventListener("mousemove", (e) => {
-                const r = card.getBoundingClientRect();
-                const x = e.clientX - r.left;
-                const y = e.clientY - r.top;
-                const rx = ((y / r.height) - 0.5) * -8;
-                const ry = ((x / r.width) - 0.5) * 8;
-                card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
-            });
-            card.addEventListener("mouseleave", () => {
-                card.style.transform = "perspective(900px) rotateX(0) rotateY(0) translateY(0)";
-            });
-        });
-    </script>
-
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -7,54 +7,141 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes pageFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    :root {
+      --bg: #000212;
+      --surface: #111827; /* slate-900 */
+      --border: #334155; /* slate-700 */
+      --text: #e2e8f0; /* slate-200 */
+      --muted: #94a3b8; /* slate-400 */
+      --accent: #14b8a6; /* teal-500 */
+    }
 
-        .page-enter {
-            animation: pageFadeIn 0.45s ease-out;
-        }
-    </style>
+    body {
+      background-color: var(--bg);
+      background-image: radial-gradient(ellipse 80% 80% at 50% -20%, rgba(20, 184, 166, 0.2), transparent);
+      color: var(--text);
+    }
+
+    .glass-card {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8)); /* slate-800 -> slate-900 */
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
+      border-radius: 1rem;
+    }
+
+    .hover-lift {
+      transition: transform 220ms ease, box-shadow 220ms ease;
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    .reveal {
+      animation: revealUp 460ms ease both;
+    }
+
+    .delay-1 { animation-delay: 70ms; }
+    .delay-2 { animation-delay: 140ms; }
+    .delay-3 { animation-delay: 210ms; }
+
+    .nav-link {
+      transition: 180ms ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-link:hover {
+      transform: translateX(2px);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-link.active {
+      background: var(--accent);
+      border-color: transparent;
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(20, 184, 166, 0.5);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000212;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      transition: 180ms ease;
+      box-shadow: 0 10px 20px rgba(20, 184, 166, 0.22);
+    }
+
+    .btn-primary:hover {
+      background: #10a391; /* darker teal */
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
+    }
+
+    .btn-muted {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: 180ms ease;
+    }
+
+    .btn-muted:hover {
+      border-color: var(--muted);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .custom-scroll {
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) rgba(0,0,0,0.2);
+    }
+
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 999px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 999px; }
+
+    @keyframes revealUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
     {% block extra_styles %}{% endblock %}
 </head>
 
-<body class="min-h-screen bg-slate-100 text-slate-800">
+<body class="min-h-screen">
 
 <div class="relative min-h-screen lg:flex">
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 -translate-x-full border-r border-slate-200 bg-white/95 text-slate-700 shadow-xl backdrop-blur transition-transform duration-300 lg:static lg:translate-x-0 lg:shadow-none">
-        <div class="flex h-full flex-col">
-            <div class="p-6 border-b border-slate-200">
-                <h2 class="text-xl font-bold tracking-tight text-slate-900">Student Panel</h2>
-                <p class="text-sm text-slate-500 mt-1">Learning Workspace</p>
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 -translate-x-full bg-black/30 backdrop-blur-lg border-r border-slate-700/70 transition-transform duration-300 lg:static lg:translate-x-0">
+        <div class="flex h-full flex-col custom-scroll overflow-y-auto">
+            <div class="p-6 border-b border-slate-700/70 reveal">
+                <h2 class="text-xl font-bold tracking-tight text-white">Student Panel</h2>
+                <p class="text-sm text-slate-400 mt-1">Learning Workspace</p>
             </div>
 
             <nav class="flex-1 p-4 space-y-2">
-                <a href="{% url 'student_dashboard' %}" class="group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 {% if 'dashboard' in request.path %}bg-slate-900 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                <a href="{% url 'student_dashboard' %}" class="nav-link text-slate-300 group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium reveal delay-1 {% if 'dashboard' in request.path %}active{% endif %}">
                     Dashboard
                 </a>
 
-                <a href="{% url 'student_assignments' %}" class="group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 {% if 'assignments' in request.path %}bg-slate-900 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                <a href="{% url 'student_assignments' %}" class="nav-link text-slate-300 group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium reveal delay-2 {% if 'assignments' in request.path %}active{% endif %}">
                     Assignments
                 </a>
 
-                <a href="{% url 'chat_page' %}" class="group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 text-slate-700 hover:bg-slate-100">
+                <a href="{% url 'chat_page' %}" class="nav-link text-slate-300 group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium reveal delay-3">
                     Chatroom
                 </a>
 
-                <a href="{% url 'student_profile' %}" class="group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 {% if 'profile' in request.path %}bg-slate-900 text-white shadow-sm{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                <a href="{% url 'student_profile' %}" class="nav-link text-slate-300 group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium reveal delay-3 {% if 'profile' in request.path %}active{% endif %}">
                     Profile
                 </a>
             </nav>
 
-            <div class="p-4 border-t border-slate-200">
-                <a href="{% url 'home' %}" class="inline-flex w-full items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition-colors duration-200 hover:bg-rose-100">
+            <div class="p-4 border-t border-slate-700/70">
+                <a href="{% url 'home' %}" class="inline-flex w-full items-center justify-center rounded-lg bg-rose-600/90 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-rose-500">
                     Logout
                 </a>
             </div>
@@ -64,24 +151,24 @@
     <div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="fixed inset-0 z-30 hidden bg-slate-900/40 backdrop-blur-[1px] lg:hidden"></div>
 
     <div class="flex-1 min-w-0">
-        <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/90 px-4 py-4 shadow-sm backdrop-blur sm:px-6">
+        <header class="sticky top-0 z-20 border-b border-slate-800 bg-black/10 px-4 py-4 backdrop-blur-sm sm:px-6">
             <div class="mx-auto flex max-w-7xl items-center justify-between">
-                <button type="button" onclick="toggleSidebar(true)" class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition-colors duration-200 hover:bg-slate-50 lg:hidden" aria-label="Open sidebar">
+                <button type="button" onclick="toggleSidebar(true)" class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 text-slate-300 transition-colors duration-200 hover:bg-slate-800 lg:hidden" aria-label="Open sidebar">
                     <span class="text-xl leading-none">&#9776;</span>
                 </button>
 
-                <h1 class="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
+                <h1 class="text-lg font-semibold tracking-tight text-white sm:text-xl">
                     {% block header %}Student Dashboard{% endblock %}
                 </h1>
 
-                <div class="hidden sm:block text-sm text-slate-500">
+                <div class="hidden sm:block text-sm text-slate-400">
                     {{ request.user.username }}
                 </div>
             </div>
         </header>
 
-        <main class="p-4 sm:p-6">
-            <div class="mx-auto max-w-7xl page-enter rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <main class="p-4 sm:p-6 custom-scroll">
+            <div class="mx-auto max-w-7xl glass-card p-5 sm:p-6 reveal">
                 {% block content %}
                 {% endblock %}
             </div>

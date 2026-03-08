@@ -8,22 +8,22 @@
   <section class="glass-card hover-lift p-6 reveal">
     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
       <div>
-        <p class="text-xs uppercase tracking-[0.14em] text-slate-500">Classroom</p>
-        <h3 class="text-3xl font-black text-slate-800 mt-1">{{ classroom.name }}</h3>
-        <p class="text-slate-600 mt-2 max-w-3xl">{{ classroom.description }}</p>
+        <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom</p>
+        <h3 class="text-3xl font-black text-white mt-1">{{ classroom.name }}</h3>
+        <p class="text-slate-300 mt-2 max-w-3xl">{{ classroom.description }}</p>
       </div>
-      <div class="min-w-[180px] rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-right">
-        <p class="text-xs uppercase tracking-[0.1em] text-blue-600 font-semibold">Class Code</p>
-        <p class="text-2xl font-black text-blue-700 mt-1">{{ classroom.class_code }}</p>
+      <div class="min-w-[180px] rounded-xl border border-blue-800 bg-blue-900/30 px-4 py-3 text-right">
+        <p class="text-xs uppercase tracking-[0.1em] text-blue-400 font-semibold">Class Code</p>
+        <p class="text-2xl font-black text-blue-300 mt-1">{{ classroom.class_code }}</p>
       </div>
     </div>
-    <p class="text-sm text-slate-500 mt-5">Created on {{ classroom.created_at|date:"M d, Y" }}</p>
+    <p class="text-sm text-slate-400 mt-5">Created on {{ classroom.created_at|date:"M d, Y" }}</p>
   </section>
 
   <section class="glass-card hover-lift p-6 reveal delay-1">
     <div class="flex items-center justify-between mb-5">
-      <h4 class="text-xl font-bold text-slate-800">Students</h4>
-      <span class="text-sm rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-slate-600">
+      <h4 class="text-xl font-bold text-white">Students</h4>
+      <span class="text-sm rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
         {{ students.count }} enrolled
       </span>
     </div>
@@ -31,20 +31,20 @@
     <div class="overflow-x-auto">
       <table class="w-full min-w-[500px] text-left">
         <thead>
-          <tr class="border-b border-slate-200 text-sm text-slate-500">
+          <tr class="border-b border-slate-700 text-sm text-slate-400">
             <th class="py-3 font-semibold">Name</th>
             <th class="py-3 font-semibold">Email</th>
           </tr>
         </thead>
         <tbody>
           {% for student in students %}
-          <tr class="table-row border-b border-slate-100">
-            <td class="py-3 font-medium text-slate-700">{{ student.username }}</td>
-            <td class="py-3 text-slate-600">{{ student.email }}</td>
+          <tr class="table-row border-b border-slate-800">
+            <td class="py-3 font-medium text-slate-200">{{ student.username }}</td>
+            <td class="py-3 text-slate-300">{{ student.email }}</td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="2" class="py-8 text-center text-slate-500">No students enrolled yet.</td>
+            <td colspan="2" class="py-8 text-center text-slate-400">No students enrolled yet.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -54,7 +54,7 @@
 
   <section class="glass-card hover-lift p-6 reveal delay-2">
     <div class="flex items-center justify-between mb-5">
-      <h4 class="text-xl font-bold text-slate-800">Assignments</h4>
+      <h4 class="text-xl font-bold text-white">Assignments</h4>
         <a href="{% url 'assignments_page' classroom.id %}"
             class="btn-primary px-4 py-2 text-sm">
             Create Assignment
@@ -64,7 +64,7 @@
     <div class="overflow-x-auto">
       <table class="w-full min-w-[620px] text-left">
         <thead>
-          <tr class="border-b border-slate-200 text-sm text-slate-500">
+          <tr class="border-b border-slate-700 text-sm text-slate-400">
             <th class="py-3 font-semibold">Title</th>
             <th class="py-3 font-semibold">Due Date</th>
             <th class="py-3 font-semibold">Submissions</th>
@@ -72,14 +72,14 @@
         </thead>
         <tbody>
           {% for assignment in assignments %}
-          <tr class="table-row border-b border-slate-100">
-            <td class="py-3 font-medium text-slate-700">{{ assignment.title }}</td>
-            <td class="py-3 text-slate-600">{{ assignment.due_date|date:"M d, Y" }}</td>
-            <td class="py-3 text-slate-600">{{ assignment.submissions.count }}</td>
+          <tr class="table-row border-b border-slate-800">
+            <td class="py-3 font-medium text-slate-200">{{ assignment.title }}</td>
+            <td class="py-3 text-slate-300">{{ assignment.due_date|date:"M d, Y" }}</td>
+            <td class="py-3 text-slate-300">{{ assignment.submissions.count }}</td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="3" class="py-8 text-center text-slate-500">No assignments created.</td>
+            <td colspan="3" class="py-8 text-center text-slate-400">No assignments created.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -90,11 +90,11 @@
   <section class="glass-card hover-lift p-6 reveal delay-3">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <h4 class="text-xl font-bold text-slate-800">Classroom Chat</h4>
-        <p class="text-slate-600 text-sm mt-1">Communicate with students in real-time and keep conversations organized.</p>
+        <h4 class="text-xl font-bold text-white">Classroom Chat</h4>
+        <p class="text-slate-300 text-sm mt-1">Communicate with students in real-time and keep conversations organized.</p>
       </div>
       <a href="#"
-         class="inline-flex items-center justify-center rounded-xl bg-emerald-600 text-white px-6 py-2.5 font-semibold hover:bg-emerald-700 transition hover:-translate-y-0.5">
+         class="inline-flex items-center justify-center rounded-xl bg-emerald-500 text-white px-6 py-2.5 font-semibold hover:bg-emerald-600 transition hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20">
         Open Chatroom
       </a>
     </div>

@@ -8,26 +8,30 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --panel-bg: #e7edf6;
-      --sidebar-1: #0f172a;
-      --sidebar-2: #111827;
-      --surface: #ffffff;
-      --border: #dbe3ee;
-      --text: #1f2937;
-      --muted: #64748b;
-      --accent: #2563eb;
+      --bg: #030712;
+      --surface: #0f172a;
+      --surface-soft: rgba(15, 23, 42, 0.72);
+      --surface-elevated: rgba(30, 41, 59, 0.68);
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #6366f1;
     }
 
     body {
-      background: radial-gradient(circle at 0% 0%, #e2e8f0 0%, transparent 35%),
-                  radial-gradient(circle at 100% 100%, #dbeafe 0%, transparent 40%),
-                  linear-gradient(180deg, #f8fbff 0%, #eef2ff 100%);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 80% at 50% -20%, rgba(99, 102, 241, 0.35), transparent),
+        radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.16), transparent 44%);
+      color: var(--text);
     }
 
     .glass-card {
-      background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.96));
+      background: linear-gradient(180deg, var(--surface-elevated), var(--surface-soft));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid var(--border);
-      box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
       border-radius: 1rem;
     }
 
@@ -47,14 +51,15 @@
 
     .nav-link:hover {
       transform: translateX(2px);
-      background: rgba(148, 163, 184, 0.16);
-      border-color: rgba(148, 163, 184, 0.25);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
     }
 
     .nav-link.active {
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(29, 78, 216, 0.2));
-      border-color: rgba(96, 165, 250, 0.5);
+      background: var(--accent);
+      border-color: transparent;
       color: #ffffff;
+      box-shadow: 0 0 15px rgba(79, 70, 229, 0.5);
     }
 
     .hover-lift {
@@ -62,12 +67,12 @@
     }
 
     .hover-lift:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 18px 30px rgba(15, 23, 42, 0.12);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      background: var(--accent);
       color: #ffffff;
       border-radius: 0.75rem;
       font-weight: 700;
@@ -76,14 +81,15 @@
     }
 
     .btn-primary:hover {
-      filter: brightness(1.04);
+      background: #4338ca; /* indigo-700 */
       transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(79, 70, 229, 0.6);
     }
 
     .btn-muted {
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-      color: #334155;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
       border-radius: 0.75rem;
       font-weight: 700;
       transition: 180ms ease;
@@ -91,7 +97,8 @@
 
     .btn-muted:hover {
       background: #f8fafc;
-      border-color: #94a3b8;
+      border-color: var(--muted);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .table-row {
@@ -99,13 +106,12 @@
     }
 
     .table-row:hover {
-      background: rgba(248, 250, 252, 0.9);
-      transform: translateX(2px);
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .custom-scroll {
       scrollbar-width: thin;
-      scrollbar-color: #93c5fd #eff6ff;
+      scrollbar-color: #6366f1 rgba(15, 23, 42, 0.35);
     }
 
     .custom-scroll::-webkit-scrollbar {
@@ -114,13 +120,89 @@
     }
 
     .custom-scroll::-webkit-scrollbar-track {
-      background: #eff6ff;
+      background: rgba(15, 23, 42, 0.35);
       border-radius: 999px;
     }
 
     .custom-scroll::-webkit-scrollbar-thumb {
-      background: #93c5fd;
+      background: var(--accent);
       border-radius: 999px;
+    }
+
+    /* Utility overrides for consistent dark theme across all teacher pages. */
+    .bg-white,
+    .bg-slate-50,
+    .bg-slate-100,
+    .bg-zinc-100,
+    .bg-blue-50,
+    .bg-emerald-50,
+    .bg-rose-50,
+    .bg-rose-50\/50 {
+      background: rgba(15, 23, 42, 0.62) !important;
+      color: var(--text) !important;
+    }
+
+    .border-slate-100,
+    .border-slate-200,
+    .border-slate-300,
+    .border-zinc-200,
+    .border-zinc-300,
+    .border-emerald-200,
+    .border-rose-200,
+    .border-rose-100 {
+      border-color: rgba(148, 163, 184, 0.32) !important;
+    }
+
+    .text-slate-800,
+    .text-slate-700,
+    .text-slate-600,
+    .text-zinc-900,
+    .text-zinc-800,
+    .text-zinc-700 {
+      color: #e2e8f0 !important;
+    }
+
+    .text-slate-500,
+    .text-zinc-600,
+    .text-zinc-500 {
+      color: #94a3b8 !important;
+    }
+
+    .placeholder\:text-slate-400::placeholder {
+      color: #94a3b8 !important;
+    }
+
+    .text-emerald-700 {
+      color: #6ee7b7 !important;
+    }
+
+    .text-rose-700 {
+      color: #fda4af !important;
+    }
+
+    .text-blue-600 {
+      color: #93c5fd !important;
+    }
+
+    .focus\:ring-blue-100:focus {
+      --tw-ring-color: rgba(99, 102, 241, 0.35) !important;
+    }
+
+    .focus\:border-blue-400:focus {
+      border-color: rgba(129, 140, 248, 0.9) !important;
+    }
+
+    .prose,
+    .prose p,
+    .prose li,
+    .prose strong {
+      color: #cbd5e1 !important;
+    }
+
+    input.bg-white,
+    textarea.bg-white,
+    select.bg-white {
+      background: rgba(2, 6, 23, 0.5) !important;
     }
 
     .ambient-orb {
@@ -128,22 +210,22 @@
       border-radius: 999px;
       filter: blur(35px);
       pointer-events: none;
-      animation: floatDrift 14s ease-in-out infinite;
+      animation: floatDrift 18s ease-in-out infinite;
       opacity: 0.55;
     }
 
     .ambient-orb.orb-1 {
-      width: 180px;
-      height: 180px;
-      background: rgba(56, 189, 248, 0.2);
-      top: -52px;
-      right: -48px;
+      width: 250px;
+      height: 250px;
+      background: rgba(79, 70, 229, 0.3); /* indigo */
+      top: -80px;
+      right: -60px;
     }
 
     .ambient-orb.orb-2 {
-      width: 210px;
-      height: 210px;
-      background: rgba(96, 165, 250, 0.18);
+      width: 300px;
+      height: 300px;
+      background: rgba(120, 119, 198, 0.25);
       bottom: -72px;
       left: -56px;
       animation-delay: -4s;
@@ -165,22 +247,22 @@
         transform: translateY(0) translateX(0);
       }
       50% {
-        transform: translateY(10px) translateX(6px);
+        transform: translateY(20px) translateX(15px);
       }
     }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-800">
+<body class="min-h-screen">
   <div class="min-h-screen flex flex-col">
-    <aside class="shrink-0 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-slate-100 px-5 py-4 relative overflow-hidden border-b border-slate-700/70">
+    <aside class="shrink-0 bg-black/30 backdrop-blur-lg text-slate-100 px-5 py-4 relative overflow-hidden border-b border-slate-700/70">
       <div class="ambient-orb orb-2"></div>
       <div class="ambient-orb orb-1"></div>
       <div class="relative">
         <div class="flex items-center justify-between gap-4">
           <div class="reveal">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">KODEHAX</p>
-            <h1 class="text-2xl font-black mt-1">Teacher Hub</h1>
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Kodehax</p>
+            <h1 class="text-2xl font-black mt-1 text-white">Teacher Hub</h1>
           </div>
           <a href="{% url 'home' %}" class="rounded-xl bg-rose-600/90 px-4 py-2 text-sm font-semibold hover:bg-rose-500 transition reveal delay-1">
             Logout
@@ -188,58 +270,58 @@
         </div>
 
         <nav class="mt-4 flex items-center gap-2 text-sm overflow-x-auto custom-scroll pb-1">
-          <a href="{% url 'teacher_dashboard' %}" class="nav-link {% if '/teacher/dashboard/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-1">
+          <a href="{% url 'teacher_dashboard' %}" class="nav-link text-slate-300 {% if '/teacher/dashboard/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-1">
             Dashboard
           </a>
-          <a href="{% url 'create_class' %}" class="nav-link {% if '/teacher/class/create/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-2">
+          <a href="{% url 'create_class' %}" class="nav-link text-slate-300 {% if '/teacher/class/create/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-2">
             Create Classroom
           </a>
           {% if classroom %}
-          <a href="{% url 'assignment_list' classroom.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          <a href="{% url 'assignment_list' classroom.id %}" class="nav-link text-slate-300 {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
             Assignments
           </a>
           {% elif assignment %}
-          <a href="{% url 'assignment_list' assignment.classroom.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          <a href="{% url 'assignment_list' assignment.classroom.id %}" class="nav-link text-slate-300 {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
             Assignments
           </a>
           {% else %}
           {% with first_class=request.user.teacher_classes.first %}
           {% if first_class %}
-          <a href="{% url 'assignments_page' class_id=first_class.id %}" class="nav-link {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          <a href="{% url 'assignments_page' class_id=first_class.id %}" class="nav-link text-slate-300 {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
             Assignments
           </a>
           {% else %}
-          <a href="#" class="nav-link inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          <a href="#" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
             Assignments
           </a>
           {% endif %}
           {% endwith %}
           {% endif %}
-          <a href="{% url 'ai_tools' %}" class="nav-link {% if '/teacher/ai-tools/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          <a href="{% url 'ai_tools' %}" class="nav-link text-slate-300 {% if '/teacher/ai-tools/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
             AI Tools
           </a>
           {% if classroom %}
-          <a href="{% url 'performance_list' classroom.id %}" class="nav-link {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+          <a href="{% url 'performance_list' classroom.id %}" class="nav-link text-slate-300 {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
             Performance
           </a>
           {% elif assignment %}
-          <a href="{% url 'performance_list' assignment.classroom.id %}" class="nav-link {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+          <a href="{% url 'performance_list' assignment.classroom.id %}" class="nav-link text-slate-300 {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
             Performance
           </a>
           {% else %}
           {% with first_class=request.user.teacher_classes.first %}
           {% if first_class %}
-          <a href="{% url 'performance_list' first_class.id %}" class="nav-link {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+          <a href="{% url 'performance_list' first_class.id %}" class="nav-link text-slate-300 {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
             Performance
           </a>
           {% else %}
-          <a href="#" class="nav-link inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+          <a href="#" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
             Performance
           </a>
           {% endif %}
           {% endwith %}
           {% endif %}
-          <a href="{% url 'teacher_profile' %}" class="nav-link {% if '/teacher/profile/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
+          <a href="{% url 'teacher_profile' %}" class="nav-link text-slate-300 {% if '/teacher/profile/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
             Profile
           </a>
         </nav>
@@ -247,21 +329,21 @@
     </aside>
 
     <main class="flex-1 overflow-hidden flex flex-col">
-      <header class="h-20 bg-white/95 backdrop-blur border-b border-slate-200 flex items-center justify-between px-6">
+      <header class="h-20 bg-transparent flex items-center justify-between px-6">
         <div class="reveal">
-          <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Teacher Workspace</p>
-          <h2 class="text-xl font-bold">{% block page_title %}Teacher Dashboard{% endblock %}</h2>
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Teacher Workspace</p>
+          <h2 class="text-xl font-bold text-white">{% block page_title %}Teacher Dashboard{% endblock %}</h2>
         </div>
         <div class="flex items-center gap-3 reveal delay-1">
           <div class="text-right">
-            <p class="text-xs text-slate-500">Logged in as</p>
-            <p class="font-semibold text-slate-700">{{ request.user.username }}</p>
+            <p class="text-xs text-slate-400">Logged in as</p>
+            <p class="font-semibold text-slate-200">{{ request.user.username }}</p>
           </div>
-          <a href="{% url 'teacher_profile' %}" class="block h-11 w-11 rounded-full overflow-hidden shadow-md border border-slate-200 hover:scale-105 transition" title="Open Profile">
+          <a href="{% url 'teacher_profile' %}" class="block h-11 w-11 rounded-full overflow-hidden shadow-md border-2 border-slate-700 hover:scale-105 transition" title="Open Profile">
             {% if nav_teacher_profile and nav_teacher_profile.profile_picture %}
             <img src="{{ nav_teacher_profile.profile_picture.url }}" alt="Teacher profile" class="h-full w-full object-cover">
             {% else %}
-            <div class="h-full w-full rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
+            <div class="h-full w-full rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center text-white text-sm font-bold">
               {{ request.user.username|first|upper }}
             </div>
             {% endif %}
@@ -269,7 +351,7 @@
         </div>
       </header>
 
-      <div class="flex-1 overflow-y-auto custom-scroll p-6 bg-[radial-gradient(circle_at_0%_0%,_#e2e8f0_0,_transparent_30%),radial-gradient(circle_at_100%_100%,_#dbeafe_0,_transparent_35%),_var(--panel-bg)]">
+      <div class="flex-1 overflow-y-auto custom-scroll p-6">
         {% block content %}{% endblock %}
       </div>
     </main>

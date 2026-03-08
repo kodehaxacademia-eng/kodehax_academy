@@ -8,9 +8,9 @@
   <section class="glass-card hover-lift p-6 reveal">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <p class="text-xs uppercase tracking-[0.14em] text-slate-500">Overview</p>
-        <h3 class="text-3xl font-black text-slate-800 mt-1">Welcome back, {{ request.user.username }}</h3>
-        <p class="text-slate-600 mt-2">Track classrooms, students, and assignments from one place.</p>
+        <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Overview</p>
+        <h3 class="text-3xl font-black text-white mt-1">Welcome back, {{ request.user.username }}</h3>
+        <p class="text-slate-300 mt-2">Track classrooms, students, and assignments from one place.</p>
       </div>
       <a href="{% url 'create_class' %}" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">
         + Create Class
@@ -20,32 +20,32 @@
 
   <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
     <article class="glass-card hover-lift p-5 reveal delay-1">
-      <p class="text-sm text-slate-500">Total Classes</p>
-      <p class="text-4xl font-black text-blue-700 mt-1">{{ classes.count }}</p>
-      <p class="text-xs text-slate-500 mt-2">All classrooms created by you</p>
+      <p class="text-sm text-slate-400">Total Classes</p>
+      <p class="text-4xl font-black text-blue-400 mt-1">{{ classes.count }}</p>
+      <p class="text-xs text-slate-400 mt-2">All classrooms created by you</p>
     </article>
     <article class="glass-card hover-lift p-5 reveal delay-2">
-      <p class="text-sm text-slate-500">Assignments</p>
-      <p class="text-4xl font-black text-emerald-600 mt-1">{{ assignment_count }}</p>
-      <p class="text-xs text-slate-500 mt-2">Assigned across your classrooms</p>
+      <p class="text-sm text-slate-400">Assignments</p>
+      <p class="text-4xl font-black text-emerald-400 mt-1">{{ assignment_count }}</p>
+      <p class="text-xs text-slate-400 mt-2">Assigned across your classrooms</p>
     </article>
     <article class="glass-card hover-lift p-5 reveal delay-3">
-      <p class="text-sm text-slate-500">Students</p>
-      <p class="text-4xl font-black text-indigo-600 mt-1">{{ student_count }}</p>
-      <p class="text-xs text-slate-500 mt-2">Current enrolled count</p>
+      <p class="text-sm text-slate-400">Students</p>
+      <p class="text-4xl font-black text-indigo-400 mt-1">{{ student_count }}</p>
+      <p class="text-xs text-slate-400 mt-2">Current enrolled count</p>
     </article>
   </section>
 
   <section class="glass-card hover-lift p-6 reveal delay-2">
     <div class="flex items-center justify-between mb-5">
-      <h4 class="text-xl font-bold text-slate-800">Your Classes</h4>
-      <span class="text-sm text-slate-500">{{ classes.count }} total</span>
+      <h4 class="text-xl font-bold text-white">Your Classes</h4>
+      <span class="text-sm text-slate-400">{{ classes.count }} total</span>
     </div>
 
     <div class="overflow-x-auto">
       <table class="w-full text-left min-w-[620px]">
         <thead>
-          <tr class="text-sm text-slate-500 border-b border-slate-200">
+          <tr class="text-sm text-slate-400 border-b border-slate-700">
             <th class="py-3 font-semibold">Class Name</th>
             <th class="py-3 font-semibold">Students</th>
             <th class="py-3 font-semibold">Created</th>
@@ -54,10 +54,10 @@
         </thead>
         <tbody>
           {% for class in classes %}
-          <tr class="table-row border-b border-slate-100">
-            <td class="py-3.5 font-medium text-slate-700">{{ class.name }}</td>
-            <td class="py-3.5 text-slate-600">{{ class.students.count }}</td>
-            <td class="py-3.5 text-slate-600">{{ class.created_at|date:"M d, Y" }}</td>
+          <tr class="table-row border-b border-slate-800">
+            <td class="py-3.5 font-medium text-slate-200">{{ class.name }}</td>
+            <td class="py-3.5 text-slate-300">{{ class.students.count }}</td>
+            <td class="py-3.5 text-slate-300">{{ class.created_at|date:"M d, Y" }}</td>
             <td class="py-3.5">
               <a href="{% url 'class_detail' class.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">
                 View
@@ -66,7 +66,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="4" class="py-10 text-center text-slate-500">
+            <td colspan="4" class="py-10 text-center text-slate-400">
               No classes created yet.
             </td>
           </tr>

@@ -6,10 +6,11 @@
 {% block extra_head %}
 <style>
   .edit-shell {
-    background: linear-gradient(160deg, #ffffff, #f5f5f5);
-    border: 1px solid #d4d4d8;
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border, #334155);
     border-radius: 1rem;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
   }
 
   .field-label {
@@ -19,23 +20,23 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #52525b;
+    color: var(--muted, #94a3b8);
   }
 
   .field-input {
     width: 100%;
-    border: 1px solid #a1a1aa;
-    background: #ffffff;
+    border: 1px solid var(--border, #334155);
+    background: rgba(0,0,0,0.2);
     border-radius: 0.75rem;
     padding: 0.65rem 0.8rem;
-    color: #18181b;
+    color: var(--text, #e2e8f0);
     transition: border-color 150ms ease, box-shadow 150ms ease;
   }
 
   .field-input:focus {
     outline: none;
-    border-color: #18181b;
-    box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.12);
+    border-color: var(--accent, #4f46e5);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.4);
   }
 
   .fade-in { animation: fadeIn 300ms ease both; }
@@ -51,16 +52,16 @@
   <section class="edit-shell p-6 md:p-7">
     <div class="flex items-center justify-between gap-3 mb-6">
       <div>
-        <p class="text-xs uppercase tracking-[0.2em] text-zinc-500">Teacher Workspace</p>
-        <h2 class="text-2xl font-black text-zinc-900">Edit Profile</h2>
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Teacher Workspace</p>
+        <h2 class="text-2xl font-black text-white">Edit Profile</h2>
       </div>
-      <a href="{% url 'teacher_profile' %}" class="rounded-xl border border-zinc-400 px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-100 transition">
+      <a href="{% url 'teacher_profile' %}" class="btn-muted px-4 py-2 text-sm">
         Back to Profile
       </a>
     </div>
 
     {% if profile_form.errors %}
-    <div class="mb-5 rounded-xl border border-zinc-400 bg-zinc-100 px-4 py-3 text-sm text-zinc-800">
+    <div class="mb-5 rounded-xl border border-red-500/50 bg-red-900/20 px-4 py-3 text-sm text-red-300">
       Please fix the errors and submit again.
     </div>
     {% endif %}
@@ -72,16 +73,16 @@
         <div>
           <label class="field-label">Profile Picture</label>
           <input type="file" name="{{ profile_form.profile_picture.html_name }}" id="{{ profile_form.profile_picture.id_for_label }}" accept="image/*" class="hidden">
-          <label for="{{ profile_form.profile_picture.id_for_label }}" class="block cursor-pointer rounded-2xl border border-dashed border-zinc-500 bg-zinc-100 p-4 text-center hover:bg-zinc-200 transition">
-            <div class="mx-auto h-28 w-28 overflow-hidden rounded-2xl border border-zinc-400 bg-white">
+          <label for="{{ profile_form.profile_picture.id_for_label }}" class="block cursor-pointer rounded-2xl border border-dashed border-slate-600 bg-slate-900/50 p-4 text-center hover:bg-slate-800/50 transition">
+            <div class="mx-auto h-28 w-28 overflow-hidden rounded-2xl border border-slate-600 bg-slate-800">
               {% if profile.profile_picture %}
               <img id="profilePreview" src="{{ profile.profile_picture.url }}" alt="Preview" class="h-full w-full object-cover">
               {% else %}
-              <div id="profilePreviewFallback" class="h-full w-full flex items-center justify-center text-3xl font-black text-zinc-900">{{ teacher.username|first|upper }}</div>
+              <div id="profilePreviewFallback" class="h-full w-full flex items-center justify-center text-3xl font-black text-slate-400">{{ teacher.username|first|upper }}</div>
               <img id="profilePreview" src="" alt="Preview" class="hidden h-full w-full object-cover">
               {% endif %}
             </div>
-            <p class="mt-3 text-sm font-semibold text-zinc-800">Upload photo</p>
+            <p class="mt-3 text-sm font-semibold text-slate-300">Upload photo</p>
           </label>
           {% if profile_form.profile_picture.errors %}<p class="mt-1 text-xs text-red-700">{{ profile_form.profile_picture.errors.0 }}</p>{% endif %}
         </div>
@@ -103,8 +104,8 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <button type="submit" class="rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition">Save Changes</button>
-        <a href="{% url 'teacher_profile' %}" class="rounded-xl border border-zinc-400 px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 transition">Cancel</a>
+        <button type="submit" class="btn-primary px-5 py-2.5 text-sm">Save Changes</button>
+        <a href="{% url 'teacher_profile' %}" class="btn-muted px-5 py-2.5 text-sm">Cancel</a>
       </div>
     </form>
   </section>

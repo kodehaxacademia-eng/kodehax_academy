@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Teacher Panel{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'image/image.png' %}">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -51,8 +52,8 @@
 
     .nav-link:hover {
       transform: translateX(2px);
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(30, 41, 59, 0.48);
+      border-color: rgba(148, 163, 184, 0.28);
     }
 
     .nav-link.active {
@@ -96,9 +97,8 @@
     }
 
     .btn-muted:hover {
-      background: #f8fafc;
       border-color: var(--muted);
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(30, 41, 59, 0.5);
     }
 
     .table-row {
@@ -106,7 +106,7 @@
     }
 
     .table-row:hover {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(30, 41, 59, 0.35);
     }
 
     .custom-scroll {
@@ -261,8 +261,13 @@
       <div class="relative">
         <div class="flex items-center justify-between gap-4">
           <div class="reveal">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Kodehax</p>
-            <h1 class="text-2xl font-black mt-1 text-white">Teacher Hub</h1>
+            <div class="flex items-center gap-3">
+              <img src="{% static 'image/image.png' %}" alt="Kodehax Academy logo" class="h-10 w-10 rounded-xl object-cover">
+              <div>
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Kodehax Academy</p>
+                <h1 class="text-2xl font-black mt-1 text-white">Teacher Hub</h1>
+              </div>
+            </div>
           </div>
           <a href="{% url 'home' %}" class="rounded-xl bg-rose-600/90 px-4 py-2 text-sm font-semibold hover:bg-rose-500 transition reveal delay-1">
             Logout

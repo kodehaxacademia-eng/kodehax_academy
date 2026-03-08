@@ -5,37 +5,19 @@
 {% block header %}Assignments{% endblock %}
 
 {% block content %}
-
-<style>
-  @keyframes assignmentFade {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .assignment-enter {
-    animation: assignmentFade 0.4s ease-out;
-  }
-</style>
-
-<section class="assignment-enter space-y-5">
-  <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+<section class="space-y-5 reveal">
+  <div class="rounded-2xl border border-slate-700 bg-slate-900/50 p-3">
     <div class="flex flex-wrap gap-2">
-      <a href="{% url 'view_assignment' %}" class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 {% if 'view_assignment' in request.path %}bg-blue-600 text-white shadow-sm{% else %}bg-white text-slate-700 border border-slate-300 hover:bg-slate-50{% endif %}">
+      <a href="{% url 'view_assignment' %}" class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition {% if 'view_assignment' in request.path %}bg-teal-500 text-slate-900 shadow-sm{% else %}bg-slate-900/60 text-slate-200 border border-slate-600 hover:bg-slate-800{% endif %}">
         View Assignments
       </a>
-      <a href="{% url 'submit_assignment' %}" class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 {% if 'submit_assignment' in request.path %}bg-emerald-600 text-white shadow-sm{% else %}bg-white text-slate-700 border border-slate-300 hover:bg-slate-50{% endif %}">
+      <a href="{% url 'submit_assignment' %}" class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition {% if 'submit_assignment' in request.path %}bg-teal-500 text-slate-900 shadow-sm{% else %}bg-slate-900/60 text-slate-200 border border-slate-600 hover:bg-slate-800{% endif %}">
         Submit Assignment
       </a>
     </div>
   </div>
 
-  <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+  <div class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6 reveal delay-1">
     {% block assignment_content %}
     {% endblock %}
   </div>

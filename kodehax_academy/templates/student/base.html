@@ -1,9 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Student Panel{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'image/image.png' %}">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -114,87 +116,57 @@
 
 <body class="min-h-screen">
 
-<div class="relative min-h-screen lg:flex">
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 -translate-x-full bg-black/30 backdrop-blur-lg border-r border-slate-700/70 transition-transform duration-300 lg:static lg:translate-x-0">
-        <div class="flex h-full flex-col custom-scroll overflow-y-auto">
-            <div class="p-6 border-b border-slate-700/70 reveal">
-                <h2 class="text-xl font-bold tracking-tight text-white">Student Panel</h2>
-                <p class="text-sm text-slate-400 mt-1">Learning Workspace</p>
-            </div>
-
-            <nav class="flex-1 p-4 space-y-2">
-                <a href="{% url 'student_dashboard' %}" class="nav-link text-slate-300 group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium reveal delay-1 {% if 'dashboard' in request.path %}active{% endif %}">
-                    Dashboard
-                </a>
-
-                <a href="{% url 'student_assignments' %}" class="nav-link text-slate-300 group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium reveal delay-2 {% if 'assignments' in request.path %}active{% endif %}">
-                    Assignments
-                </a>
-
-                <a href="{% url 'chat_page' %}" class="nav-link text-slate-300 group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium reveal delay-3">
-                    Chatroom
-                </a>
-
-                <a href="{% url 'student_profile' %}" class="nav-link text-slate-300 group flex items-center rounded-xl px-4 py-2.5 text-sm font-medium reveal delay-3 {% if 'profile' in request.path %}active{% endif %}">
-                    Profile
-                </a>
-            </nav>
-
-            <div class="p-4 border-t border-slate-700/70">
-                <a href="{% url 'home' %}" class="inline-flex w-full items-center justify-center rounded-lg bg-rose-600/90 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-rose-500">
+<div class="relative min-h-screen">
+    <aside class="z-30 bg-black/30 backdrop-blur-lg border-b border-slate-700/70">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 py-4">
+            <div class="flex flex-wrap items-center justify-between gap-4 reveal">
+                <div class="flex items-center gap-3">
+                    <img src="{% static 'image/image.png' %}" alt="Kodehax Academy logo" class="h-10 w-10 rounded-xl object-cover">
+                    <div>
+                        <p class="text-xs tracking-[0.18em] uppercase text-slate-400">Kodehax Academy</p>
+                        <h2 class="text-xl font-bold tracking-tight text-white">Student Panel</h2>
+                    </div>
+                </div>
+                <a href="{% url 'home' %}" class="inline-flex items-center justify-center rounded-lg bg-rose-600/90 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-rose-500">
                     Logout
                 </a>
             </div>
+
+            <nav class="mt-4 flex items-center gap-2 overflow-x-auto custom-scroll pb-1 reveal delay-1">
+                <a href="{% url 'student_dashboard' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'dashboard' in request.path %}active{% endif %}">
+                    Dashboard
+                </a>
+                <a href="{% url 'student_assignments' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'assignments' in request.path %}active{% endif %}">
+                    Assignments
+                </a>
+                <a href="{% url 'chat_page' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium">
+                    Chatroom
+                </a>
+                <a href="{% url 'student_profile' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'profile' in request.path %}active{% endif %}">
+                    Profile
+                </a>
+            </nav>
         </div>
     </aside>
 
-    <div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="fixed inset-0 z-30 hidden bg-slate-900/40 backdrop-blur-[1px] lg:hidden"></div>
-
-    <div class="flex-1 min-w-0">
-        <header class="sticky top-0 z-20 border-b border-slate-800 bg-black/10 px-4 py-4 backdrop-blur-sm sm:px-6">
-            <div class="mx-auto flex max-w-7xl items-center justify-between">
-                <button type="button" onclick="toggleSidebar(true)" class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 text-slate-300 transition-colors duration-200 hover:bg-slate-800 lg:hidden" aria-label="Open sidebar">
-                    <span class="text-xl leading-none">&#9776;</span>
-                </button>
-
-                <h1 class="text-lg font-semibold tracking-tight text-white sm:text-xl">
-                    {% block header %}Student Dashboard{% endblock %}
-                </h1>
-
-                <div class="hidden sm:block text-sm text-slate-400">
-                    {{ request.user.username }}
-                </div>
+    <header class="border-b border-slate-800 bg-black/10 px-4 py-4 backdrop-blur-sm sm:px-6">
+        <div class="mx-auto flex max-w-7xl items-center justify-between">
+            <h1 class="text-lg font-semibold tracking-tight text-white sm:text-xl">
+                {% block header %}Student Dashboard{% endblock %}
+            </h1>
+            <div class="hidden sm:block text-sm text-slate-400">
+                {{ request.user.username }}
             </div>
-        </header>
+        </div>
+    </header>
 
-        <main class="p-4 sm:p-6 custom-scroll">
-            <div class="mx-auto max-w-7xl glass-card p-5 sm:p-6 reveal">
-                {% block content %}
-                {% endblock %}
-            </div>
-        </main>
-    </div>
+    <main class="p-4 sm:p-6 custom-scroll">
+        <div class="mx-auto max-w-7xl glass-card p-5 sm:p-6 reveal">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
 </div>
-
-<script>
-function toggleSidebar(open){
-    const sidebar = document.getElementById("sidebar");
-    const backdrop = document.getElementById("sidebarBackdrop");
-    if (open) {
-        sidebar.classList.remove("-translate-x-full");
-        backdrop.classList.remove("hidden");
-        return;
-    }
-    sidebar.classList.add("-translate-x-full");
-    backdrop.classList.add("hidden");
-}
-
-window.addEventListener("resize", function () {
-    if (window.innerWidth >= 1024) {
-        toggleSidebar(false);
-    }
-});
-</script>
 {% block extra_scripts %}{% endblock %}
 
 </body>

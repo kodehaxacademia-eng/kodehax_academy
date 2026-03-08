@@ -1,9 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Kodehax Academy{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'image/image.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -11,8 +13,7 @@
                 extend: {
                     animation: {
                         "float-slow": "float 8s ease-in-out infinite",
-                        "fade-up": "fadeUp 0.65s ease-out both",
-                        "glow-pulse": "glowPulse 2.6s ease-in-out infinite"
+                        "fade-up": "fadeUp 0.65s ease-out both"
                     },
                     keyframes: {
                         float: {
@@ -22,10 +23,6 @@
                         fadeUp: {
                             "0%": { opacity: "0", transform: "translateY(14px)" },
                             "100%": { opacity: "1", transform: "translateY(0)" }
-                        },
-                        glowPulse: {
-                            "0%, 100%": { boxShadow: "0 0 0 0 rgba(99, 102, 241, 0.28)" },
-                            "50%": { boxShadow: "0 0 0 12px rgba(99, 102, 241, 0)" }
                         }
                     }
                 }
@@ -66,27 +63,10 @@
             transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
         }
 
-        .glass-card::before {
-            content: "";
-            position: absolute;
-            inset: -120% auto -120% -40%;
-            width: 36%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
-            transform: translateX(-180%) rotate(12deg);
-            opacity: 0;
-            transition: transform 480ms ease, opacity 260ms ease;
-            pointer-events: none;
-        }
-
         .glass-card:hover {
             transform: translateY(-6px);
             border-color: rgba(129, 140, 248, 0.52);
-            box-shadow: 0 24px 50px rgba(2, 6, 23, 0.46);
-        }
-
-        .glass-card:hover::before {
-            transform: translateX(320%) rotate(12deg);
-            opacity: 1;
+            box-shadow: 0 24px 50px rgba(2, 6, 23, 0.46), 0 0 0 1px rgba(14, 165, 233, 0.2) inset;
         }
 
         .home-grid {
@@ -129,46 +109,28 @@
             color: #fff;
             border-radius: 0.75rem;
             font-weight: 700;
-            transition: transform 180ms ease, filter 180ms ease;
-            position: relative;
-            overflow: hidden;
+            transition: transform 220ms ease, filter 220ms ease, box-shadow 220ms ease;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px) scale(1.01);
+            transform: translateY(-3px) scale(1.02);
             filter: brightness(1.06);
+            box-shadow: 0 12px 26px rgba(79, 70, 229, 0.42);
         }
 
         .btn-outline {
             border: 1px solid var(--border);
             color: var(--text);
             border-radius: 0.75rem;
-            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+            transition: transform 220ms ease, border-color 220ms ease, background 220ms ease, box-shadow 220ms ease;
             background: rgba(15, 23, 42, 0.35);
-            position: relative;
-            overflow: hidden;
         }
 
         .btn-outline:hover {
             border-color: rgba(129, 140, 248, 0.7);
             background: rgba(79, 70, 229, 0.12);
-            transform: translateY(-2px);
-        }
-
-        .btn-primary::before,
-        .btn-outline::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.24) 50%, transparent 80%);
-            transform: translateX(-140%);
-            transition: transform 420ms ease;
-            pointer-events: none;
-        }
-
-        .btn-primary:hover::before,
-        .btn-outline:hover::before {
-            transform: translateX(140%);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.24);
         }
 
         .reveal { animation: fadeUp 0.65s ease both; }
@@ -231,7 +193,7 @@
     <nav class="sticky top-0 z-20 border-b border-slate-700/60 bg-black/30 backdrop-blur-xl">
         <div class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
             <a href="/" class="flex items-center gap-3">
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 text-white font-black">K</span>
+                <img src="{% static 'image/image.png' %}" alt="Kodehax Academy Logo" class="h-9 w-9 rounded-xl object-cover">
                 <div>
                     <p class="text-xs tracking-[0.2em] uppercase text-slate-400">Kodehax</p>
                     <h1 class="text-white font-bold leading-tight">Academy</h1>
@@ -279,7 +241,7 @@
                             Industry-focused learning for Full Stack Development, Data Science, Cyber Security, and AI/ML with practical projects and mentorship.
                         </p>
                         <div class="mt-6 flex flex-wrap gap-3">
-                            <a href="{% url 'student_register' %}" class="btn-primary px-5 py-2.5 animate-glow-pulse">Join as Student</a>
+                            <a href="{% url 'student_register' %}" class="btn-primary px-5 py-2.5">Join as Student</a>
                             <a href="{% url 'teacher_register' %}" class="btn-outline px-5 py-2.5">Join as Teacher</a>
                         </div>
                     </div>

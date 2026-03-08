@@ -8,9 +8,9 @@
   <section class="glass-card hover-lift p-6 reveal">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <p class="text-xs uppercase tracking-[0.14em] text-slate-500">Classroom</p>
-        <h3 class="text-3xl font-black text-slate-800 mt-1">{{ classroom.name }}</h3>
-        <p class="text-slate-600 mt-2">Manage and review all tasks assigned to this class.</p>
+        <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom</p>
+        <h3 class="text-3xl font-black text-white mt-1">{{ classroom.name }}</h3>
+        <p class="text-slate-300 mt-2">Manage and review all tasks assigned to this class.</p>
       </div>
       <a href="{% url 'create_assignment' classroom.id %}" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">
         + New Assignment
@@ -22,7 +22,7 @@
     <div class="overflow-x-auto">
       <table class="w-full text-left min-w-[600px]">
         <thead>
-          <tr class="text-sm text-slate-500 border-b border-slate-200">
+          <tr class="text-sm text-slate-400 border-b border-slate-700">
             <th class="py-3 font-semibold">Assignment Title</th>
             <th class="py-3 font-semibold">Due Date</th>
             <th class="py-3 font-semibold">Submissions</th>
@@ -31,10 +31,10 @@
         </thead>
         <tbody>
           {% for assignment in assignments %}
-          <tr class="table-row border-b border-slate-100">
-            <td class="py-4 font-medium text-slate-700">{{ assignment.title }}</td>
-            <td class="py-4 text-slate-600">{{ assignment.due_date|date:"M d, Y" }}</td>
-            <td class="py-4 text-slate-600">{{ assignment.submissions.count }}</td>
+          <tr class="table-row border-b border-slate-800">
+            <td class="py-4 font-medium text-slate-200">{{ assignment.title }}</td>
+            <td class="py-4 text-slate-300">{{ assignment.due_date|date:"M d, Y" }}</td>
+            <td class="py-4 text-slate-300">{{ assignment.submissions.count }}</td>
             <td class="py-4">
               <a href="{% url 'assignment_detail' assignment.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">
                 View Details
@@ -43,7 +43,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="4" class="py-12 text-center text-slate-500">No assignments created yet.</td>
+            <td colspan="4" class="py-12 text-center text-slate-400">No assignments created yet.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -52,3 +52,4 @@
   </section>
 </div>
 {% endblock %}
+

@@ -3,122 +3,90 @@
 {% block title %}Profile - {{ teacher.username }}{% endblock %}
 {% block page_title %}Teacher Profile{% endblock %}
 
-{% block extra_head %}
-<style>
-  .mono-card {
-    background: linear-gradient(160deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.82));
-    border: 1px solid rgba(148, 163, 184, 0.32);
-    border-radius: 1rem;
-    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.26);
-  }
-
-  .mono-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-  }
-
-  @media (max-width: 768px) {
-    .mono-grid {
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-    }
-  }
-
-  .soft-reveal {
-    animation: softReveal 380ms ease both;
-  }
-
-  @keyframes softReveal {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="space-y-6">
-  <section class="mono-card p-6 soft-reveal">
+  <section class="glass-card hover-lift p-6 reveal">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
       <div class="flex items-center gap-4">
         {% if profile.profile_picture %}
-        <img src="{{ profile.profile_picture.url }}" alt="Profile picture" class="h-24 w-24 rounded-2xl object-cover border border-zinc-300">
+        <img src="{{ profile.profile_picture.url }}" alt="Profile picture" class="h-24 w-24 rounded-2xl object-cover border border-slate-600">
         {% else %}
         <div class="h-24 w-24 rounded-2xl bg-gradient-to-br from-indigo-600 to-cyan-500 text-white flex items-center justify-center text-3xl font-black">
           {{ teacher.username|first|upper }}
         </div>
         {% endif %}
         <div>
-          <p class="text-xs tracking-[0.2em] uppercase text-zinc-500">Profile</p>
-          <h2 class="mt-1 text-3xl font-black text-zinc-900">
+          <p class="text-xs tracking-[0.2em] uppercase text-slate-400">Profile</p>
+          <h2 class="mt-1 text-3xl font-black text-white">
             {{ profile.full_name|default:teacher.username }}
           </h2>
-          <p class="text-zinc-600">{{ teacher.email }}</p>
-          <p class="mt-2 inline-block rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700">
+          <p class="text-slate-300">{{ teacher.email }}</p>
+          <p class="mt-2 inline-block rounded-full border border-slate-600 px-3 py-1 text-xs font-semibold text-slate-200">
             {{ profile.department|default:"Department not set" }}
           </p>
         </div>
       </div>
-      <a href="{% url 'teacher_edit_profile' %}" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition">
+      <a href="{% url 'teacher_edit_profile' %}" class="btn-primary inline-flex items-center justify-center px-5 py-2.5 text-sm">
         Edit Profile
       </a>
     </div>
   </section>
 
   {% if updated %}
-  <div class="rounded-xl border border-zinc-300 bg-zinc-100 px-4 py-3 text-sm text-zinc-700 soft-reveal">
+  <div class="reveal delay-1 rounded-xl border border-emerald-500/40 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-300">
     Profile updated successfully.
   </div>
   {% endif %}
 
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 soft-reveal">
-    <article class="mono-card p-5">
-      <p class="text-xs uppercase tracking-[0.14em] text-zinc-500">Classes</p>
-      <p class="mt-2 text-3xl font-black text-zinc-900">{{ stats.class_count }}</p>
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 reveal delay-1">
+    <article class="glass-card hover-lift p-5">
+      <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classes</p>
+      <p class="mt-2 text-3xl font-black text-white">{{ stats.class_count }}</p>
     </article>
-    <article class="mono-card p-5">
-      <p class="text-xs uppercase tracking-[0.14em] text-zinc-500">Assignments</p>
-      <p class="mt-2 text-3xl font-black text-zinc-900">{{ stats.assignment_count }}</p>
+    <article class="glass-card hover-lift p-5">
+      <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Assignments</p>
+      <p class="mt-2 text-3xl font-black text-white">{{ stats.assignment_count }}</p>
     </article>
-    <article class="mono-card p-5">
-      <p class="text-xs uppercase tracking-[0.14em] text-zinc-500">Students</p>
-      <p class="mt-2 text-3xl font-black text-zinc-900">{{ stats.student_count }}</p>
+    <article class="glass-card hover-lift p-5">
+      <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Students</p>
+      <p class="mt-2 text-3xl font-black text-white">{{ stats.student_count }}</p>
     </article>
-    <article class="mono-card p-5">
-      <p class="text-xs uppercase tracking-[0.14em] text-zinc-500">Submissions</p>
-      <p class="mt-2 text-3xl font-black text-zinc-900">{{ stats.submission_count }}</p>
+    <article class="glass-card hover-lift p-5">
+      <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Submissions</p>
+      <p class="mt-2 text-3xl font-black text-white">{{ stats.submission_count }}</p>
     </article>
   </section>
 
-  <section class="mono-card p-6 soft-reveal">
-    <h3 class="text-xl font-bold text-zinc-900 mb-4">Profile Details</h3>
-    <div class="mono-grid text-sm">
-      <div class="rounded-xl border border-zinc-200 bg-white p-4">
-        <p class="text-xs uppercase tracking-[0.12em] text-zinc-500">Phone</p>
-        <p class="mt-1 font-semibold text-zinc-800">{{ profile.phone_number|default:"Not added" }}</p>
+  <section class="glass-card hover-lift p-6 reveal delay-2">
+    <h3 class="text-xl font-bold text-white mb-4">Profile Details</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Phone</p>
+        <p class="mt-1 font-semibold text-slate-200">{{ profile.phone_number|default:"Not added" }}</p>
       </div>
-      <div class="rounded-xl border border-zinc-200 bg-white p-4">
-        <p class="text-xs uppercase tracking-[0.12em] text-zinc-500">Qualification</p>
-        <p class="mt-1 font-semibold text-zinc-800">{{ profile.qualification|default:"Not added" }}</p>
+      <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Qualification</p>
+        <p class="mt-1 font-semibold text-slate-200">{{ profile.qualification|default:"Not added" }}</p>
       </div>
-      <div class="rounded-xl border border-zinc-200 bg-white p-4">
-        <p class="text-xs uppercase tracking-[0.12em] text-zinc-500">Experience</p>
-        <p class="mt-1 font-semibold text-zinc-800">{{ profile.years_experience|default:"Not added" }}</p>
+      <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Experience</p>
+        <p class="mt-1 font-semibold text-slate-200">{{ profile.years_experience|default:"Not added" }}</p>
       </div>
-      <div class="rounded-xl border border-zinc-200 bg-white p-4">
-        <p class="text-xs uppercase tracking-[0.12em] text-zinc-500">Website</p>
-        <p class="mt-1 font-semibold text-zinc-800 break-all">{{ profile.website|default:"Not added" }}</p>
+      <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Website</p>
+        <p class="mt-1 font-semibold text-slate-200 break-all">{{ profile.website|default:"Not added" }}</p>
       </div>
-      <div class="rounded-xl border border-zinc-200 bg-white p-4 md:col-span-2">
-        <p class="text-xs uppercase tracking-[0.12em] text-zinc-500">LinkedIn</p>
-        <p class="mt-1 font-semibold text-zinc-800 break-all">{{ profile.linkedin|default:"Not added" }}</p>
+      <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4 md:col-span-2">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-400">LinkedIn</p>
+        <p class="mt-1 font-semibold text-slate-200 break-all">{{ profile.linkedin|default:"Not added" }}</p>
       </div>
-      <div class="rounded-xl border border-zinc-200 bg-white p-4 md:col-span-2">
-        <p class="text-xs uppercase tracking-[0.12em] text-zinc-500">Bio</p>
-        <p class="mt-1 text-zinc-700">{{ profile.bio|default:"Not added" }}</p>
+      <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4 md:col-span-2">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Bio</p>
+        <p class="mt-1 text-slate-300">{{ profile.bio|default:"Not added" }}</p>
       </div>
-      <div class="rounded-xl border border-zinc-200 bg-white p-4 md:col-span-2">
-        <p class="text-xs uppercase tracking-[0.12em] text-zinc-500">Address</p>
-        <p class="mt-1 text-zinc-700">{{ profile.address|default:"Not added" }}</p>
+      <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4 md:col-span-2">
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Address</p>
+        <p class="mt-1 text-slate-300">{{ profile.address|default:"Not added" }}</p>
       </div>
     </div>
   </section>

@@ -2,25 +2,28 @@
 
 {% block assignment_content %}
 
-<h2 class="text-xl font-semibold mb-4">Submit Assignment</h2>
+<div class="mb-5">
+    <h2 class="text-xl font-bold text-white">Submit Assignment</h2>
+    <p class="text-sm text-slate-400 mt-1">Choose the assignment and upload your file.</p>
+</div>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" class="space-y-5">
 
     {% csrf_token %}
 
-    <div class="mb-4">
-        <label class="block mb-1">Assignment</label>
-        <select class="w-full border p-2 rounded">
+    <div>
+        <label class="block mb-2 text-sm font-semibold text-slate-200">Assignment</label>
+        <select name="assignment_id" class="w-full rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-2.5 text-slate-200 focus:border-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/25 transition">
             <option>Select Assignment</option>
         </select>
     </div>
 
-    <div class="mb-4">
-        <label class="block mb-1">Upload File</label>
-        <input type="file" class="w-full border p-2 rounded">
+    <div>
+        <label class="block mb-2 text-sm font-semibold text-slate-200">Upload File</label>
+        <input type="file" name="submission_file" class="block w-full cursor-pointer rounded-xl border border-slate-600 bg-slate-900/60 text-sm text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-500 file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/25">
     </div>
 
-    <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+    <button class="btn-primary inline-flex items-center justify-center px-5 py-2.5">
         Submit
     </button>
 

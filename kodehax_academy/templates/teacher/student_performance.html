@@ -29,26 +29,28 @@
           <thead>
             <tr class="text-sm text-slate-400 border-b border-slate-700">
               <th class="py-3 font-semibold">Assignment</th>
+              <th class="py-3 font-semibold">Type</th>
               <th class="py-3 font-semibold">Score</th>
               <th class="py-3 font-semibold">Submitted</th>
-              <th class="py-3 font-semibold">AI Feedback</th>
+              <th class="py-3 font-semibold">Feedback</th>
             </tr>
           </thead>
           <tbody>
-            {% for sub in submissions %}
+            {% for rec in score_records %}
             <tr class="table-row border-b border-slate-800">
-              <td class="py-3.5 font-medium text-slate-200">{{ sub.assignment.title }}</td>
-              <td class="py-3.5 font-bold {% if sub.score >= 70 %}text-emerald-300{% else %}text-amber-300{% endif %}">
-                {{ sub.score|default:"Pending" }}
+              <td class="py-3.5 font-medium text-slate-200">{{ rec.assignment.title }}</td>
+              <td class="py-3.5 text-slate-300">{{ rec.assignment.get_assignment_type_display }}</td>
+              <td class="py-3.5 font-bold {% if rec.score != None and rec.score >= 70 %}text-emerald-300{% elif rec.score != None %}text-amber-300{% else %}text-slate-400{% endif %}">
+                {{ rec.score|default:"Pending" }}
               </td>
-              <td class="py-3.5 text-slate-300 text-sm">{{ sub.submitted_at|date:"M d, Y" }}</td>
+              <td class="py-3.5 text-slate-300 text-sm">{{ rec.submitted_at|date:"M d, Y"|default:"-" }}</td>
               <td class="py-3.5 text-xs text-slate-400 italic max-w-xs truncate">
-                {{ sub.ai_feedback|default:"No feedback yet" }}
+                {{ rec.feedback|default:"No feedback yet" }}
               </td>
             </tr>
             {% empty %}
             <tr>
-              <td colspan="4" class="py-10 text-center text-slate-400">No submissions found.</td>
+              <td colspan="5" class="py-10 text-center text-slate-400">No submissions found.</td>
             </tr>
             {% endfor %}
           </tbody>

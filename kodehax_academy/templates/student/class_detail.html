@@ -1,13 +1,14 @@
 {% extends "student/base.html" %}
 
-{% block title %}Assignments{% endblock %}
-{% block header %}Assignments{% endblock %}
+{% block title %}Class Detail{% endblock %}
+{% block header %}Class Detail{% endblock %}
 
 {% block content %}
 <section class="space-y-5 reveal">
   <div class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
-    <h2 class="text-xl font-bold tracking-tight text-white">Available Assignments</h2>
-    <p class="text-sm text-slate-400 mt-1">Assignments from classrooms you joined.</p>
+    <h2 class="text-xl font-bold text-white">{{ classroom.name }}</h2>
+    <p class="text-sm text-slate-400 mt-1">Teacher: {{ classroom.teacher.username }}</p>
+    <p class="text-sm text-slate-300 mt-3">{{ classroom.description|default:"No description provided." }}</p>
   </div>
 
   <div class="space-y-4">
@@ -16,7 +17,7 @@
       <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h3 class="text-lg font-bold text-slate-100">{{ row.assignment.title }}</h3>
-          <p class="text-xs text-slate-400 mt-1">{{ row.assignment.classroom.name }} | {{ row.assignment.get_assignment_type_display }}</p>
+          <p class="mt-1 text-xs text-slate-400">{{ row.assignment.get_assignment_type_display }}</p>
         </div>
         <div class="text-sm text-slate-300">
           Due: {{ row.assignment.due_date|date:"M d, Y H:i" }}
@@ -25,19 +26,28 @@
 
       {% if row.assignment.description %}
       <div class="mt-4 rounded-xl border border-slate-700 bg-slate-950/40 p-4">
-        <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Questions / Instructions</p>
+        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Questions / Instructions</p>
         <div class="whitespace-pre-wrap text-sm text-slate-200">{{ row.assignment.description }}</div>
       </div>
       {% endif %}
 
-      <div class="mt-4 flex flex-wrap items-center gap-3">
+      <div class="mt-4 flex flex-wrap items-center gap-3 text-sm">
         {% if row.status_class == "emerald" %}
-        <span class="rounded-md bg-emerald-900/30 px-2 py-1 text-sm text-emerald-200">{{ row.status_label }}</span>
+        <span class="rounded-md bg-emerald-900/30 px-2 py-1 text-emerald-200">{{ row.status_label }}</span>
         {% else %}
-        <span class="rounded-md bg-amber-900/30 px-2 py-1 text-sm text-amber-200">{{ row.status_label }}</span>
+        <span class="rounded-md bg-amber-900/30 px-2 py-1 text-amber-200">{{ row.status_label }}</span>
         {% endif %}
-        {% if row.assignment.assignment_type == "quiz" and row.submission %}
-        <span class="text-sm text-slate-300">Score: {{ row.submission.score }} / {{ row.assignment.max_score }}</span>
+
+        {% if row.assignment.assignment_type == "file" or row.assignment.assignment_type == "code" %}
+          {% if row.submission and row.submission.score %}
+          <span class="text-slate-300">Score: {{ row.submission.score }} / {{ row.assignment.max_score }}</span>
+          {% elif row.submission %}
+          <span class="text-slate-400">Submitted, not graded yet</span>
+          {% else %}
+          <span class="text-slate-500">Not submitted</span>
+          {% endif %}
+        {% elif row.assignment.assignment_type == "quiz" and row.submission %}
+          <span class="text-slate-300">Score: {{ row.submission.score }} / {{ row.assignment.max_score }}</span>
         {% endif %}
 
         {% if row.assignment.assignment_type == "quiz" %}
@@ -51,7 +61,7 @@
     </article>
     {% empty %}
     <div class="rounded-2xl border border-slate-700 bg-slate-900/40 p-8 text-center text-sm text-slate-400">
-      No assignments available yet.
+      No assignments posted yet.
     </div>
     {% endfor %}
   </div>

@@ -1,10 +1,31 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import User
 
 def home(request):
     return render(request, "user/base.html")
+
+
+def _redirect_for_role(role):
+    return "teacher_dashboard" if role == "teacher" else "student_dashboard"
+
+
+def _block_cross_role_login(request, target_role):
+    if not request.user.is_authenticated:
+        return None
+
+    if request.user.role == target_role:
+        return redirect(_redirect_for_role(target_role))
+
+    messages.error(
+        request,
+        (
+            f"You are already logged in as {request.user.role} in this browser session. "
+            "Use Logout first, or open the other role in an incognito window / different browser profile."
+        ),
+    )
+    return redirect(_redirect_for_role(request.user.role))
 # -------------------------
 # Student Register
 # -------------------------
@@ -83,6 +104,9 @@ def teacher_register(request):
 # Student Login
 # -------------------------
 def student_login(request):
+    block_response = _block_cross_role_login(request, "student")
+    if block_response:
+        return block_response
 
     if request.method == "POST":
 
@@ -109,6 +133,9 @@ def student_login(request):
 # Teacher Login
 # -------------------------
 def teacher_login(request):
+    block_response = _block_cross_role_login(request, "teacher")
+    if block_response:
+        return block_response
 
     if request.method == "POST":
 
@@ -129,3 +156,9 @@ def teacher_login(request):
         return redirect("/teacher/dashboard/")
 
     return render(request, "user/login/teacher_login.html")
+
+
+def user_logout(request):
+    logout(request)
+    messages.success(request, "Logged out successfully.")
+    return redirect("home")

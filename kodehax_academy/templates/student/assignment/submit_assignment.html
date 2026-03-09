@@ -1,32 +1,38 @@
-{% extends "student/assignment/assignment.html" %}
+{% extends "student/base.html" %}
 
-{% block assignment_content %}
+{% block title %}Submit Assignment{% endblock %}
+{% block header %}Submit Assignment{% endblock %}
 
-<div class="mb-5">
-    <h2 class="text-xl font-bold text-white">Submit Assignment</h2>
-    <p class="text-sm text-slate-400 mt-1">Choose the assignment and upload your file.</p>
-</div>
+{% block content %}
+<section class="space-y-5 reveal">
+  <div class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
+    <h2 class="text-xl font-bold text-white">{{ assignment.title }}</h2>
+    <p class="text-sm text-slate-400 mt-1">Class: {{ assignment.classroom.name }}</p>
+    <p class="text-sm text-slate-400">Due: {{ assignment.due_date|date:"M d, Y H:i" }}</p>
+    {% if assignment.description %}
+    <div class="mt-4 rounded-lg border border-slate-700 bg-slate-950/40 p-4">
+      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Questions / Instructions</p>
+      <div class="whitespace-pre-wrap text-sm text-slate-200">{{ assignment.description }}</div>
+    </div>
+    {% endif %}
+    {% if assignment.resource_file %}
+    <a href="{{ assignment.resource_file.url }}" class="mt-3 inline-block text-sm text-teal-300 hover:underline" target="_blank">Download assignment attachment</a>
+    {% endif %}
+  </div>
 
-<form method="POST" enctype="multipart/form-data" class="space-y-5">
+  {% if existing_submission %}
+  <div class="rounded-xl border border-emerald-700 bg-emerald-950/20 p-4 text-sm text-emerald-200">
+    You already submitted this assignment. Upload a new file to re-submit.
+  </div>
+  {% endif %}
 
+  <form method="POST" enctype="multipart/form-data" class="space-y-5 rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
     {% csrf_token %}
-
     <div>
-        <label class="block mb-2 text-sm font-semibold text-slate-200">Assignment</label>
-        <select name="assignment_id" class="w-full rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-2.5 text-slate-200 focus:border-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/25 transition">
-            <option>Select Assignment</option>
-        </select>
+      <label class="block mb-2 text-sm font-semibold text-slate-200">Upload File</label>
+      <input type="file" name="file" required class="block w-full cursor-pointer rounded-xl border border-slate-600 bg-slate-900/60 text-sm text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-500 file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/25">
     </div>
-
-    <div>
-        <label class="block mb-2 text-sm font-semibold text-slate-200">Upload File</label>
-        <input type="file" name="submission_file" class="block w-full cursor-pointer rounded-xl border border-slate-600 bg-slate-900/60 text-sm text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-500 file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/25">
-    </div>
-
-    <button class="btn-primary inline-flex items-center justify-center px-5 py-2.5">
-        Submit
-    </button>
-
-</form>
-
+    <button type="submit" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">Submit</button>
+  </form>
+</section>
 {% endblock %}

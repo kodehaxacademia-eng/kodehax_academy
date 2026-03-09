@@ -127,7 +127,7 @@
                         <h2 class="text-xl font-bold tracking-tight text-white">Student Panel</h2>
                     </div>
                 </div>
-                <a href="{% url 'home' %}" class="inline-flex items-center justify-center rounded-lg bg-rose-600/90 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-rose-500">
+                <a href="{% url 'logout' %}" class="inline-flex items-center justify-center rounded-lg bg-rose-600/90 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-rose-500">
                     Logout
                 </a>
             </div>
@@ -136,7 +136,7 @@
                 <a href="{% url 'student_dashboard' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'dashboard' in request.path %}active{% endif %}">
                     Dashboard
                 </a>
-                <a href="{% url 'student_assignments' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'assignments' in request.path %}active{% endif %}">
+                <a href="{% url 'view_assignments' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'assignments' in request.path %}active{% endif %}">
                     Assignments
                 </a>
                 <a href="{% url 'chat_page' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium">
@@ -162,6 +162,15 @@
 
     <main class="p-4 sm:p-6 custom-scroll">
         <div class="mx-auto max-w-7xl glass-card p-5 sm:p-6 reveal">
+            {% if messages %}
+                <div class="mb-4 space-y-2">
+                    {% for message in messages %}
+                        <div class="rounded-lg border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm text-slate-100">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
             {% block content %}
             {% endblock %}
         </div>
@@ -171,3 +180,4 @@
 
 </body>
 </html>
+

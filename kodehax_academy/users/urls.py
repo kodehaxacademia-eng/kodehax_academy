@@ -12,5 +12,6 @@ urlpatterns = [
     # Teacher routes
     path("teacher/register/", views.teacher_register, name="teacher_register"),
     path("teacher/login/", views.teacher_login, name="teacher_login"),
+    path("logout/", views.user_logout, name="logout"),
 
 ]

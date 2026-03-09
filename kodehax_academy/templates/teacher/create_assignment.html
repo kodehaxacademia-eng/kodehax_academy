@@ -9,6 +9,7 @@
     <div class="mb-6">
       <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom: {{ classroom.name }}</p>
       <h3 class="text-3xl font-black text-white mt-1">Create Assignment</h3>
+      <p class="text-xs uppercase tracking-[0.14em] text-teal-300 mt-1">Type: File Upload</p>
       <p class="text-slate-300 mt-2">Define the task, set a deadline, and provide instructions for your students.</p>
     </div>
 
@@ -44,10 +45,14 @@
            class="btn-muted px-5 py-2.5">
           Cancel
         </a>
-        <button type="submit" 
-                class="btn-primary px-6 py-2.5">
-          Create Assignment
-        </button>
+        <div class="flex gap-2">
+          <a href="{% url 'assignment_type_selector' classroom.id %}" class="btn-muted px-4 py-2.5">
+            Change Type
+          </a>
+          <button type="submit" class="btn-primary px-6 py-2.5">
+            Create Assignment
+          </button>
+        </div>
       </div>
     </form>
   </section>

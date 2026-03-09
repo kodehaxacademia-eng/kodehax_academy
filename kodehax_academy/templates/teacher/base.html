@@ -269,7 +269,7 @@
               </div>
             </div>
           </div>
-          <a href="{% url 'home' %}" class="rounded-xl bg-rose-600/90 px-4 py-2 text-sm font-semibold hover:bg-rose-500 transition reveal delay-1">
+          <a href="{% url 'logout' %}" class="rounded-xl bg-rose-600/90 px-4 py-2 text-sm font-semibold hover:bg-rose-500 transition reveal delay-1">
             Logout
           </a>
         </div>
@@ -357,6 +357,15 @@
       </header>
 
       <div class="flex-1 overflow-y-auto custom-scroll p-6">
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+          {% for message in messages %}
+          <div class="rounded-lg border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm text-slate-100">
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
         {% block content %}{% endblock %}
       </div>
     </main>
@@ -364,3 +373,4 @@
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>
+

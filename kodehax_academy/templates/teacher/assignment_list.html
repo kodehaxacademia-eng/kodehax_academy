@@ -12,7 +12,7 @@
         <h3 class="text-3xl font-black text-white mt-1">{{ classroom.name }}</h3>
         <p class="text-slate-300 mt-2">Manage and review all tasks assigned to this class.</p>
       </div>
-      <a href="{% url 'create_assignment' classroom.id %}" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">
+      <a href="{% url 'assignment_type_selector' classroom.id %}" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">
         + New Assignment
       </a>
     </div>
@@ -24,26 +24,28 @@
         <thead>
           <tr class="text-sm text-slate-400 border-b border-slate-700">
             <th class="py-3 font-semibold">Assignment Title</th>
+            <th class="py-3 font-semibold">Type</th>
             <th class="py-3 font-semibold">Due Date</th>
             <th class="py-3 font-semibold">Submissions</th>
             <th class="py-3 font-semibold">Action</th>
           </tr>
         </thead>
         <tbody>
-          {% for assignment in assignments %}
+          {% for row in assignment_rows %}
           <tr class="table-row border-b border-slate-800">
-            <td class="py-4 font-medium text-slate-200">{{ assignment.title }}</td>
-            <td class="py-4 text-slate-300">{{ assignment.due_date|date:"M d, Y" }}</td>
-            <td class="py-4 text-slate-300">{{ assignment.submissions.count }}</td>
+            <td class="py-4 font-medium text-slate-200">{{ row.assignment.title }}</td>
+            <td class="py-4 text-slate-300">{{ row.assignment.get_assignment_type_display }}</td>
+            <td class="py-4 text-slate-300">{{ row.assignment.due_date|date:"M d, Y" }}</td>
+            <td class="py-4 text-slate-300">{{ row.submission_count }}</td>
             <td class="py-4">
-              <a href="{% url 'assignment_detail' assignment.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">
+              <a href="{% url 'assignment_detail' row.assignment.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">
                 View Details
               </a>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="4" class="py-12 text-center text-slate-400">No assignments created yet.</td>
+            <td colspan="5" class="py-12 text-center text-slate-400">No assignments created yet.</td>
           </tr>
           {% endfor %}
         </tbody>

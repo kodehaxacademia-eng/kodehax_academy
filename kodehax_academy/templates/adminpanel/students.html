@@ -1,0 +1,73 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}Student Monitoring{% endblock %}
+{% block page_title %}Student Monitoring{% endblock %}
+{% block page_subtitle %}Track performance, activity and submissions{% endblock %}
+
+{% block content %}
+<div class="rounded-2xl border border-slate-200 bg-white p-4 mb-4">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search students" class="rounded-xl border border-slate-300 px-3 py-2">
+        <button class="rounded-xl bg-slate-900 text-white px-4 py-2 font-medium">Search</button>
+    </form>
+</div>
+
+<div class="rounded-2xl border border-slate-200 bg-white p-4">
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="text-left text-slate-500">
+                <tr>
+                    <th class="pb-3">Student</th>
+                    <th class="pb-3">Email</th>
+                    <th class="pb-3">Classes</th>
+                    <th class="pb-3">Submissions</th>
+                    <th class="pb-3">Avg Score</th>
+                    <th class="pb-3">Last Login</th>
+                    <th class="pb-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for student in page_obj %}
+                <tr>
+                    <td class="py-3 font-medium">{{ student.username }}</td>
+                    <td class="py-3">{{ student.email }}</td>
+                    <td class="py-3">{{ student.classes_count }}</td>
+                    <td class="py-3">{{ student.submissions_count }}</td>
+                    <td class="py-3">{{ student.average_score|floatformat:2|default:"-" }}</td>
+                    <td class="py-3">{{ student.last_login|date:"d M Y H:i"|default:"-" }}</td>
+                    <td class="py-3">
+                        <div class="flex flex-wrap gap-2">
+                            <form method="post" action="{% url 'adminpanel_student_action' student.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="suspend">
+                                <button class="rounded-lg bg-amber-500 text-white px-3 py-1 text-xs">Suspend</button>
+                            </form>
+                            <form method="post" action="{% url 'adminpanel_student_action' student.id %}" onsubmit="return confirm('Remove student account?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove">
+                                <button class="rounded-lg bg-rose-600 text-white px-3 py-1 text-xs">Remove</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="py-4 text-slate-500">No students found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between text-sm">
+        <p class="text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+        <div class="space-x-2">
+            {% if page_obj.has_previous %}
+            <a class="rounded-lg border border-slate-300 px-3 py-1" href="?page={{ page_obj.previous_page_number }}&q={{ query }}">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a class="rounded-lg border border-slate-300 px-3 py-1" href="?page={{ page_obj.next_page_number }}&q={{ query }}">Next</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

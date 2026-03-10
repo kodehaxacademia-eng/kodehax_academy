@@ -1,0 +1,157 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}User Management{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block page_subtitle %}Search, filter and control all user accounts{% endblock %}
+
+{% block content %}
+<div class="rounded-2xl border border-slate-200 bg-white p-4 mb-4">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search username or email" class="rounded-xl border border-slate-300 px-3 py-2">
+        <select name="role" class="rounded-xl border border-slate-300 px-3 py-2">
+            <option value="">All roles</option>
+            <option value="student" {% if role_filter == 'student' %}selected{% endif %}>Student</option>
+            <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>Teacher</option>
+            <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+        </select>
+        <select name="status" class="rounded-xl border border-slate-300 px-3 py-2">
+            <option value="">All status</option>
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+            <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+        </select>
+        <button class="rounded-xl bg-slate-900 text-white px-4 py-2 font-medium">Apply Filters</button>
+    </form>
+</div>
+
+{% if selected_edit_user %}
+<div class="rounded-2xl border border-sky-200 bg-sky-50 p-4 mb-4">
+    <p class="font-semibold">Edit User: {{ selected_edit_user.username }}</p>
+    <form method="post" action="{% url 'adminpanel_user_edit' selected_edit_user.id %}" class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+        {% csrf_token %}
+        <input type="email" name="email" value="{{ selected_edit_user.email }}" class="rounded-xl border border-slate-300 px-3 py-2">
+        <select name="role" class="rounded-xl border border-slate-300 px-3 py-2">
+            <option value="student" {% if selected_edit_user.role == 'student' %}selected{% endif %}>Student</option>
+            <option value="teacher" {% if selected_edit_user.role == 'teacher' %}selected{% endif %}>Teacher</option>
+            <option value="admin" {% if selected_edit_user.role == 'admin' %}selected{% endif %}>Admin</option>
+        </select>
+        <label class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 bg-white">
+            <input type="checkbox" name="is_active" {% if selected_edit_user.is_active %}checked{% endif %}>
+            Active
+        </label>
+        <button class="rounded-xl bg-sky-600 text-white px-4 py-2 font-medium">Save Changes</button>
+    </form>
+</div>
+{% endif %}
+
+{% if selected_activity_user %}
+<div class="rounded-2xl border border-violet-200 bg-violet-50 p-4 mb-4">
+    <p class="font-semibold">Activity: {{ selected_activity_user.username }}</p>
+    <div class="overflow-x-auto mt-3">
+        <table class="min-w-full text-sm">
+            <thead class="text-left text-slate-500">
+                <tr>
+                    <th class="pb-2">Assignment</th>
+                    <th class="pb-2">Classroom</th>
+                    <th class="pb-2">Score</th>
+                    <th class="pb-2">Last Activity</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-violet-100">
+                {% for record in selected_activity_records %}
+                <tr>
+                    <td class="py-2">{{ record.assignment_title }}</td>
+                    <td class="py-2">{{ record.classroom.name|default:"-" }}</td>
+                    <td class="py-2">{{ record.score|default:"-" }}</td>
+                    <td class="py-2">{{ record.recorded_at|date:"d M Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="py-2 text-slate-500">No recent activity.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="rounded-2xl border border-slate-200 bg-white p-4">
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="text-left text-slate-500">
+                <tr>
+                    <th class="pb-3">Username</th>
+                    <th class="pb-3">Email</th>
+                    <th class="pb-3">Role</th>
+                    <th class="pb-3">Joined Date</th>
+                    <th class="pb-3">Status</th>
+                    <th class="pb-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for item in page_obj %}
+                <tr>
+                    <td class="py-3 font-medium">{{ item.username }}</td>
+                    <td class="py-3">{{ item.email }}</td>
+                    <td class="py-3">
+                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium {% if item.role == 'teacher' %}bg-sky-100 text-sky-700{% elif item.role == 'admin' %}bg-violet-100 text-violet-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                            {{ item.role|title }}
+                        </span>
+                    </td>
+                    <td class="py-3">{{ item.date_joined|date:"d M Y" }}</td>
+                    <td class="py-3">
+                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium {% if item.is_active %}bg-emerald-100 text-emerald-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+                            {% if item.is_active %}Active{% else %}Suspended{% endif %}
+                        </span>
+                    </td>
+                    <td class="py-3">
+                        <div class="flex flex-wrap gap-2">
+                            <a href="?activity_user={{ item.id }}" class="rounded-lg border border-slate-300 px-3 py-1 text-xs">View</a>
+                            <a href="?edit_user={{ item.id }}" class="rounded-lg border border-slate-300 px-3 py-1 text-xs">Edit</a>
+                            {% if item.is_active %}
+                            <form method="post" action="{% url 'adminpanel_user_action' item.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="suspend">
+                                <button class="rounded-lg bg-amber-500 text-white px-3 py-1 text-xs">Suspend</button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="{% url 'adminpanel_user_action' item.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="activate">
+                                <button class="rounded-lg bg-emerald-600 text-white px-3 py-1 text-xs">Activate</button>
+                            </form>
+                            {% endif %}
+                            {% if item.role == 'student' %}
+                            <form method="post" action="{% url 'adminpanel_user_action' item.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="promote_teacher">
+                                <button class="rounded-lg bg-sky-600 text-white px-3 py-1 text-xs">Promote</button>
+                            </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'adminpanel_user_action' item.id %}" onsubmit="return confirm('Delete this user?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <button class="rounded-lg bg-rose-600 text-white px-3 py-1 text-xs">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="py-4 text-slate-500">No users found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between text-sm">
+        <p class="text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+        <div class="space-x-2">
+            {% if page_obj.has_previous %}
+            <a class="rounded-lg border border-slate-300 px-3 py-1" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&role={{ role_filter }}&status={{ status_filter }}">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a class="rounded-lg border border-slate-300 px-3 py-1" href="?page={{ page_obj.next_page_number }}&q={{ query }}&role={{ role_filter }}&status={{ status_filter }}">Next</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

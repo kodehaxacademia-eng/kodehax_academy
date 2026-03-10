@@ -7,16 +7,25 @@ def home(request):
     return render(request, "user/base.html")
 
 
-def _redirect_for_role(role):
-    return "teacher_dashboard" if role == "teacher" else "student_dashboard"
+def _redirect_for_user(user):
+    if user.is_superuser or getattr(user, "role", "") == "admin":
+        return "adminpanel_dashboard"
+    if getattr(user, "role", "") == "teacher":
+        return "teacher_dashboard"
+    if getattr(user, "role", "") == "student":
+        return "student_dashboard"
+    return "home"
 
 
 def _block_cross_role_login(request, target_role):
     if not request.user.is_authenticated:
         return None
 
+    if request.user.is_superuser or request.user.role == "admin":
+        return redirect("adminpanel_dashboard")
+
     if request.user.role == target_role:
-        return redirect(_redirect_for_role(target_role))
+        return redirect(_redirect_for_user(request.user))
 
     messages.error(
         request,
@@ -25,7 +34,7 @@ def _block_cross_role_login(request, target_role):
             "Use Logout first, or open the other role in an incognito window / different browser profile."
         ),
     )
-    return redirect(_redirect_for_role(request.user.role))
+    return redirect(_redirect_for_user(request.user))
 # -------------------------
 # Student Register
 # -------------------------
@@ -104,10 +113,6 @@ def teacher_register(request):
 # Student Login
 # -------------------------
 def student_login(request):
-    block_response = _block_cross_role_login(request, "student")
-    if block_response:
-        return block_response
-
     if request.method == "POST":
 
         username = request.POST.get("username")
@@ -133,10 +138,6 @@ def student_login(request):
 # Teacher Login
 # -------------------------
 def teacher_login(request):
-    block_response = _block_cross_role_login(request, "teacher")
-    if block_response:
-        return block_response
-
     if request.method == "POST":
 
         username = request.POST.get("username")
@@ -148,8 +149,12 @@ def teacher_login(request):
             messages.error(request, "Invalid username or password")
             return redirect("teacher_login")
 
+        if user.is_superuser or user.role == "admin":
+            login(request, user)
+            return redirect("adminpanel_dashboard")
+
         if user.role != "teacher":
-            messages.error(request, "This account is not a teacher account")
+            messages.error(request, "This account is not a teacher or admin account")
             return redirect("teacher_login")
 
         login(request, user)

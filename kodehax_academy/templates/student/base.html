@@ -139,6 +139,9 @@
                 <a href="{% url 'view_assignments' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'assignments' in request.path %}active{% endif %}">
                     Assignments
                 </a>
+                <a href="{% url 'student_performance_dashboard' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'performance' in request.path %}active{% endif %}">
+                    Performance
+                </a>
                 <a href="{% url 'chat_page' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium">
                     Chatroom
                 </a>

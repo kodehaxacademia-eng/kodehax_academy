@@ -1,7 +1,7 @@
 {% extends "teacher/base.html" %}
 
 {% block title %}Performance - {{ classroom.name }}{% endblock %}
-{% block page_title %}Student Performance{% endblock %}
+{% block page_title %}Class Performance Analytics{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -10,7 +10,7 @@
       <div>
         <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom</p>
         <h3 class="text-3xl font-black text-white mt-1">{{ classroom.name }}</h3>
-        <p class="text-slate-300 mt-2">Overview of student performance and grades.</p>
+        <p class="text-slate-300 mt-2">Performance overview with score and completion analytics.</p>
       </div>
       <a href="{% url 'class_detail' classroom.id %}" class="btn-muted px-4 py-2 text-sm text-center">
         Back To Class
@@ -18,43 +18,90 @@
     </div>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-1">
-    <h4 class="text-xl font-bold text-white mb-5">Student List</h4>
+  <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <article class="glass-card p-5 reveal delay-1">
+      <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Class Average</p>
+      <p class="mt-2 text-2xl font-black text-blue-300">{{ summary.class_average_score }}</p>
+    </article>
+    <article class="glass-card p-5 reveal delay-1">
+      <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Completion Rate</p>
+      <p class="mt-2 text-2xl font-black text-emerald-300">{{ summary.assignment_completion_rate }}%</p>
+    </article>
+    <article class="glass-card p-5 reveal delay-2">
+      <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Top Student</p>
+      <p class="mt-2 text-xl font-black text-slate-100">
+        {% if summary.highest_performing_student %}{{ summary.highest_performing_student.username }}{% else %}N/A{% endif %}
+      </p>
+    </article>
+    <article class="glass-card p-5 reveal delay-2">
+      <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Needs Support</p>
+      <p class="mt-2 text-xl font-black text-amber-300">
+        {% if summary.lowest_performing_student %}{{ summary.lowest_performing_student.username }}{% else %}N/A{% endif %}
+      </p>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <article class="glass-card p-6 reveal delay-2">
+      <h4 class="text-xl font-bold text-white">Student Ranking</h4>
+      <div class="mt-4 h-72">
+        <canvas id="studentRankingChart"></canvas>
+      </div>
+    </article>
+    <article class="glass-card p-6 reveal delay-3">
+      <h4 class="text-xl font-bold text-white">Score Distribution</h4>
+      <div class="mt-4 h-72">
+        <canvas id="scoreDistributionChart"></canvas>
+      </div>
+    </article>
+  </section>
+
+  <section class="glass-card p-6 reveal delay-3">
+    <h4 class="text-xl font-bold text-white">Assignment Difficulty (Lower Avg = Harder)</h4>
+    <div class="mt-4 h-72">
+      <canvas id="assignmentDifficultyChart"></canvas>
+    </div>
+  </section>
+
+  <section class="glass-card hover-lift p-6 reveal delay-4">
+    <h4 class="text-xl font-bold text-white mb-5">Student Metrics</h4>
     <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[620px]">
+      <table class="w-full text-left min-w-[900px]">
         <thead>
           <tr class="text-sm text-slate-400 border-b border-slate-700">
             <th class="py-3 font-semibold">Student</th>
-            <th class="py-3 font-semibold">Email</th>
-            <th class="py-3 font-semibold">Submissions</th>
+            <th class="py-3 font-semibold">Assignments Completed</th>
             <th class="py-3 font-semibold">Average Score</th>
+            <th class="py-3 font-semibold">Submission Rate</th>
+            <th class="py-3 font-semibold">Performance Level</th>
             <th class="py-3 font-semibold">Action</th>
           </tr>
         </thead>
         <tbody>
-          {% for data in student_data %}
+          {% for row in student_rows %}
           <tr class="table-row border-b border-slate-800">
-            <td class="py-3.5 font-medium text-slate-200">
-              {{ data.student.username }}
-            </td>
-            <td class="py-3.5 text-slate-300">
-              {{ data.student.email }}
-            </td>
-            <td class="py-3.5 text-slate-300">
-              {{ data.submissions }}
-            </td>
-            <td class="py-3.5 font-semibold text-blue-300">
-              {{ data.avg_score }}
+            <td class="py-3.5 font-medium text-slate-200">{{ row.student.username }}</td>
+            <td class="py-3.5 text-slate-300">{{ row.assignments_completed }}</td>
+            <td class="py-3.5 text-slate-300">{{ row.average_score }}</td>
+            <td class="py-3.5 text-slate-300">{{ row.submission_rate }}%</td>
+            <td class="py-3.5">
+              {% if row.performance_level == "High" %}
+              <span class="rounded-md bg-emerald-900/30 px-2 py-1 text-xs text-emerald-200">High</span>
+              {% elif row.performance_level == "Medium" %}
+              <span class="rounded-md bg-blue-900/30 px-2 py-1 text-xs text-blue-200">Medium</span>
+              {% else %}
+              <span class="rounded-md bg-amber-900/30 px-2 py-1 text-xs text-amber-200">Low</span>
+              {% endif %}
             </td>
             <td class="py-3.5">
-              <a href="{% url 'student_performance' classroom.id data.student.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">
+              <a href="{% url 'student_performance' classroom.id row.student.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">
                 View Details
               </a>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="5" class="py-10 text-center text-slate-400">No students enrolled.</td>
+            <td colspan="6" class="py-10 text-center text-slate-400">No student analytics available.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -62,4 +109,85 @@
     </div>
   </section>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const rankingLabels = {{ student_ranking_labels|safe }};
+  const rankingValues = {{ student_ranking_values|safe }};
+  const assignmentLabels = {{ assignment_labels|safe }};
+  const assignmentAvgScores = {{ assignment_avg_scores|safe }};
+  const distributionLabels = {{ distribution_labels|safe }};
+  const distributionValues = {{ distribution_values|safe }};
+
+  const axisTick = { color: "#cbd5e1" };
+  const axisGrid = { color: "rgba(148, 163, 184, 0.2)" };
+
+  new Chart(document.getElementById("studentRankingChart"), {
+    type: "bar",
+    data: {
+      labels: rankingLabels,
+      datasets: [{
+        label: "Average Score",
+        data: rankingValues,
+        backgroundColor: "rgba(129, 140, 248, 0.75)",
+        borderColor: "#818cf8",
+        borderWidth: 1,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, grid: axisGrid, ticks: axisTick },
+        x: { grid: { display: false }, ticks: axisTick },
+      },
+    },
+  });
+
+  new Chart(document.getElementById("scoreDistributionChart"), {
+    type: "doughnut",
+    data: {
+      labels: distributionLabels,
+      datasets: [{
+        data: distributionValues,
+        backgroundColor: ["#34d399", "#60a5fa", "#f59e0b"],
+        borderColor: "rgba(15, 23, 42, 0.8)",
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: "#cbd5e1" } },
+      },
+    },
+  });
+
+  new Chart(document.getElementById("assignmentDifficultyChart"), {
+    type: "line",
+    data: {
+      labels: assignmentLabels,
+      datasets: [{
+        label: "Assignment Average Score",
+        data: assignmentAvgScores,
+        borderColor: "#f472b6",
+        backgroundColor: "rgba(244, 114, 182, 0.15)",
+        fill: true,
+        borderWidth: 2,
+        tension: 0.25,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, grid: axisGrid, ticks: axisTick },
+        x: { grid: { display: false }, ticks: axisTick },
+      },
+    },
+  });
+</script>
 {% endblock %}

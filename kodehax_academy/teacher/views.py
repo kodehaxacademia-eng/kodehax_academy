@@ -17,15 +17,19 @@ from django.utils import timezone
 from django.db.models import Count
 from datetime import timedelta
 import re
-from .services.ai_tools import generate_quiz, generate_notes, strip_quiz_answers
+import json
+from .services.ai_tools import generate_quiz, generate_notes
 from .services.evaluation import (
     evaluate_quiz_for_assignment,
-    get_classroom_student_performance,
     get_student_score_records,
     grade_code_submission_ai,
     grade_code_submission_manual,
     grade_file_submission_ai,
     grade_file_submission_manual,
+)
+from .services.performance import (
+    get_classroom_performance_analytics,
+    snapshot_assignment_performance,
 )
 
 
@@ -45,6 +49,24 @@ def _get_teacher_classroom_or_redirect(request, class_id):
         messages.error(request, "Classroom not found or you do not have access.")
         return None, redirect("teacher_dashboard")
     return classroom, None
+
+
+def _get_teacher_assignment_or_redirect(request, assignment_id):
+    if request.user.role != "teacher":
+        messages.error(
+            request,
+            "Teacher portal access denied for current session. Use a separate browser profile/incognito for parallel logins."
+        )
+        return None, redirect("home")
+
+    assignment = Assignment.objects.select_related("classroom").filter(
+        id=assignment_id,
+        classroom__teacher=request.user,
+    ).first()
+    if not assignment:
+        messages.error(request, "Assignment not found or you do not have access.")
+        return None, redirect("teacher_dashboard")
+    return assignment, None
 
 @login_required
 def teacher_dashboard(request):
@@ -168,6 +190,16 @@ def _parse_due_date_or_error(due_date_raw):
     return due_date_obj, None
 
 
+def _parse_attempt_policy(raw_value):
+    value = (raw_value or "").strip().lower()
+    if value in {
+        Assignment.ATTEMPT_POLICY_ONCE,
+        Assignment.ATTEMPT_POLICY_MULTIPLE,
+    }:
+        return value
+    return Assignment.ATTEMPT_POLICY_ONCE
+
+
 def _parse_quiz_questions_from_text(raw_text):
     if not raw_text:
         return []
@@ -244,6 +276,7 @@ def create_file_assignment(request, class_id):
         title = request.POST.get("title", "").strip()
         description = request.POST.get("description", "").strip()
         due_date_obj, error = _parse_due_date_or_error(request.POST.get("due_date", "").strip())
+        attempt_policy = _parse_attempt_policy(request.POST.get("attempt_policy"))
 
         if not title or not description:
             error = "Title and description are required."
@@ -253,6 +286,7 @@ def create_file_assignment(request, class_id):
                 "classroom": classroom,
                 "assignment_type": Assignment.ASSIGNMENT_TYPE_FILE,
                 "error": error,
+                "selected_attempt_policy": attempt_policy,
             })
 
         Assignment.objects.create(
@@ -261,12 +295,14 @@ def create_file_assignment(request, class_id):
             description=description,
             due_date=due_date_obj,
             assignment_type=Assignment.ASSIGNMENT_TYPE_FILE,
+            attempt_policy=attempt_policy,
         )
         return redirect("assignment_list", class_id=classroom.id)
 
     return render(request, "teacher/create_assignment.html", {
         "classroom": classroom,
         "assignment_type": Assignment.ASSIGNMENT_TYPE_FILE,
+        "selected_attempt_policy": Assignment.ATTEMPT_POLICY_ONCE,
     })
 
 
@@ -280,6 +316,7 @@ def create_quiz_assignment(request, class_id):
         title = request.POST.get("title", "").strip()
         description = request.POST.get("description", "").strip()
         due_date_obj, error = _parse_due_date_or_error(request.POST.get("due_date", "").strip())
+        attempt_policy = _parse_attempt_policy(request.POST.get("attempt_policy"))
 
         questions = request.POST.getlist("question")
         option_as = request.POST.getlist("option_a")
@@ -303,6 +340,7 @@ def create_quiz_assignment(request, class_id):
             return render(request, "teacher/create_quiz_assignment.html", {
                 "classroom": classroom,
                 "error": error,
+                "selected_attempt_policy": attempt_policy,
             })
 
         assignment = Assignment.objects.create(
@@ -311,6 +349,7 @@ def create_quiz_assignment(request, class_id):
             description=description,
             due_date=due_date_obj,
             assignment_type=Assignment.ASSIGNMENT_TYPE_QUIZ,
+            attempt_policy=attempt_policy,
         )
 
         for idx in range(len(questions)):
@@ -328,7 +367,8 @@ def create_quiz_assignment(request, class_id):
         return redirect("assignment_detail", id=assignment.id)
 
     return render(request, "teacher/create_quiz_assignment.html", {
-        "classroom": classroom
+        "classroom": classroom,
+        "selected_attempt_policy": Assignment.ATTEMPT_POLICY_ONCE,
     })
 
 
@@ -342,6 +382,7 @@ def create_code_assignment(request, class_id):
         title = request.POST.get("title", "").strip()
         description = request.POST.get("description", "").strip()
         due_date_obj, error = _parse_due_date_or_error(request.POST.get("due_date", "").strip())
+        attempt_policy = _parse_attempt_policy(request.POST.get("attempt_policy"))
 
         if not title or not description:
             error = "Title and coding prompt are required."
@@ -350,6 +391,7 @@ def create_code_assignment(request, class_id):
             return render(request, "teacher/create_code_assignment.html", {
                 "classroom": classroom,
                 "error": error,
+                "selected_attempt_policy": attempt_policy,
             })
 
         assignment = Assignment.objects.create(
@@ -358,26 +400,20 @@ def create_code_assignment(request, class_id):
             description=description,
             due_date=due_date_obj,
             assignment_type=Assignment.ASSIGNMENT_TYPE_CODE,
+            attempt_policy=attempt_policy,
         )
         return redirect("assignment_detail", id=assignment.id)
 
     return render(request, "teacher/create_code_assignment.html", {
-        "classroom": classroom
+        "classroom": classroom,
+        "selected_attempt_policy": Assignment.ATTEMPT_POLICY_ONCE,
     })
         
 @login_required
 def assignment_detail(request, id):
-    if request.user.role != "teacher":
-        messages.error(request, "Only teachers can view assignment details.")
-        return redirect("home")
-
-    assignment = Assignment.objects.filter(
-        id=id,
-        classroom__teacher=request.user
-    ).first()
-    if not assignment:
-        messages.error(request, "Assignment not found or you do not have access.")
-        return redirect("teacher_dashboard")
+    assignment, redirect_response = _get_teacher_assignment_or_redirect(request, id)
+    if redirect_response:
+        return redirect_response
 
     file_submissions = assignment.submissions.select_related("student").all()
     code_submissions = assignment.code_submissions.select_related("student").all()
@@ -469,6 +505,72 @@ def grade_code_submission(request, submission_id):
 
 
 @login_required
+def evaluate_code_submission(request, submission_id):
+    # Backward-compatible alias for code evaluation endpoint.
+    return grade_code_submission(request, submission_id)
+
+
+@login_required
+def delete_assignment(request, assignment_id):
+    assignment, redirect_response = _get_teacher_assignment_or_redirect(request, assignment_id)
+    if redirect_response:
+        return redirect_response
+
+    if request.method != "POST":
+        messages.error(request, "Invalid request method for deleting assignment.")
+        return redirect("assignment_detail", id=assignment.id)
+
+    class_id = assignment.classroom_id
+    assignment_title = assignment.title
+    snapshot_assignment_performance(assignment)
+    assignment.delete()
+    messages.success(request, f"Assignment '{assignment_title}' deleted successfully.")
+    return redirect("assignment_list", class_id=class_id)
+
+
+@login_required
+def remove_student_from_classroom(request, class_id, student_id):
+    classroom, redirect_response = _get_teacher_classroom_or_redirect(request, class_id)
+    if redirect_response:
+        return redirect_response
+
+    if request.method != "POST":
+        messages.error(request, "Invalid request method for removing student.")
+        return redirect("class_detail", id=classroom.id)
+
+    student = classroom.students.filter(id=student_id).first()
+    if not student:
+        messages.error(request, "Student not found in this classroom.")
+        return redirect("class_detail", id=classroom.id)
+
+    classroom.students.remove(student)
+    messages.success(request, f"{student.username} was removed from {classroom.name}.")
+    return redirect("class_detail", id=classroom.id)
+
+
+@login_required
+def extend_assignment_deadline(request, assignment_id):
+    assignment, redirect_response = _get_teacher_assignment_or_redirect(request, assignment_id)
+    if redirect_response:
+        return redirect_response
+
+    if request.method != "POST":
+        messages.error(request, "Invalid request method for extending deadline.")
+        return redirect("assignment_detail", id=assignment.id)
+
+    new_due_date_raw = request.POST.get("new_due_date", "").strip()
+    new_due_date_obj, error = _parse_due_date_or_error(new_due_date_raw)
+    if error:
+        messages.error(request, error)
+        return redirect("assignment_detail", id=assignment.id)
+
+    assignment.due_date = new_due_date_obj
+    assignment.save(update_fields=["due_date"])
+    messages.success(request, "Assignment deadline updated successfully.")
+    return redirect("assignment_detail", id=assignment.id)
+
+
+@login_required
 def auto_grade_quiz(request, assignment_id):
     assignment = Assignment.objects.filter(
         id=assignment_id,
@@ -497,11 +599,18 @@ def performance_list(request, class_id):
     classroom, redirect_response = _get_teacher_classroom_or_redirect(request, class_id)
     if redirect_response:
         return redirect_response
-    student_data = get_classroom_student_performance(classroom)
+    analytics = get_classroom_performance_analytics(classroom)
 
     return render(request, "teacher/performance_list.html", {
         "classroom": classroom,
-        "student_data": student_data
+        "summary": analytics["summary"],
+        "student_rows": analytics["student_rows"],
+        "student_ranking_labels": json.dumps(analytics["charts"]["student_ranking_labels"]),
+        "student_ranking_values": json.dumps(analytics["charts"]["student_ranking_values"]),
+        "assignment_labels": json.dumps(analytics["charts"]["assignment_labels"]),
+        "assignment_avg_scores": json.dumps(analytics["charts"]["assignment_avg_scores"]),
+        "distribution_labels": json.dumps(analytics["charts"]["distribution_labels"]),
+        "distribution_values": json.dumps(analytics["charts"]["distribution_values"]),
     })
 
 
@@ -612,8 +721,10 @@ def ai_tools(request):
 
             class_id = request.POST.get("class_id")
             assignment_title = request.POST.get("assignment_title", "").strip()
+            assignment_instructions = request.POST.get("assignment_instructions", "").strip()
             due_date = request.POST.get("due_date", "").strip()
             quiz_content = request.POST.get("quiz_content", "")
+            attempt_policy = _parse_attempt_policy(request.POST.get("attempt_policy"))
 
             if not class_id or not quiz_content.strip():
                 upload_error = "Classroom and quiz content are required."
@@ -638,15 +749,16 @@ def ai_tools(request):
                     due_date_obj = timezone.now() + timedelta(days=7)
 
                 if not upload_error:
-                    clean_questions = strip_quiz_answers(quiz_content)
                     title = assignment_title or f"AI Quiz - {classroom.name}"
+                    default_instruction = "Answer all questions by selecting one option."
 
                     assignment = Assignment.objects.create(
                         classroom=classroom,
                         title=title,
-                        description=clean_questions,
+                        description=assignment_instructions or default_instruction,
                         due_date=due_date_obj,
                         assignment_type=Assignment.ASSIGNMENT_TYPE_QUIZ,
+                        attempt_policy=attempt_policy,
                     )
 
                     parsed_questions = _parse_quiz_questions_from_text(quiz_content)

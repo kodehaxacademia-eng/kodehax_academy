@@ -9,44 +9,52 @@
     <h2 class="text-xl font-bold text-white">{{ assignment.title }}</h2>
     <p class="text-sm text-slate-400 mt-1">Class: {{ assignment.classroom.name }}</p>
     <p class="text-sm text-slate-400">Due: {{ assignment.due_date|date:"M d, Y H:i" }}</p>
-    {% if assignment.description %}
+    {% if show_description %}
     <div class="mt-4 whitespace-pre-wrap text-sm text-slate-200">{{ assignment.description }}</div>
     {% endif %}
   </div>
 
+  {% if not can_submit %}
+  <div class="rounded-xl border border-amber-700 bg-amber-950/20 p-4 text-sm text-amber-200">
+    This quiz allows only one attempt. Your previous answers are shown below.
+  </div>
+  {% endif %}
+
   <form method="POST" class="space-y-4 rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
     {% csrf_token %}
-    {% for question in questions %}
+    {% for row in question_rows %}
+    {% with question=row.question selected=row.selected_option %}
     <div class="rounded-xl border border-slate-700 bg-slate-950/40 p-4">
       <p class="font-semibold text-slate-100">Q{{ forloop.counter }}. {{ question.question }}</p>
       <div class="mt-3 grid gap-2 text-sm text-slate-300">
         <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700 px-3 py-2 hover:border-teal-400/70 hover:bg-slate-900">
-          <input type="radio" name="question_{{ question.id }}" value="A" required class="h-4 w-4 accent-teal-500">
+          <input type="radio" name="question_{{ question.id }}" value="A" {% if can_submit %}required{% else %}disabled{% endif %} {% if selected == "A" %}checked{% endif %} class="h-4 w-4 accent-teal-500">
           <span class="font-semibold text-slate-400">A.</span>
           <span>{{ question.option_a }}</span>
         </label>
         <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700 px-3 py-2 hover:border-teal-400/70 hover:bg-slate-900">
-          <input type="radio" name="question_{{ question.id }}" value="B" class="h-4 w-4 accent-teal-500">
+          <input type="radio" name="question_{{ question.id }}" value="B" {% if not can_submit %}disabled{% endif %} {% if selected == "B" %}checked{% endif %} class="h-4 w-4 accent-teal-500">
           <span class="font-semibold text-slate-400">B.</span>
           <span>{{ question.option_b }}</span>
         </label>
         <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700 px-3 py-2 hover:border-teal-400/70 hover:bg-slate-900">
-          <input type="radio" name="question_{{ question.id }}" value="C" class="h-4 w-4 accent-teal-500">
+          <input type="radio" name="question_{{ question.id }}" value="C" {% if not can_submit %}disabled{% endif %} {% if selected == "C" %}checked{% endif %} class="h-4 w-4 accent-teal-500">
           <span class="font-semibold text-slate-400">C.</span>
           <span>{{ question.option_c }}</span>
         </label>
         <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700 px-3 py-2 hover:border-teal-400/70 hover:bg-slate-900">
-          <input type="radio" name="question_{{ question.id }}" value="D" class="h-4 w-4 accent-teal-500">
+          <input type="radio" name="question_{{ question.id }}" value="D" {% if not can_submit %}disabled{% endif %} {% if selected == "D" %}checked{% endif %} class="h-4 w-4 accent-teal-500">
           <span class="font-semibold text-slate-400">D.</span>
           <span>{{ question.option_d }}</span>
         </label>
       </div>
     </div>
+    {% endwith %}
     {% empty %}
     <p class="text-sm text-slate-400">No quiz questions available.</p>
     {% endfor %}
 
-    {% if questions %}
+    {% if questions and can_submit %}
     <button type="submit" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">Submit Quiz</button>
     {% endif %}
   </form>

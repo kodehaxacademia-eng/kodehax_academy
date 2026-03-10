@@ -1,0 +1,180 @@
+{% extends "student/base.html" %}
+
+{% block title %}Performance Dashboard{% endblock %}
+{% block header %}Performance Dashboard{% endblock %}
+
+{% block content %}
+<section class="space-y-6 reveal">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <article class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Average Score</p>
+      <p class="mt-2 text-2xl font-black text-teal-300">{{ summary.average_score }}</p>
+    </article>
+    <article class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Assignments Completed</p>
+      <p class="mt-2 text-2xl font-black text-slate-100">{{ summary.assignments_completed }} / {{ summary.total_assignments }}</p>
+    </article>
+    <article class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Submission Rate</p>
+      <p class="mt-2 text-2xl font-black text-slate-100">{{ summary.submission_rate }}%</p>
+    </article>
+    <article class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4">
+      <p class="text-xs uppercase tracking-wide text-slate-400">On-Time Rate</p>
+      <p class="mt-2 text-2xl font-black text-slate-100">{{ summary.on_time_submission_rate }}%</p>
+    </article>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5">
+      <h3 class="text-lg font-bold text-white">Score Progression</h3>
+      <div class="mt-4 h-72">
+        <canvas id="scoreProgressionChart"></canvas>
+      </div>
+    </section>
+    <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5">
+      <h3 class="text-lg font-bold text-white">Assignment Score History</h3>
+      <div class="mt-4 h-72">
+        <canvas id="assignmentScoreChart"></canvas>
+      </div>
+    </section>
+  </div>
+
+  <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5">
+    <h3 class="text-lg font-bold text-white">Submission Trend</h3>
+    <div class="mt-4 h-72">
+      <canvas id="submissionTrendChart"></canvas>
+    </div>
+  </section>
+
+  <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5">
+    <h3 class="text-lg font-bold text-white mb-4">Performance History</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[760px] text-left">
+        <thead>
+          <tr class="border-b border-slate-700 text-sm text-slate-400">
+            <th class="py-3 font-semibold">Assignment</th>
+            <th class="py-3 font-semibold">Classroom</th>
+            <th class="py-3 font-semibold">Type</th>
+            <th class="py-3 font-semibold">Score</th>
+            <th class="py-3 font-semibold">Submitted</th>
+            <th class="py-3 font-semibold">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in records %}
+          <tr class="border-b border-slate-800">
+            <td class="py-3 text-slate-200 font-medium">{{ record.assignment_title }}</td>
+            <td class="py-3 text-slate-300">{{ record.classroom.name|default:"Removed classroom" }}</td>
+            <td class="py-3 text-slate-300">{{ record.assignment_type|title }}</td>
+            <td class="py-3 text-slate-200">
+              {% if record.score != None %}
+                {{ record.score }} / {{ record.max_score }}
+              {% else %}
+                Pending
+              {% endif %}
+            </td>
+            <td class="py-3 text-slate-300">{{ record.submitted_at|date:"M d, Y H:i"|default:"-" }}</td>
+            <td class="py-3">
+              {% if record.was_on_time %}
+              <span class="rounded-md bg-emerald-900/35 px-2 py-1 text-xs text-emerald-200">On Time</span>
+              {% else %}
+              <span class="rounded-md bg-amber-900/35 px-2 py-1 text-xs text-amber-200">Late</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="py-8 text-center text-slate-400">No performance records yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const scoreProgressionLabels = {{ score_progression_labels|safe }};
+  const scoreProgressionValues = {{ score_progression_values|safe }};
+  const assignmentScoreLabels = {{ assignment_score_labels|safe }};
+  const assignmentScoreValues = {{ assignment_score_values|safe }};
+  const submissionTrendLabels = {{ submission_trend_labels|safe }};
+  const submissionTrendValues = {{ submission_trend_values|safe }};
+
+  const commonGrid = { color: "rgba(148, 163, 184, 0.2)" };
+  const commonTick = { color: "#cbd5e1" };
+
+  new Chart(document.getElementById("scoreProgressionChart"), {
+    type: "line",
+    data: {
+      labels: scoreProgressionLabels,
+      datasets: [{
+        label: "Score",
+        data: scoreProgressionValues,
+        borderColor: "#2dd4bf",
+        backgroundColor: "rgba(45, 212, 191, 0.15)",
+        fill: true,
+        tension: 0.3,
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, grid: commonGrid, ticks: commonTick },
+        x: { grid: { display: false }, ticks: commonTick },
+      },
+    },
+  });
+
+  new Chart(document.getElementById("assignmentScoreChart"), {
+    type: "bar",
+    data: {
+      labels: assignmentScoreLabels,
+      datasets: [{
+        label: "Assignment Score",
+        data: assignmentScoreValues,
+        backgroundColor: "rgba(20, 184, 166, 0.75)",
+        borderColor: "#14b8a6",
+        borderWidth: 1,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, grid: commonGrid, ticks: commonTick },
+        x: { grid: { display: false }, ticks: commonTick },
+      },
+    },
+  });
+
+  new Chart(document.getElementById("submissionTrendChart"), {
+    type: "line",
+    data: {
+      labels: submissionTrendLabels,
+      datasets: [{
+        label: "Cumulative Submissions",
+        data: submissionTrendValues,
+        borderColor: "#38bdf8",
+        backgroundColor: "rgba(56, 189, 248, 0.15)",
+        fill: true,
+        tension: 0.25,
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, grid: commonGrid, ticks: commonTick },
+        x: { grid: { display: false }, ticks: commonTick },
+      },
+    },
+  });
+</script>
+{% endblock %}

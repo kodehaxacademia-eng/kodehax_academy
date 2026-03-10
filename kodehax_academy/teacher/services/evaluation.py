@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import os
+import re
 from typing import Any
 
 import ollama
@@ -24,6 +26,9 @@ def grade_file_submission_manual(submission: Submission, score: Any, feedback: s
     submission.score = parse_score(score, submission.assignment.max_score)
     submission.ai_feedback = (feedback or "").strip()
     submission.save(update_fields=["score", "ai_feedback"])
+    from teacher.services.performance import sync_file_submission_record
+
+    sync_file_submission_record(submission, evaluation_type="manual")
     return submission
 
 
@@ -31,6 +36,9 @@ def grade_code_submission_manual(code_submission: CodeSubmission, score: Any, fe
     code_submission.score = parse_score(score, code_submission.assignment.max_score)
     code_submission.ai_feedback = (feedback or "").strip()
     code_submission.save(update_fields=["score", "ai_feedback"])
+    from teacher.services.performance import sync_code_submission_record
+
+    sync_code_submission_record(code_submission, evaluation_type="manual")
     return code_submission
 
 
@@ -69,6 +77,49 @@ def _ai_grade(prompt: str, max_score: float) -> tuple[float, str]:
     return score_value, content
 
 
+def _extract_json_dict(text: str) -> dict[str, Any]:
+    if not text:
+        return {}
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, dict):
+            return parsed
+    except json.JSONDecodeError:
+        pass
+
+    # Best effort extraction when the model wraps JSON with explanation.
+    match = re.search(r"\{[\s\S]*\}", text)
+    if not match:
+        return {}
+    try:
+        parsed = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _parse_rubric_score(value: Any, maximum: float = 10.0) -> float:
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return 0.0
+    if numeric < 0:
+        return 0.0
+    if numeric > maximum:
+        return maximum
+    return numeric
+
+
+def _check_python_syntax(code: str) -> tuple[bool, str]:
+    try:
+        compile(code or "", "<student_submission>", "exec")
+        return True, ""
+    except SyntaxError as exc:
+        return False, f"Line {exc.lineno}: {exc.msg}"
+    except Exception as exc:  # noqa: BLE001
+        return False, str(exc)
+
+
 def grade_file_submission_ai(submission: Submission) -> Submission:
     file_text = _read_text_file(submission.file.path)
     prompt = (
@@ -84,23 +135,85 @@ def grade_file_submission_ai(submission: Submission) -> Submission:
     submission.score = score
     submission.ai_feedback = feedback
     submission.save(update_fields=["score", "ai_feedback"])
+    from teacher.services.performance import sync_file_submission_record
+
+    sync_file_submission_record(submission, evaluation_type="ai")
     return submission
 
 
 def grade_code_submission_ai(code_submission: CodeSubmission) -> CodeSubmission:
+    language = (code_submission.language or "").strip().lower()
+    syntax_ok = True
+    syntax_error_message = ""
+    if language in {"python", "py"}:
+        syntax_ok, syntax_error_message = _check_python_syntax(code_submission.code)
+
     prompt = (
-        "You are grading a coding submission.\n"
+        "You are grading a coding submission using a rubric.\n"
         f"Assignment description:\n{code_submission.assignment.description}\n\n"
-        f"Language: {code_submission.language}\n"
+        f"Language: {code_submission.language or 'unknown'}\n"
         f"Max score: {code_submission.assignment.max_score}\n"
-        "Score for correctness, logic, readability, and structure.\n"
-        "Return feedback with the score as the first numeric value.\n\n"
+        "Return ONLY valid JSON with keys:\n"
+        "syntax, logic, structure, readability, summary.\n"
+        "Each score must be a number from 0 to 10.\n"
+        "summary must explain major strengths, bugs, and improvements.\n\n"
         f"Student code:\n{code_submission.code}"
     )
-    score, feedback = _ai_grade(prompt, code_submission.assignment.max_score)
-    code_submission.score = score
-    code_submission.ai_feedback = feedback
+    try:
+        response = ollama.chat(
+            model="llama3",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw_feedback = response["message"]["content"].strip()
+    except Exception as exc:  # noqa: BLE001
+        raw_feedback = f"AI grading failed: {exc}"
+
+    rubric_data = _extract_json_dict(raw_feedback)
+    syntax_score = _parse_rubric_score(rubric_data.get("syntax"))
+    logic_score = _parse_rubric_score(rubric_data.get("logic"))
+    structure_score = _parse_rubric_score(rubric_data.get("structure"))
+    readability_score = _parse_rubric_score(rubric_data.get("readability"))
+    summary = str(rubric_data.get("summary", "")).strip()
+
+    # If JSON parsing fails, preserve existing behavior as fallback.
+    if not rubric_data:
+        score, feedback = _ai_grade(prompt, code_submission.assignment.max_score)
+        code_submission.score = score
+        code_submission.ai_feedback = feedback
+        code_submission.save(update_fields=["score", "ai_feedback"])
+        from teacher.services.performance import sync_code_submission_record
+
+        sync_code_submission_record(code_submission, evaluation_type="ai")
+        return code_submission
+
+    if not syntax_ok:
+        syntax_score = 0.0
+        if summary:
+            summary = f"Syntax error detected. {summary}"
+        else:
+            summary = "Syntax error detected."
+
+    rubric_total = syntax_score + logic_score + structure_score + readability_score
+    normalized_score = (rubric_total / 40.0) * code_submission.assignment.max_score
+    final_score = round(clamp_score(normalized_score, code_submission.assignment.max_score), 2)
+
+    feedback_parts = [
+        f"Syntax: {syntax_score:.1f}/10",
+        f"Logic: {logic_score:.1f}/10",
+        f"Structure: {structure_score:.1f}/10",
+        f"Readability: {readability_score:.1f}/10",
+    ]
+    if syntax_error_message:
+        feedback_parts.append(f"Syntax error detail: {syntax_error_message}")
+    if summary:
+        feedback_parts.append(f"Summary: {summary}")
+
+    code_submission.score = final_score
+    code_submission.ai_feedback = "\n".join(feedback_parts)
     code_submission.save(update_fields=["score", "ai_feedback"])
+    from teacher.services.performance import sync_code_submission_record
+
+    sync_code_submission_record(code_submission, evaluation_type="ai")
     return code_submission
 
 
@@ -118,6 +231,9 @@ def evaluate_quiz_for_student(assignment: Assignment, student) -> QuizResult:
                 "feedback": "No questions configured.",
             },
         )
+        from teacher.services.performance import sync_quiz_result_record
+
+        sync_quiz_result_record(result, evaluation_type="auto")
         return result
 
     answers = QuizAnswer.objects.filter(
@@ -143,6 +259,9 @@ def evaluate_quiz_for_student(assignment: Assignment, student) -> QuizResult:
             "feedback": feedback,
         },
     )
+    from teacher.services.performance import sync_quiz_result_record
+
+    sync_quiz_result_record(result, evaluation_type="auto")
     return result
 
 

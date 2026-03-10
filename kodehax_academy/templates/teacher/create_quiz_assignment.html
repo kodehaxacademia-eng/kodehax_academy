@@ -32,6 +32,14 @@
         <input type="datetime-local" name="due_date" required class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200">
       </div>
 
+      <div>
+        <label class="block text-sm font-semibold text-slate-200 mb-2">Attempt Policy</label>
+        <select name="attempt_policy" class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200">
+          <option value="once" {% if selected_attempt_policy == "once" %}selected{% endif %}>Once only</option>
+          <option value="multiple" {% if selected_attempt_policy == "multiple" %}selected{% endif %}>Multiple attempts</option>
+        </select>
+      </div>
+
       <div id="question-list" class="space-y-4">
         <div class="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
           <p class="font-semibold text-slate-100 mb-3">Question 1</p>

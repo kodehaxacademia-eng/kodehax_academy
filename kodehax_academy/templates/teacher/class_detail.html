@@ -34,6 +34,7 @@
           <tr class="border-b border-slate-700 text-sm text-slate-400">
             <th class="py-3 font-semibold">Name</th>
             <th class="py-3 font-semibold">Email</th>
+            <th class="py-3 font-semibold text-right">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -41,10 +42,24 @@
           <tr class="table-row border-b border-slate-800">
             <td class="py-3 font-medium text-slate-200">{{ student.username }}</td>
             <td class="py-3 text-slate-300">{{ student.email }}</td>
+            <td class="py-3 text-right">
+              <form
+                method="post"
+                action="{% url 'remove_student_from_classroom' classroom.id student.id %}"
+                data-confirm="true"
+                data-confirm-title="Remove Student"
+                data-confirm-message="Remove {{ student.username|escapejs }} from this classroom?"
+              >
+                {% csrf_token %}
+                <button type="submit" class="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700">
+                  Remove Student
+                </button>
+              </form>
+            </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="2" class="py-8 text-center text-slate-400">No students enrolled yet.</td>
+            <td colspan="3" class="py-8 text-center text-slate-400">No students enrolled yet.</td>
           </tr>
           {% endfor %}
         </tbody>

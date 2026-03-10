@@ -38,9 +38,24 @@
             <td class="py-4 text-slate-300">{{ row.assignment.due_date|date:"M d, Y" }}</td>
             <td class="py-4 text-slate-300">{{ row.submission_count }}</td>
             <td class="py-4">
+              <div class="flex flex-wrap items-center gap-2">
               <a href="{% url 'assignment_detail' row.assignment.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">
                 View Details
               </a>
+              <form
+                method="post"
+                action="{% url 'delete_assignment' row.assignment.id %}"
+                class="inline"
+                data-confirm="true"
+                data-confirm-title="Delete Assignment"
+                data-confirm-message="Delete {{ row.assignment.title|escapejs }} and all related submissions? This cannot be undone."
+              >
+                {% csrf_token %}
+                <button type="submit" class="btn-danger inline-flex px-3 py-1.5 text-sm">
+                  Delete Assignment
+                </button>
+              </form>
+              </div>
             </td>
           </tr>
           {% empty %}

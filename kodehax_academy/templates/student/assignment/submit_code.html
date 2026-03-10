@@ -15,17 +15,25 @@
     </div>
   </div>
 
+  {% if existing_submission and not can_submit %}
+  <div class="rounded-xl border border-amber-700 bg-amber-950/20 p-4 text-sm text-amber-200">
+    This coding assignment allows only one attempt. Your submission is locked.
+  </div>
+  {% endif %}
+
   <form method="POST" class="space-y-5 rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
     {% csrf_token %}
     <div>
       <label class="block mb-2 text-sm font-semibold text-slate-200">Language</label>
-      <input type="text" name="language" value="{% if existing_submission %}{{ existing_submission.language }}{% else %}python{% endif %}" class="w-full rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-2.5 text-slate-200">
+      <input type="text" name="language" value="{% if existing_submission %}{{ existing_submission.language }}{% else %}python{% endif %}" {% if not can_submit %}readonly{% endif %} class="w-full rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-2.5 text-slate-200">
     </div>
     <div>
       <label class="block mb-2 text-sm font-semibold text-slate-200">Code</label>
-      <textarea name="code" rows="16" required class="w-full rounded-xl border border-slate-600 bg-slate-950/80 px-4 py-2.5 font-mono text-sm text-slate-200">{% if existing_submission %}{{ existing_submission.code }}{% endif %}</textarea>
+      <textarea name="code" rows="16" {% if can_submit %}required{% else %}readonly{% endif %} class="w-full rounded-xl border border-slate-600 bg-slate-950/80 px-4 py-2.5 font-mono text-sm text-slate-200">{% if existing_submission %}{{ existing_submission.code }}{% endif %}</textarea>
     </div>
+    {% if can_submit %}
     <button type="submit" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">Submit Code</button>
+    {% endif %}
   </form>
 </section>
 {% endblock %}

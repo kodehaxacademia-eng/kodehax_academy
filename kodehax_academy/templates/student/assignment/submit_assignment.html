@@ -20,9 +20,14 @@
     {% endif %}
   </div>
 
-  {% if existing_submission %}
+  {% if existing_submission and can_submit %}
   <div class="rounded-xl border border-emerald-700 bg-emerald-950/20 p-4 text-sm text-emerald-200">
     You already submitted this assignment. Upload a new file to re-submit.
+  </div>
+  {% endif %}
+  {% if existing_submission and not can_submit %}
+  <div class="rounded-xl border border-amber-700 bg-amber-950/20 p-4 text-sm text-amber-200">
+    This assignment allows only one attempt. Your submission is locked.
   </div>
   {% endif %}
 
@@ -30,9 +35,11 @@
     {% csrf_token %}
     <div>
       <label class="block mb-2 text-sm font-semibold text-slate-200">Upload File</label>
-      <input type="file" name="file" required class="block w-full cursor-pointer rounded-xl border border-slate-600 bg-slate-900/60 text-sm text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-500 file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/25">
+      <input type="file" name="file" {% if can_submit %}required{% else %}disabled{% endif %} class="block w-full cursor-pointer rounded-xl border border-slate-600 bg-slate-900/60 text-sm text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-500 file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/25">
     </div>
+    {% if can_submit %}
     <button type="submit" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">Submit</button>
+    {% endif %}
   </form>
 </section>
 {% endblock %}

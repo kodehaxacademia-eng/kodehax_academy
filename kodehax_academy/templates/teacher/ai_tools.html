@@ -155,8 +155,21 @@
         </div>
 
         <div>
+          <label class="block text-sm font-semibold text-slate-200 mb-2">Instructions (optional)</label>
+          <textarea name="assignment_instructions" rows="2" placeholder="Example: Select one answer for each question." class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition"></textarea>
+        </div>
+
+        <div>
           <label class="block text-sm font-semibold text-slate-200 mb-2">Due Date (optional)</label>
           <input type="datetime-local" name="due_date" class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-200 mb-2">Attempt Policy</label>
+          <select name="attempt_policy" class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
+            <option value="once">Once only</option>
+            <option value="multiple">Multiple attempts</option>
+          </select>
         </div>
 
         <button type="submit" class="btn-primary w-full px-4 py-2.5">Upload To Assignments</button>

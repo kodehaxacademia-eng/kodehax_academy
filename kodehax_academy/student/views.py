@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
 from .models import StudentProfile
 import json
 import requests #type: ignore
@@ -18,6 +19,11 @@ from teacher.models import (
     Submission,
 )
 from teacher.services.evaluation import evaluate_quiz_for_student
+from teacher.services.performance import (
+    get_student_performance_summary,
+    sync_code_submission_record,
+    sync_file_submission_record,
+)
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 MODEL = "llama3:latest"
@@ -128,26 +134,41 @@ def _build_assignment_rows(assignments, student):
             "status_label": "Pending",
             "status_class": "amber",
             "action_label": "Open",
+            "can_submit": True,
         }
 
         if assignment.assignment_type == Assignment.ASSIGNMENT_TYPE_FILE:
             row["submission"] = file_submission_map.get(assignment.id)
-            row["action_label"] = "Submit / Re-submit"
+            row["action_label"] = "Submit"
             if row["submission"]:
                 row["status_label"] = "Submitted"
                 row["status_class"] = "emerald"
+                if assignment.allows_multiple_attempts:
+                    row["action_label"] = "Re-submit"
+                else:
+                    row["action_label"] = "View Submission"
         elif assignment.assignment_type == Assignment.ASSIGNMENT_TYPE_CODE:
             row["submission"] = code_submission_map.get(assignment.id)
             row["action_label"] = "Write Code"
             if row["submission"]:
                 row["status_label"] = "Submitted"
                 row["status_class"] = "emerald"
+                if assignment.allows_multiple_attempts:
+                    row["action_label"] = "Update Code"
+                else:
+                    row["action_label"] = "View Submission"
         else:
             row["submission"] = quiz_result_map.get(assignment.id)
             row["action_label"] = "Take Quiz"
-            if row["submission"] or assignment.id in quiz_attempted_ids:
-                row["status_label"] = "Completed"
+            attempted = row["submission"] or assignment.id in quiz_attempted_ids
+            if attempted:
                 row["status_class"] = "emerald"
+                if assignment.allows_multiple_attempts:
+                    row["status_label"] = "Attempted"
+                    row["action_label"] = "Retake Quiz"
+                else:
+                    row["status_label"] = "Completed"
+                    row["action_label"] = "View Quiz"
         rows.append(row)
     return rows
 
@@ -205,7 +226,8 @@ def student_dashboard(request):
     ).select_related("teacher").prefetch_related("assignments").order_by("-created_at")
 
     assignments = Assignment.objects.filter(
-        classroom__students=request.user
+        classroom__students=request.user,
+        due_date__gte=timezone.now(),
     ).select_related("classroom")
     assignment_rows = _build_assignment_rows(assignments, request.user)
     submission_map = {row["assignment"].id: row for row in assignment_rows}
@@ -256,7 +278,9 @@ def class_detail(request, class_id):
         students=request.user
     )
 
-    assignments = classroom.assignments.all().order_by("due_date")
+    assignments = classroom.assignments.filter(
+        due_date__gte=timezone.now()
+    ).order_by("due_date")
     assignment_rows = _build_assignment_rows(assignments, request.user)
 
     return render(request, "student/class_detail.html", {
@@ -272,13 +296,36 @@ def view_assignments(request):
         return redirect_response
 
     assignments = Assignment.objects.filter(
-        classroom__students=request.user
+        classroom__students=request.user,
+        due_date__gte=timezone.now(),
     ).select_related("classroom", "classroom__teacher").order_by("due_date")
 
     assignment_rows = _build_assignment_rows(assignments, request.user)
 
     return render(request, "student/assignment/view_assignment.html", {
         "assignment_rows": assignment_rows,
+    })
+
+
+@login_required
+def student_performance_dashboard(request):
+    redirect_response = _ensure_student(request)
+    if redirect_response:
+        return redirect_response
+
+    analytics = get_student_performance_summary(request.user)
+    summary = analytics["summary"]
+    charts = analytics["charts"]
+
+    return render(request, "student/performance.html", {
+        "summary": summary,
+        "records": analytics["records"],
+        "score_progression_labels": json.dumps(charts["score_progression_labels"]),
+        "score_progression_values": json.dumps(charts["score_progression_values"]),
+        "assignment_score_labels": json.dumps(charts["assignment_score_labels"]),
+        "assignment_score_values": json.dumps(charts["assignment_score_values"]),
+        "submission_trend_labels": json.dumps(charts["submission_trend_labels"]),
+        "submission_trend_values": json.dumps(charts["submission_trend_values"]),
     })
 
 
@@ -293,39 +340,52 @@ def submit_assignment(request, assignment_id):
         id=assignment_id,
         classroom__students=request.user
     )
+    if assignment.due_date < timezone.now():
+        messages.error(request, "This assignment deadline has passed.")
+        return redirect("view_assignments")
 
     if assignment.assignment_type == Assignment.ASSIGNMENT_TYPE_QUIZ:
         return redirect("take_quiz_assignment", assignment_id=assignment.id)
     if assignment.assignment_type == Assignment.ASSIGNMENT_TYPE_CODE:
         return redirect("submit_code_assignment", assignment_id=assignment.id)
 
+    existing_submission = Submission.objects.filter(
+        assignment=assignment,
+        student=request.user
+    ).first()
+    can_submit = assignment.allows_multiple_attempts or not existing_submission
+
     if request.method == "POST":
+        if not can_submit:
+            messages.error(request, "This assignment allows only one attempt.")
+            return redirect("submit_assignment", assignment_id=assignment.id)
+
         uploaded_file = request.FILES.get("file")
         if not uploaded_file:
             messages.error(request, "Please select a file to submit.")
             return redirect("submit_assignment", assignment_id=assignment.id)
 
-        submission, created = Submission.objects.get_or_create(
-            assignment=assignment,
-            student=request.user,
-            defaults={"file": uploaded_file}
-        )
+        if existing_submission:
+            existing_submission.file = uploaded_file
+            existing_submission.save(update_fields=["file"])
+            sync_file_submission_record(existing_submission, evaluation_type="manual")
+            success_message = "Assignment re-submitted successfully."
+        else:
+            submission = Submission.objects.create(
+                assignment=assignment,
+                student=request.user,
+                file=uploaded_file,
+            )
+            sync_file_submission_record(submission, evaluation_type="manual")
+            success_message = "Assignment submitted successfully."
 
-        if not created:
-            submission.file = uploaded_file
-            submission.save(update_fields=["file"])
-
-        messages.success(request, "Assignment submitted successfully.")
+        messages.success(request, success_message)
         return redirect("view_assignments")
-
-    existing_submission = Submission.objects.filter(
-        assignment=assignment,
-        student=request.user
-    ).first()
 
     return render(request, "student/assignment/submit_assignment.html", {
         "assignment": assignment,
         "existing_submission": existing_submission,
+        "can_submit": can_submit,
     })
 
 
@@ -341,6 +401,9 @@ def take_quiz_assignment(request, assignment_id):
         classroom__students=request.user,
         assignment_type=Assignment.ASSIGNMENT_TYPE_QUIZ
     )
+    if assignment.due_date < timezone.now():
+        messages.error(request, "This quiz deadline has passed.")
+        return redirect("view_assignments")
     questions = assignment.quiz_questions.all()
     if not questions.exists():
         # Backfill parser for old AI quizzes that were saved only as description text.
@@ -358,29 +421,70 @@ def take_quiz_assignment(request, assignment_id):
             )
         questions = assignment.quiz_questions.all()
 
+    existing_answers = {
+        answer.question_id: answer.selected_option
+        for answer in QuizAnswer.objects.filter(
+            question__assignment=assignment,
+            student=request.user,
+        )
+    }
+    has_existing_result = QuizResult.objects.filter(
+        assignment=assignment,
+        student=request.user,
+    ).exists()
+    has_existing_attempt = bool(existing_answers) or has_existing_result
+    can_submit = assignment.allows_multiple_attempts or not has_existing_attempt
+
     if request.method == "POST":
         if not questions.exists():
             messages.error(request, "No quiz questions configured yet.")
             return redirect("view_assignments")
+        if not can_submit:
+            messages.error(request, "This quiz allows only one attempt.")
+            return redirect("take_quiz_assignment", assignment_id=assignment.id)
 
+        selected_answers = {}
         for question in questions:
             selected_option = request.POST.get(f"question_{question.id}", "").strip().upper()
             if selected_option not in {"A", "B", "C", "D"}:
-                continue
+                messages.error(request, "Please answer all quiz questions before submitting.")
+                return redirect("take_quiz_assignment", assignment_id=assignment.id)
+            selected_answers[question.id] = selected_option
+
+        for question in questions:
             QuizAnswer.objects.update_or_create(
                 question=question,
                 student=request.user,
-                defaults={"selected_option": selected_option}
+                defaults={"selected_option": selected_answers[question.id]}
             )
 
         evaluate_quiz_for_student(assignment, request.user)
 
-        messages.success(request, "Quiz submitted successfully.")
+        if has_existing_attempt:
+            messages.success(request, "Quiz re-submitted successfully.")
+        else:
+            messages.success(request, "Quiz submitted successfully.")
         return redirect("view_assignments")
+
+    question_rows = [
+        {
+            "question": question,
+            "selected_option": existing_answers.get(question.id, ""),
+        }
+        for question in questions
+    ]
+    show_description = bool(assignment.description)
+    if show_description and questions.exists():
+        show_description = not bool(
+            _parse_quiz_questions_from_description(assignment.description)
+        )
 
     return render(request, "student/assignment/take_quiz.html", {
         "assignment": assignment,
         "questions": questions,
+        "question_rows": question_rows,
+        "can_submit": can_submit,
+        "show_description": show_description,
     })
 
 
@@ -396,8 +500,20 @@ def submit_code_assignment(request, assignment_id):
         classroom__students=request.user,
         assignment_type=Assignment.ASSIGNMENT_TYPE_CODE
     )
+    if assignment.due_date < timezone.now():
+        messages.error(request, "This coding assignment deadline has passed.")
+        return redirect("view_assignments")
+    existing_submission = CodeSubmission.objects.filter(
+        assignment=assignment,
+        student=request.user
+    ).first()
+    can_submit = assignment.allows_multiple_attempts or not existing_submission
 
     if request.method == "POST":
+        if not can_submit:
+            messages.error(request, "This coding assignment allows only one attempt.")
+            return redirect("submit_code_assignment", assignment_id=assignment.id)
+
         code = request.POST.get("code", "").rstrip()
         language = request.POST.get("language", "python").strip() or "python"
 
@@ -405,25 +521,28 @@ def submit_code_assignment(request, assignment_id):
             messages.error(request, "Code cannot be empty.")
             return redirect("submit_code_assignment", assignment_id=assignment.id)
 
-        CodeSubmission.objects.update_or_create(
-            assignment=assignment,
-            student=request.user,
-            defaults={
-                "code": code,
-                "language": language,
-            }
-        )
-        messages.success(request, "Code submitted successfully.")
+        if existing_submission:
+            existing_submission.code = code
+            existing_submission.language = language
+            existing_submission.save(update_fields=["code", "language"])
+            sync_code_submission_record(existing_submission, evaluation_type="manual")
+            success_message = "Code re-submitted successfully."
+        else:
+            code_submission = CodeSubmission.objects.create(
+                assignment=assignment,
+                student=request.user,
+                code=code,
+                language=language,
+            )
+            sync_code_submission_record(code_submission, evaluation_type="manual")
+            success_message = "Code submitted successfully."
+        messages.success(request, success_message)
         return redirect("view_assignments")
-
-    existing_submission = CodeSubmission.objects.filter(
-        assignment=assignment,
-        student=request.user
-    ).first()
 
     return render(request, "student/assignment/submit_code.html", {
         "assignment": assignment,
         "existing_submission": existing_submission,
+        "can_submit": can_submit,
     })
 
 

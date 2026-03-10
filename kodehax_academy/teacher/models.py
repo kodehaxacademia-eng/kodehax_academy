@@ -60,6 +60,12 @@ class Assignment(models.Model):
         (ASSIGNMENT_TYPE_QUIZ, "Quiz (MCQ)"),
         (ASSIGNMENT_TYPE_CODE, "Coding"),
     )
+    ATTEMPT_POLICY_ONCE = "once"
+    ATTEMPT_POLICY_MULTIPLE = "multiple"
+    ATTEMPT_POLICY_CHOICES = (
+        (ATTEMPT_POLICY_ONCE, "Once only"),
+        (ATTEMPT_POLICY_MULTIPLE, "Multiple attempts"),
+    )
 
     classroom = models.ForeignKey(
         ClassRoom,
@@ -80,11 +86,20 @@ class Assignment(models.Model):
         choices=ASSIGNMENT_TYPE_CHOICES,
         default=ASSIGNMENT_TYPE_FILE
     )
+    attempt_policy = models.CharField(
+        max_length=10,
+        choices=ATTEMPT_POLICY_CHOICES,
+        default=ATTEMPT_POLICY_ONCE,
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.title} - {self.classroom.name}"
+
+    @property
+    def allows_multiple_attempts(self):
+        return self.attempt_policy == self.ATTEMPT_POLICY_MULTIPLE
 
 
 # -----------------------------
@@ -197,6 +212,14 @@ class CodeSubmission(models.Model):
     def __str__(self):
         return f"{self.student} - {self.assignment.title}"
 
+    @property
+    def feedback(self):
+        return self.ai_feedback
+
+    @feedback.setter
+    def feedback(self, value):
+        self.ai_feedback = value
+
 
 class QuizResult(models.Model):
     assignment = models.ForeignKey(
@@ -220,6 +243,68 @@ class QuizResult(models.Model):
 
     def __str__(self):
         return f"{self.student} - {self.assignment.title} ({self.score})"
+
+
+class PerformanceRecord(models.Model):
+    EVALUATION_TYPE_MANUAL = "manual"
+    EVALUATION_TYPE_AI = "ai"
+    EVALUATION_TYPE_AUTO = "auto"
+    EVALUATION_TYPE_CHOICES = (
+        (EVALUATION_TYPE_MANUAL, "Manual"),
+        (EVALUATION_TYPE_AI, "AI"),
+        (EVALUATION_TYPE_AUTO, "Auto"),
+    )
+
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="performance_records",
+    )
+    classroom = models.ForeignKey(
+        ClassRoom,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="performance_records",
+    )
+    assignment = models.ForeignKey(
+        Assignment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="performance_records",
+    )
+    original_assignment_id = models.PositiveBigIntegerField(db_index=True)
+    assignment_title = models.CharField(max_length=255)
+    assignment_type = models.CharField(
+        max_length=10,
+        choices=Assignment.ASSIGNMENT_TYPE_CHOICES,
+        default=Assignment.ASSIGNMENT_TYPE_FILE,
+    )
+    score = models.FloatField(null=True, blank=True)
+    max_score = models.FloatField(default=100)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    due_date_snapshot = models.DateTimeField(null=True, blank=True)
+    was_on_time = models.BooleanField(default=True)
+    evaluation_type = models.CharField(
+        max_length=10,
+        choices=EVALUATION_TYPE_CHOICES,
+        default=EVALUATION_TYPE_MANUAL,
+    )
+    feedback = models.TextField(blank=True)
+    is_deleted_assignment = models.BooleanField(default=False)
+    recorded_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("student", "original_assignment_id")
+        indexes = [
+            models.Index(fields=["classroom", "student"]),
+            models.Index(fields=["student", "submitted_at"]),
+            models.Index(fields=["classroom", "assignment_type"]),
+        ]
+
+    def __str__(self):
+        return f"{self.student} - {self.assignment_title} ({self.score})"
 
 
 # -----------------------------

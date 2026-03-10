@@ -101,6 +101,92 @@
       background: rgba(30, 41, 59, 0.5);
     }
 
+    .btn-danger {
+      background: #e11d48;
+      color: #ffffff;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      transition: 180ms ease;
+      box-shadow: 0 10px 20px rgba(225, 29, 72, 0.22);
+    }
+
+    .btn-danger:hover {
+      background: #be123c;
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(225, 29, 72, 0.45);
+    }
+
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(2, 6, 23, 0.7);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 1000;
+    }
+
+    .confirm-overlay.open {
+      display: flex;
+      animation: fadeIn 180ms ease-out both;
+    }
+
+    .confirm-modal {
+      width: 100%;
+      max-width: 520px;
+      border-radius: 1rem;
+      border: 1px solid rgba(251, 113, 133, 0.35);
+      background: linear-gradient(
+        180deg,
+        rgba(30, 41, 59, 0.95),
+        rgba(15, 23, 42, 0.95)
+      );
+      box-shadow: 0 24px 44px rgba(2, 6, 23, 0.55);
+      overflow: hidden;
+      animation: popIn 180ms ease-out both;
+    }
+
+    .confirm-head {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(225, 29, 72, 0.14);
+    }
+
+    .confirm-body {
+      padding: 1rem 1.25rem;
+      color: #e2e8f0;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .confirm-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.62);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
     .table-row {
       transition: 180ms ease;
     }
@@ -370,6 +456,73 @@
       </div>
     </main>
   </div>
+  <div id="confirmOverlay" class="confirm-overlay" aria-hidden="true">
+    <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+      <div class="confirm-head">
+        <h3 id="confirmTitle" class="text-lg font-black text-rose-200">Confirm Action</h3>
+      </div>
+      <div class="confirm-body">
+        <p id="confirmMessage">Are you sure?</p>
+      </div>
+      <div class="confirm-actions">
+        <button type="button" id="confirmCancelBtn" class="btn-muted px-4 py-2 text-sm">Cancel</button>
+        <button type="button" id="confirmOkBtn" class="btn-danger px-4 py-2 text-sm">Yes, Continue</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const overlay = document.getElementById("confirmOverlay");
+      const titleEl = document.getElementById("confirmTitle");
+      const messageEl = document.getElementById("confirmMessage");
+      const cancelBtn = document.getElementById("confirmCancelBtn");
+      const okBtn = document.getElementById("confirmOkBtn");
+      let pendingForm = null;
+
+      const closeModal = () => {
+        overlay.classList.remove("open");
+        overlay.setAttribute("aria-hidden", "true");
+        pendingForm = null;
+      };
+
+      const openModal = (form) => {
+        pendingForm = form;
+        titleEl.textContent = form.dataset.confirmTitle || "Confirm Action";
+        messageEl.textContent = form.dataset.confirmMessage || "Are you sure?";
+        overlay.classList.add("open");
+        overlay.setAttribute("aria-hidden", "false");
+      };
+
+      document.addEventListener("submit", (event) => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement)) return;
+        if (!form.matches("form[data-confirm='true']")) return;
+        if (form.dataset.confirmed === "true") {
+          form.dataset.confirmed = "false";
+          return;
+        }
+        event.preventDefault();
+        openModal(form);
+      });
+
+      cancelBtn.addEventListener("click", closeModal);
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) closeModal();
+      });
+
+      okBtn.addEventListener("click", () => {
+        if (!pendingForm) return;
+        pendingForm.dataset.confirmed = "true";
+        pendingForm.submit();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && overlay.classList.contains("open")) {
+          closeModal();
+        }
+      });
+    })();
+  </script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -6,6 +6,54 @@
 
 {% block content %}
 <div class="rounded-2xl border border-slate-200 bg-white p-4 mb-4">
+    <div class="mb-3">
+        <h3 class="text-lg font-semibold text-slate-900">Invite Teacher</h3>
+        <p class="text-sm text-slate-500">Teacher accounts are created through a single-use invitation link. Sending the same email again re-sends a fresh link.</p>
+    </div>
+    <form method="post" action="{% url 'adminpanel_invite_teacher' %}" class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+        {% csrf_token %}
+        <div>
+            {{ invitation_form.email }}
+        </div>
+        <button class="rounded-xl bg-slate-900 text-white px-4 py-2 font-medium">Send invite</button>
+    </form>
+</div>
+
+<div class="rounded-2xl border border-slate-200 bg-white p-4 mb-4">
+    <div class="mb-3">
+        <h3 class="text-lg font-semibold text-slate-900">Pending Invitations</h3>
+        <p class="text-sm text-slate-500">Re-send a fresh invitation link to teachers who have not completed registration yet.</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="text-left text-slate-500">
+                <tr>
+                    <th class="pb-3">Email</th>
+                    <th class="pb-3">Created</th>
+                    <th class="pb-3">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for invitation in pending_invitations %}
+                <tr>
+                    <td class="py-3">{{ invitation.email }}</td>
+                    <td class="py-3">{{ invitation.created_at|date:"d M Y H:i" }}</td>
+                    <td class="py-3">
+                        <form method="post" action="{% url 'adminpanel_resend_teacher_invite' invitation.id %}">
+                            {% csrf_token %}
+                            <button class="rounded-lg bg-slate-900 text-white px-3 py-1 text-xs">Resend link</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="py-4 text-slate-500">No pending invitations.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="rounded-2xl border border-slate-200 bg-white p-4 mb-4">
     <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <input type="text" name="q" value="{{ query }}" placeholder="Search teachers" class="rounded-xl border border-slate-300 px-3 py-2">
         <select name="status" class="rounded-xl border border-slate-300 px-3 py-2">

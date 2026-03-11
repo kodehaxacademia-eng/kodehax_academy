@@ -215,6 +215,17 @@
       border-radius: 999px;
     }
 
+    .nav-link-disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .nav-link-disabled:hover {
+      transform: none;
+      background: transparent;
+      border-color: transparent;
+    }
+
     /* Utility overrides for consistent dark theme across all teacher pages. */
     .bg-white,
     .bg-slate-50,
@@ -382,9 +393,13 @@
             Assignments
           </a>
           {% else %}
-          <a href="#" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
+          <span
+            class="nav-link nav-link-disabled text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3"
+            title="Assignments are available only after you create a class."
+            aria-disabled="true"
+          >
             Assignments
-          </a>
+          </span>
           {% endif %}
           {% endwith %}
           {% endif %}

@@ -217,6 +217,11 @@
                             <span>{{ message }}</span>
                             <button onclick="this.parentElement.style.display='none'" class="text-emerald-300 hover:text-emerald-100">x</button>
                         </div>
+                    {% elif message.tags == "info" %}
+                        <div class="glass-card border-sky-500/45 text-sky-200 px-5 py-3 flex items-center justify-between reveal">
+                            <span>{{ message }}</span>
+                            <button onclick="this.parentElement.style.display='none'" class="text-sky-300 hover:text-sky-100">x</button>
+                        </div>
                     {% elif message.tags == "error" %}
                         <div class="glass-card border-rose-500/45 text-rose-200 px-5 py-3 flex items-center justify-between reveal">
                             <span>{{ message }}</span>
@@ -242,7 +247,7 @@
                         </p>
                         <div class="mt-6 flex flex-wrap gap-3">
                             <a href="{% url 'student_register' %}" class="btn-primary px-5 py-2.5">Join as Student</a>
-                            <a href="{% url 'teacher_register' %}" class="btn-outline px-5 py-2.5">Join as Teacher</a>
+                            <a href="{% url 'teacher_login' %}" class="btn-outline px-5 py-2.5">Teacher Portal</a>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">

@@ -1,4 +1,6 @@
 import json
+import socket
+from smtplib import SMTPException
 from datetime import timedelta
 
 from django.contrib import messages
@@ -10,6 +12,8 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from accounts.forms import TeacherInvitationAdminForm, resend_teacher_invitation
+from accounts.models import TeacherInvitation
 from teacher.models import (
     Assignment,
     CodeSubmission,
@@ -326,8 +330,54 @@ def teachers(request):
         "page_obj": page_obj,
         "query": query,
         "status_filter": status_filter,
+        "invitation_form": TeacherInvitationAdminForm(),
+        "pending_invitations": TeacherInvitation.objects.filter(is_used=False)[:10],
     }
     return _render_admin(request, "adminpanel/teachers.html", context)
+
+
+@admin_required
+def invite_teacher(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("Invalid request method.")
+
+    form = TeacherInvitationAdminForm(request.POST)
+    if form.is_valid():
+        try:
+            invitation = form.save(request=request)
+        except (SMTPException, TimeoutError, OSError, socket.timeout) as exc:
+            messages.error(
+                request,
+                "Invitation email could not be sent. Check SMTP settings, network access, and the sender credentials.",
+            )
+            messages.error(request, f"Mail error: {exc}")
+        else:
+            action = "Invitation sent" if getattr(invitation, "was_created", False) else "Invitation re-sent"
+            messages.success(request, f"{action} to {invitation.email}.")
+    else:
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                messages.error(request, error)
+    return redirect("adminpanel_teachers")
+
+
+@admin_required
+def resend_teacher_invite(request, invitation_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("Invalid request method.")
+
+    invitation = get_object_or_404(TeacherInvitation, id=invitation_id)
+    try:
+        resend_teacher_invitation(request, invitation)
+    except (SMTPException, TimeoutError, OSError, socket.timeout) as exc:
+        messages.error(
+            request,
+            "Invitation email could not be re-sent. Check SMTP settings, network access, and the sender credentials.",
+        )
+        messages.error(request, f"Mail error: {exc}")
+    else:
+        messages.success(request, f"Invitation re-sent to {invitation.email}.")
+    return redirect("adminpanel_teachers")
 
 
 @admin_required

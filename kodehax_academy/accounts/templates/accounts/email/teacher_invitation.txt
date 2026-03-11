@@ -1,0 +1,8 @@
+Teacher invitation for {{ site_name }}.
+
+You have been invited to join as a teacher.
+
+Complete your account setup here:
+{{ invite_url }}
+
+This invitation link expires in {{ expires_hours }} hours and can only be used once.

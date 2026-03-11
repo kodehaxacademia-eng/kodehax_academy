@@ -36,11 +36,15 @@
         <form method="POST" class="space-y-4">
             {% csrf_token %}
 
-            <input type="text" name="username" placeholder="Username" class="field">
-            <input type="password" name="password" placeholder="Password" class="field">
+            {{ form.username }}
+            {{ form.password }}
 
             <button class="auth-btn">Login as Student</button>
         </form>
+
+        <p class="text-center text-sm mt-4 text-slate-300">
+            <a href="{% url 'forgot_password' %}" class="text-emerald-300 hover:text-emerald-200 underline-offset-2 hover:underline">Forgot password?</a>
+        </p>
 
         <p class="text-center text-sm mt-4 text-slate-300">
             Don't have an account?

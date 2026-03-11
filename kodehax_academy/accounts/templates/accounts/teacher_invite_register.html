@@ -1,0 +1,49 @@
+{% extends "user/base.html" %}
+
+{% block title %}Teacher Invitation{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl reveal">
+    <div class="glass-card grid lg:grid-cols-[0.9fr_1.1fr] overflow-hidden">
+        <section class="border-b lg:border-b-0 lg:border-r border-slate-800/70 p-8 md:p-10 bg-slate-950/35">
+            <p class="text-xs uppercase tracking-[0.18em] text-cyan-300">Teacher Invitation</p>
+            <h1 class="mt-3 text-3xl font-black text-white">Finish your teacher account setup.</h1>
+            <p class="mt-4 text-slate-300">This invitation is locked to <span class="text-white font-semibold">{{ invitation.email }}</span> and can be used once.</p>
+            <div class="mt-6 rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4 text-sm text-slate-300">
+                Your email will already be verified after registration, so you can sign in immediately.
+            </div>
+        </section>
+        <section class="p-8 md:p-10">
+            {% if token_valid %}
+                <h2 class="text-2xl font-black text-white">Create teacher credentials</h2>
+                <form method="post" class="mt-8 space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        {{ form.username }}
+                        <div class="text-sm text-rose-300 mt-2">{{ form.username.errors }}</div>
+                    </div>
+                    <div>
+                        {{ form.password1 }}
+                        <div class="text-sm text-rose-300 mt-2">{{ form.password1.errors }}</div>
+                    </div>
+                    <div>
+                        {{ form.password2 }}
+                        <div class="text-sm text-rose-300 mt-2">{{ form.password2.errors }}</div>
+                    </div>
+                    {% if form.non_field_errors %}
+                        <div class="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    <button type="submit" class="btn-primary w-full px-6 py-3">Create teacher account</button>
+                </form>
+            {% else %}
+                <p class="text-xs uppercase tracking-[0.18em] text-rose-300">Invitation unavailable</p>
+                <h2 class="mt-3 text-2xl font-black text-white">This invitation link is invalid, expired, or already used.</h2>
+                <p class="mt-4 text-slate-300">Ask the admin team to send a new invitation.</p>
+                <div class="mt-6">
+                    <a href="{% url 'teacher_login' %}" class="btn-outline inline-flex px-6 py-3">Back to teacher login</a>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -36,15 +36,18 @@
         <form method="POST" class="space-y-4">
             {% csrf_token %}
 
-            <input type="text" name="username" placeholder="Username" class="field">
-            <input type="password" name="password" placeholder="Password" class="field">
+            {{ form.username }}
+            {{ form.password }}
 
             <button class="auth-btn">Login as Teacher</button>
         </form>
 
         <p class="text-center text-sm mt-4 text-slate-300">
-            Don't have an account?
-            <a href="{% url 'teacher_register' %}" class="text-cyan-300 hover:text-cyan-200 underline-offset-2 hover:underline">Register</a>
+            <a href="{% url 'forgot_password' %}" class="text-cyan-300 hover:text-cyan-200 underline-offset-2 hover:underline">Forgot password?</a>
+        </p>
+
+        <p class="text-center text-sm mt-4 text-slate-300">
+            Teacher accounts are created through an admin invitation.
         </p>
     </div>
 </div>

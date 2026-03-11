@@ -1,0 +1,39 @@
+{% extends "student/base.html" %}
+
+{% block title %}Evaluation Complete{% endblock %}
+{% block header %}Skill Evaluation Complete{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <section class="glass-card overflow-hidden p-6 sm:p-8">
+    <div class="relative rounded-[1.75rem] border border-teal-400/20 bg-gradient-to-br from-teal-500/15 via-cyan-500/10 to-slate-900/30 p-6 sm:p-8">
+      <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-teal-400/20 blur-3xl"></div>
+      <div class="relative">
+        <p class="text-xs uppercase tracking-[0.25em] text-teal-300/80">Assessment Complete</p>
+        <h2 class="mt-3 text-3xl font-black tracking-tight text-white">Your coding skill profile is ready</h2>
+        <p class="mt-3 max-w-2xl text-sm text-slate-300">
+          The system calculated your current coding level and identified the topics that need more attention.
+        </p>
+        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4">
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Level</p>
+            <p class="mt-2 text-2xl font-black text-white">{{ skill_profile.skill_level }}</p>
+          </div>
+          <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4">
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Score</p>
+            <p class="mt-2 text-2xl font-black text-teal-300">{{ skill_profile.skill_score }}</p>
+          </div>
+          <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4">
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Completed</p>
+            <p class="mt-2 text-sm font-semibold text-slate-200">{{ assessment.date_completed|date:"M d, Y H:i" }}</p>
+          </div>
+        </div>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="{% url 'skill_assessment_profile' %}" class="btn-primary px-5 py-2.5 text-sm">Open Skill Profile</a>
+          <a href="{% url 'student_dashboard' %}" class="btn-muted px-5 py-2.5 text-sm">Go to Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -28,6 +28,8 @@ urlpatterns = [
     path('admin-panel/', include('adminpanel.urls')),
     path('', include('accounts.urls')),
     path('', include('users.urls')),
+    path('student/daily-challenges/', include('daily_challenges.urls')),
+    path('student/skill-assessment/', include('skill_assessment.urls')),
     path('student/', include('student.urls')),
     path('teacher/', include('teacher.urls')),
 ]

@@ -1,0 +1,101 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}Skill Assessments{% endblock %}
+{% block page_title %}Skill Assessments{% endblock %}
+{% block page_subtitle %}Adaptive coding evaluation analytics and resets{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+    <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-xl">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-[0.24em] text-slate-400">Student Skill Index</p>
+          <h3 class="mt-2 text-2xl font-semibold text-slate-900">Track skill levels and weak topics</h3>
+          <p class="mt-2 max-w-2xl text-sm text-slate-500">Filter students by computed level, inspect weak-topic clusters, and reset one-time assessments when needed.</p>
+        </div>
+        <form method="get" class="grid w-full gap-3 sm:grid-cols-3 lg:max-w-2xl">
+          <input type="text" name="q" value="{{ query }}" placeholder="Search student" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none ring-0 transition focus:border-sky-400">
+          <select name="level" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-400">
+            <option value="">All levels</option>
+            {% for level in level_choices %}
+            <option value="{{ level }}" {% if level_filter == level %}selected{% endif %}>{{ level }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white hover:bg-slate-800">Apply Filters</button>
+        </form>
+      </div>
+    </article>
+
+    <article class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-xl">
+      <h3 class="text-lg font-semibold text-slate-900">Weak Topic Hotspots</h3>
+      <div class="mt-5 space-y-3">
+        {% for row in weak_topic_rows %}
+        <div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-600">{{ row.label }}</span>
+            <span class="font-medium text-slate-900">{{ row.value }}</span>
+          </div>
+          <div class="mt-2 h-2 rounded-full bg-slate-100">
+            <div class="h-2 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400" style="width: {% widthratio row.value 12 100 %}%;"></div>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-slate-500">No weak-topic data collected yet.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-xl">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead>
+          <tr class="text-left text-slate-500">
+            <th class="pb-3 font-medium">Student</th>
+            <th class="pb-3 font-medium">Level</th>
+            <th class="pb-3 font-medium">Score</th>
+            <th class="pb-3 font-medium">Weak Topics</th>
+            <th class="pb-3 font-medium">Updated</th>
+            <th class="pb-3 font-medium text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for item in page_obj %}
+          <tr class="align-top">
+            <td class="py-4 pr-4">
+              <p class="font-medium text-slate-900">{{ item.student.username }}</p>
+              <p class="text-slate-500">{{ item.student.email }}</p>
+            </td>
+            <td class="py-4 pr-4">
+              <span class="inline-flex rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">{{ item.skill_level }}</span>
+            </td>
+            <td class="py-4 pr-4 font-semibold text-slate-900">{{ item.skill_score }}</td>
+            <td class="py-4 pr-4">
+              <div class="flex flex-wrap gap-2">
+                {% for topic, stats in item.weak_topics.items %}
+                <span class="inline-flex rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700">{{ topic|title }}</span>
+                {% empty %}
+                <span class="text-slate-400">None</span>
+                {% endfor %}
+              </div>
+            </td>
+            <td class="py-4 pr-4 text-slate-500">{{ item.updated_at|date:"M d, Y H:i" }}</td>
+            <td class="py-4 text-right">
+              <form method="post" action="{% url 'adminpanel_skill_reset' item.student.id %}">
+                {% csrf_token %}
+                <button type="submit" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100">Reset</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="py-10 text-center text-slate-500">No student skill profiles available yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

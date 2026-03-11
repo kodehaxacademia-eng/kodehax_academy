@@ -136,6 +136,12 @@
                 <a href="{% url 'student_dashboard' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'dashboard' in request.path %}active{% endif %}">
                     Dashboard
                 </a>
+                <a href="{% url 'skill_assessment_profile' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'skill-assessment' in request.path %}active{% endif %}">
+                    Skill Profile
+                </a>
+                <a href="{% url 'daily_challenges_today' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'daily-challenges' in request.path %}active{% endif %}">
+                    Daily Challenge
+                </a>
                 <a href="{% url 'view_assignments' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'assignments' in request.path %}active{% endif %}">
                     Assignments
                 </a>
@@ -145,7 +151,7 @@
                 <a href="{% url 'chat_page' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium">
                     Chatroom
                 </a>
-                <a href="{% url 'student_profile' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'profile' in request.path %}active{% endif %}">
+                <a href="{% url 'student_profile' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if request.path == '/student/profile/' %}active{% endif %}">
                     Profile
                 </a>
             </nav>

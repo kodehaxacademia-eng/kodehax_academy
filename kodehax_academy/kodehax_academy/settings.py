@@ -64,6 +64,8 @@ INSTALLED_APPS = [
     'teacher',
     'chat',
     'adminpanel',
+    'skill_assessment',
+    'daily_challenges',
 ]
 
 MIDDLEWARE = [

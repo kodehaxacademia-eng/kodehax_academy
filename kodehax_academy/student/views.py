@@ -9,6 +9,8 @@ import re
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from chat.views import RESPONSE_STYLE_INSTRUCTION, format_ai_reply
+from daily_challenges.services import get_today_challenge_set
+from skill_assessment.models import StudentSkill
 from teacher.models import (
     Assignment,
     ClassRoom,
@@ -215,15 +217,22 @@ def _parse_quiz_questions_from_description(raw_text):
 
 @login_required
 def student_dashboard(request):
-    profile, _ = StudentProfile.objects.get_or_create(user=request.user)
-
     redirect_response = _ensure_student(request)
     if redirect_response:
         return redirect_response
 
+    skill_profile = StudentSkill.objects.filter(student=request.user).first()
+    if not skill_profile:
+        return redirect("skill_assessment_entry")
+
+    profile, _ = StudentProfile.objects.get_or_create(user=request.user)
+
     joined_classes = ClassRoom.objects.filter(
         students=request.user
     ).select_related("teacher").prefetch_related("assignments").order_by("-created_at")
+
+    daily_challenge_set = get_today_challenge_set(request.user)
+    solved_daily_count = daily_challenge_set.challenges.filter(status="solved").count()
 
     assignments = Assignment.objects.filter(
         classroom__students=request.user,
@@ -236,6 +245,10 @@ def student_dashboard(request):
         "profile": profile,
         "joined_classes": joined_classes,
         "submission_map": submission_map,
+        "skill_profile": skill_profile,
+        "medium_topics": skill_profile.assessment_snapshot.get("medium_topics", []),
+        "daily_challenge_set": daily_challenge_set,
+        "solved_daily_count": solved_daily_count,
     })
 
 @login_required

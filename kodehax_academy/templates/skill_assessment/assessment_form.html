@@ -1,0 +1,254 @@
+{% extends "student/base.html" %}
+{% load skill_assessment_tags %}
+
+{% block title %}Skill Evaluation{% endblock %}
+{% block header %}Adaptive Skill Evaluation{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid rgba(71, 85, 105, 0.9);
+    background: rgba(15, 23, 42, 0.78);
+    color: #e2e8f0;
+    padding: 0.85rem 1rem;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus,
+  .code-editor-input:focus {
+    outline: none;
+    border-color: rgba(45, 212, 191, 0.9);
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.18);
+  }
+
+  .code-editor-input {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid rgba(71, 85, 105, 0.9);
+    background: linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.92));
+    color: #cbd5e1;
+    padding: 1rem;
+    font-family: "Cascadia Code", "Fira Code", monospace;
+    line-height: 1.55;
+    resize: vertical;
+    min-height: 18rem;
+  }
+
+  .choice-card label,
+  .radio-grid label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid rgba(71, 85, 105, 0.7);
+    background: rgba(15, 23, 42, 0.68);
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+  }
+
+  .choice-card label:hover,
+  .radio-grid label:hover {
+    transform: translateY(-1px);
+    border-color: rgba(45, 212, 191, 0.5);
+  }
+
+  .choice-card input,
+  .radio-grid input {
+    accent-color: #14b8a6;
+  }
+
+  .step-pill {
+    border: 1px solid rgba(71, 85, 105, 0.7);
+    background: rgba(15, 23, 42, 0.6);
+  }
+
+  .step-pill.active {
+    border-color: rgba(45, 212, 191, 0.8);
+    background: rgba(20, 184, 166, 0.16);
+    box-shadow: 0 10px 25px rgba(20, 184, 166, 0.12);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <section class="glass-card p-6 sm:p-8">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p class="text-xs uppercase tracking-[0.22em] text-teal-300/80">Student Skill System</p>
+        <h2 class="mt-2 text-3xl font-black tracking-tight text-white">Build your coding skill profile</h2>
+        <p class="mt-3 max-w-3xl text-sm text-slate-300">
+          Complete the three-level evaluation once. Your results will power future adaptive daily coding challenges.
+        </p>
+      </div>
+      <div class="min-w-[220px] rounded-2xl border border-teal-400/20 bg-teal-400/10 p-4">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">Progress</span>
+          <span class="font-semibold text-teal-300">{{ step_percent }}%</span>
+        </div>
+        <div class="mt-3 h-2.5 rounded-full bg-slate-800/80">
+          <div class="h-2.5 rounded-full bg-gradient-to-r from-teal-400 via-cyan-400 to-emerald-300" style="width: {{ step_percent }}%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div class="step-pill {% if step == 1 %}active{% endif %} rounded-2xl p-4">
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Level 1</p>
+        <h3 class="mt-2 font-semibold text-white">Self Assessment</h3>
+        <p class="mt-1 text-sm text-slate-400">Background, exposure, and confidence.</p>
+      </div>
+      <div class="step-pill {% if step == 2 %}active{% endif %} rounded-2xl p-4">
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Level 2</p>
+        <h3 class="mt-2 font-semibold text-white">Concept Check</h3>
+        <p class="mt-1 text-sm text-slate-400">MCQs across core programming topics.</p>
+      </div>
+      <div class="step-pill {% if step == 3 %}active{% endif %} rounded-2xl p-4">
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Level 3</p>
+        <h3 class="mt-2 font-semibold text-white">Coding Tasks</h3>
+        <p class="mt-1 text-sm text-slate-400">Solve two starter-level Python problems.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="glass-card p-6 sm:p-8">
+    <form method="post" class="space-y-8">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      {% if step == 1 %}
+      <div class="space-y-6">
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-teal-300/80">Level 1</p>
+          <h3 class="mt-2 text-2xl font-black text-white">Self assessment</h3>
+          <p class="mt-2 text-sm text-slate-300">Tell us how much coding exposure you already have.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-slate-200">{{ form.programming_language_familiarity.label }}</label>
+            {{ form.programming_language_familiarity }}
+            {% if form.programming_language_familiarity.errors %}
+            <p class="mt-2 text-sm text-rose-300">{{ form.programming_language_familiarity.errors.0 }}</p>
+            {% endif %}
+          </div>
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-slate-200">{{ form.coding_experience_duration.label }}</label>
+            {{ form.coding_experience_duration }}
+            {% if form.coding_experience_duration.errors %}
+            <p class="mt-2 text-sm text-rose-300">{{ form.coding_experience_duration.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-3 block text-sm font-semibold text-slate-200">{{ form.platforms_used.label }}</label>
+          <div class="choice-card grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {{ form.platforms_used }}
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-3 block text-sm font-semibold text-slate-200">{{ form.confidence_rating.label }}</label>
+          <div class="radio-grid grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+            {{ form.confidence_rating }}
+          </div>
+          {% if form.confidence_rating.errors %}
+          <p class="mt-2 text-sm text-rose-300">{{ form.confidence_rating.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% elif step == 2 %}
+      <div class="space-y-6">
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-teal-300/80">Level 2</p>
+          <h3 class="mt-2 text-2xl font-black text-white">Conceptual MCQ test</h3>
+          <p class="mt-2 text-sm text-slate-300">Answer each question once. Weak areas are derived from this section.</p>
+        </div>
+
+        {% for question in questions %}
+        {% with field_name='question_'|field_name:question.id %}
+        <article class="rounded-2xl border border-slate-700 bg-slate-950/35 p-5">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">{{ question.topic }}</p>
+              <h4 class="mt-2 text-lg font-semibold text-white">{{ forloop.counter }}. {{ question.question_text }}</h4>
+            </div>
+            <span class="rounded-full border border-teal-400/20 bg-teal-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-teal-200">
+              {{ question.difficulty }}
+            </span>
+          </div>
+          <div class="radio-grid mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {{ form|get_item:field_name }}
+          </div>
+          {% if form|get_item:field_name and form|get_item:field_name.errors %}
+          <p class="mt-2 text-sm text-rose-300">{{ form|get_item:field_name.errors.0 }}</p>
+          {% endif %}
+        </article>
+        {% endwith %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="space-y-6">
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-teal-300/80">Level 3</p>
+          <h3 class="mt-2 text-2xl font-black text-white">Basic coding problems</h3>
+          <p class="mt-2 text-sm text-slate-300">Implement the required function exactly as described. Each solution is checked against predefined test cases.</p>
+        </div>
+
+        {% for problem in problems %}
+        {% with field_name='problem_'|field_name:problem.id %}
+        <article class="rounded-[1.5rem] border border-slate-700 bg-slate-950/40 p-5 shadow-[0_20px_50px_rgba(2,6,23,0.25)]">
+          <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div class="max-w-3xl">
+              <p class="text-xs uppercase tracking-[0.18em] text-slate-500">{{ problem.difficulty }} coding problem</p>
+              <h4 class="mt-2 text-xl font-black text-white">{{ problem.title }}</h4>
+              <p class="mt-3 text-sm leading-7 text-slate-300">{{ problem.description }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-xs text-slate-400">
+              <p class="uppercase tracking-[0.18em] text-slate-500">Function</p>
+              <p class="mt-2 font-mono text-sm text-teal-200">{{ problem.function_name }}(...)</p>
+            </div>
+          </div>
+          <div class="mt-5">
+            {{ form|get_item:field_name }}
+            {% if form|get_item:field_name.errors %}
+            <p class="mt-2 text-sm text-rose-300">{{ form|get_item:field_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </article>
+        {% endwith %}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="flex flex-col gap-3 border-t border-slate-800 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-sm text-slate-400">
+          {% if step > 1 %}
+          <a href="{% url 'skill_assessment_step' step=step|add:'-1' %}" class="btn-muted inline-flex items-center px-4 py-2">
+            Back to previous step
+          </a>
+          {% else %}
+          <span>One-time evaluation. Answers are locked after completion.</span>
+          {% endif %}
+        </div>
+        <button type="submit" class="btn-primary inline-flex items-center justify-center px-5 py-2.5 text-sm">
+          {% if step == total_steps %}Finish Evaluation{% else %}Save and Continue{% endif %}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

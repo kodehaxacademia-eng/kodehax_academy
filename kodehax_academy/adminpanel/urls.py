@@ -1,6 +1,8 @@
 from django.urls import path
 
 from . import views
+from daily_challenges import views as daily_challenge_views
+from skill_assessment import views as skill_assessment_views
 
 
 urlpatterns = [
@@ -34,4 +36,16 @@ urlpatterns = [
         name="adminpanel_assignment_action",
     ),
     path("analytics/", views.analytics, name="adminpanel_analytics"),
+    path("daily-challenges/", daily_challenge_views.adminpanel_daily_challenges, name="adminpanel_daily_challenges"),
+    path(
+        "daily-challenges/regenerate/",
+        daily_challenge_views.adminpanel_regenerate_daily_challenges,
+        name="adminpanel_regenerate_daily_challenges",
+    ),
+    path("skills/", skill_assessment_views.adminpanel_skill_overview, name="adminpanel_skills"),
+    path(
+        "skills/<int:student_id>/reset/",
+        skill_assessment_views.adminpanel_skill_reset,
+        name="adminpanel_skill_reset",
+    ),
 ]

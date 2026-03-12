@@ -6,74 +6,212 @@
 {% block content %}
 <div class="space-y-6">
   <section class="glass-card hover-lift p-6 reveal">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom</p>
-        <h3 class="text-3xl font-black text-white mt-1">{{ classroom.name }}</h3>
-        <p class="text-slate-300 mt-2">Performance overview with score and completion analytics.</p>
+        <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom Analytics</p>
+        <h3 class="mt-1 text-3xl font-black text-white">{{ classroom.name }}</h3>
+        <p class="mt-2 max-w-2xl text-slate-300">Compact skill analytics for challenge completion, growth movement, intervention risk, and student ranking context.</p>
       </div>
-      <a href="{% url 'class_detail' classroom.id %}" class="btn-muted px-4 py-2 text-sm text-center">
-        Back To Class
-      </a>
+      <a href="{% url 'class_detail' classroom.id %}" class="btn-muted px-4 py-2 text-sm text-center">Back To Class</a>
     </div>
   </section>
 
-  <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-    <article class="glass-card p-5 reveal delay-1">
-      <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Class Average</p>
-      <p class="mt-2 text-2xl font-black text-blue-300">{{ summary.class_average_score }}</p>
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    {% for meter in analytics.meters %}
+    <article class="glass-card p-5 reveal">
+      <p class="text-xs uppercase tracking-[0.1em] text-slate-400">{{ meter.label }}</p>
+      <div class="mt-3 flex items-end justify-between gap-3">
+        <p class="text-3xl font-black text-white">{{ meter.display }}</p>
+        <p class="text-xs text-slate-400">{{ meter.helper }}</p>
+      </div>
+      <div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-800">
+        <div class="h-full rounded-full bg-{{ meter.tone }}-400" style="width: {{ meter.value }}%"></div>
+      </div>
     </article>
-    <article class="glass-card p-5 reveal delay-1">
-      <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Completion Rate</p>
-      <p class="mt-2 text-2xl font-black text-emerald-300">{{ summary.assignment_completion_rate }}%</p>
+    {% endfor %}
+  </section>
+
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+    <article class="glass-card p-6 reveal">
+      <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Skill Snapshot</p>
+      <h4 class="mt-1 text-xl font-bold text-white">Average strengths across the class</h4>
+      <div class="mt-5 space-y-4">
+        {% for skill in analytics.skill_snapshot %}
+        <div>
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-sm font-semibold text-slate-200">{{ skill.label }}</p>
+            <span class="text-sm font-bold text-{{ skill.tone }}-300">{{ skill.value }}</span>
+          </div>
+          <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
+            <div class="h-full rounded-full bg-{{ skill.tone }}-400" style="width: {{ skill.value }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {% for growth in analytics.growth_indicators %}
+        <div class="rounded-2xl border border-slate-700 bg-slate-950/40 p-4">
+          <p class="text-xs uppercase tracking-[0.1em] text-slate-400">{{ growth.label }}</p>
+          <p class="mt-2 text-xl font-black text-{{ growth.tone }}-300">{{ growth.display }}</p>
+        </div>
+        {% endfor %}
+      </div>
     </article>
-    <article class="glass-card p-5 reveal delay-2">
-      <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Top Student</p>
-      <p class="mt-2 text-xl font-black text-slate-100">
-        {% if summary.highest_performing_student %}{{ summary.highest_performing_student.username }}{% else %}N/A{% endif %}
-      </p>
-    </article>
-    <article class="glass-card p-5 reveal delay-2">
-      <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Needs Support</p>
-      <p class="mt-2 text-xl font-black text-amber-300">
-        {% if summary.lowest_performing_student %}{{ summary.lowest_performing_student.username }}{% else %}N/A{% endif %}
-      </p>
+
+    <article class="glass-card p-6 reveal delay-1">
+      <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Daily Challenge Performance</p>
+      <h4 class="mt-1 text-xl font-bold text-white">Today&apos;s difficulty completion</h4>
+      <div class="mt-5 space-y-4">
+        {% for card in analytics.daily_challenge_cards %}
+        <div class="rounded-2xl border border-slate-700 bg-slate-950/40 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="font-semibold text-white">{{ card.label }}</p>
+            <span class="text-sm font-bold text-{{ card.tone }}-300">{{ card.rate }}%</span>
+          </div>
+          <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
+            <div class="h-full rounded-full bg-{{ card.tone }}-400" style="width: {{ card.rate }}%"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-400">{{ card.solved }} solved out of {{ card.total }}</p>
+        </div>
+        {% endfor %}
+      </div>
     </article>
   </section>
 
-  <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+    <article class="glass-card p-6 reveal">
+      <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Activity Heatmap</p>
+      <h4 class="mt-1 text-xl font-bold text-white">Practice consistency inside this class</h4>
+      <div class="mt-5 overflow-x-auto custom-scroll">
+        <div class="inline-flex gap-1">
+          {% for week in analytics.heatmap_weeks %}
+          <div class="flex flex-col gap-1">
+            {% for cell in week %}
+            <div
+              class="h-3 w-3 rounded-[4px] {% if not cell.in_range %}bg-slate-900/40{% elif cell.level == 0 %}bg-slate-800{% elif cell.level == 1 %}bg-sky-900{% elif cell.level == 2 %}bg-sky-700{% elif cell.level == 3 %}bg-cyan-500{% else %}bg-emerald-400{% endif %}"
+              title="{{ cell.date|date:'M d, Y' }}: {{ cell.count }} activities"
+            ></div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </article>
+
+    <article class="glass-card p-6 reveal delay-1">
+      <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Leaderboard Intelligence</p>
+      <h4 class="mt-1 text-xl font-bold text-white">Top students and why they lead</h4>
+      <div class="mt-5 space-y-3">
+        {% for entry in analytics.leaderboard %}
+        <div class="rounded-2xl border border-slate-700 bg-slate-950/40 p-4">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-sm font-black text-white">#{{ entry.rank }}</div>
+              <div>
+                <p class="font-semibold text-white">{{ entry.student.username }}</p>
+                <p class="text-xs text-slate-400">{{ entry.achievement_tag }}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-lg font-black text-emerald-300">{{ entry.points }}</p>
+              <p class="text-xs text-slate-400">Skill {{ entry.skill_score }}</p>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-slate-400">No leaderboard data available yet.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <article class="glass-card p-6 reveal">
+      <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Needs Attention</p>
+      <h4 class="mt-1 text-xl font-bold text-white">Students requiring intervention</h4>
+      <div class="mt-5 space-y-3">
+        {% for row in analytics.needs_attention %}
+        <div class="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="font-semibold text-white">{{ row.student.username }}</p>
+            <span class="rounded-full bg-slate-950/60 px-2.5 py-1 text-xs text-rose-100">Skill {{ row.skill_score }}</span>
+          </div>
+          <p class="mt-2 text-sm text-rose-100">{{ row.reason|title }}</p>
+          <p class="mt-1 text-xs text-slate-300">Accuracy {{ row.accuracy }}% · Compile errors {{ row.compile_errors }}</p>
+        </div>
+        {% empty %}
+        <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">No students are currently flagged for follow-up.</div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="glass-card p-6 reveal delay-1">
+      <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Teacher Insight Panel</p>
+      <h4 class="mt-1 text-xl font-bold text-white">Automated class observations</h4>
+      <div class="mt-5 space-y-3">
+        {% for insight in analytics.teacher_insights %}
+        <div class="rounded-2xl border border-slate-700 bg-slate-950/40 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="font-semibold text-white">{{ insight.title }}</p>
+            <span class="text-sm font-bold text-{{ insight.tone }}-300">{{ insight.value }}</span>
+          </div>
+          <p class="mt-2 text-sm text-slate-300">{{ insight.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
     <article class="glass-card p-6 reveal delay-2">
-      <h4 class="text-xl font-bold text-white">Student Ranking</h4>
-      <div class="mt-4 h-72">
-        <canvas id="studentRankingChart"></canvas>
-      </div>
-    </article>
-    <article class="glass-card p-6 reveal delay-3">
-      <h4 class="text-xl font-bold text-white">Score Distribution</h4>
-      <div class="mt-4 h-72">
-        <canvas id="scoreDistributionChart"></canvas>
+      <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Coding Behavior Insights</p>
+      <h4 class="mt-1 text-xl font-bold text-white">Compact cohort habits</h4>
+      <div class="mt-5 space-y-3">
+        {% for metric in analytics.behavior_metrics %}
+        <div class="rounded-2xl border border-slate-700 bg-slate-950/40 p-4">
+          <p class="text-xs uppercase tracking-[0.1em] text-slate-400">{{ metric.label }}</p>
+          <p class="mt-2 text-2xl font-black text-{{ metric.tone }}-300">{{ metric.value }}</p>
+        </div>
+        {% endfor %}
+        <div class="rounded-2xl border border-slate-700 bg-slate-950/40 p-4">
+          <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Challenge Balance</p>
+          <p class="mt-2 text-lg font-bold text-white">{{ analytics.challenge_balance.label }}</p>
+          <div class="mt-4 grid grid-cols-3 gap-2">
+            {% for segment in analytics.challenge_balance.segments %}
+            <div class="rounded-xl bg-slate-900/70 p-3 text-center">
+              <p class="text-xs text-slate-400">{{ segment.label }}</p>
+              <p class="mt-1 font-black text-white">{{ segment.value }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
       </div>
     </article>
   </section>
 
-  <section class="glass-card p-6 reveal delay-3">
-    <h4 class="text-xl font-bold text-white">Assignment Difficulty (Lower Avg = Harder)</h4>
-    <div class="mt-4 h-72">
-      <canvas id="assignmentDifficultyChart"></canvas>
+  <section class="glass-card hover-lift p-6 reveal delay-2">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Student Table</p>
+        <h4 class="mt-1 text-xl font-bold text-white">Skill score and intervention overview</h4>
+      </div>
+      <div class="flex flex-wrap gap-2 text-xs text-slate-400">
+        {% for bucket in analytics.skill_distribution %}
+        <span class="rounded-full border border-slate-700 px-3 py-1">{{ bucket.label }}: {{ bucket.count }}</span>
+        {% endfor %}
+      </div>
     </div>
-  </section>
-
-  <section class="glass-card hover-lift p-6 reveal delay-4">
-    <h4 class="text-xl font-bold text-white mb-5">Student Metrics</h4>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[900px]">
+    <div class="mt-5 overflow-x-auto">
+      <table class="w-full min-w-[960px] text-left">
         <thead>
-          <tr class="text-sm text-slate-400 border-b border-slate-700">
+          <tr class="border-b border-slate-700 text-sm text-slate-400">
             <th class="py-3 font-semibold">Student</th>
-            <th class="py-3 font-semibold">Assignments Completed</th>
+            <th class="py-3 font-semibold">Skill Score</th>
+            <th class="py-3 font-semibold">Level</th>
             <th class="py-3 font-semibold">Average Score</th>
-            <th class="py-3 font-semibold">Submission Rate</th>
-            <th class="py-3 font-semibold">Performance Level</th>
+            <th class="py-3 font-semibold">Accuracy</th>
+            <th class="py-3 font-semibold">Completion</th>
+            <th class="py-3 font-semibold">Streak</th>
+            <th class="py-3 font-semibold">Strongest</th>
+            <th class="py-3 font-semibold">Weakest</th>
             <th class="py-3 font-semibold">Action</th>
           </tr>
         </thead>
@@ -81,27 +219,25 @@
           {% for row in student_rows %}
           <tr class="table-row border-b border-slate-800">
             <td class="py-3.5 font-medium text-slate-200">{{ row.student.username }}</td>
-            <td class="py-3.5 text-slate-300">{{ row.assignments_completed }}</td>
-            <td class="py-3.5 text-slate-300">{{ row.average_score }}</td>
-            <td class="py-3.5 text-slate-300">{{ row.submission_rate }}%</td>
+            <td class="py-3.5 text-slate-100">{{ row.skill_score }}</td>
             <td class="py-3.5">
-              {% if row.performance_level == "High" %}
-              <span class="rounded-md bg-emerald-900/30 px-2 py-1 text-xs text-emerald-200">High</span>
-              {% elif row.performance_level == "Medium" %}
-              <span class="rounded-md bg-blue-900/30 px-2 py-1 text-xs text-blue-200">Medium</span>
-              {% else %}
-              <span class="rounded-md bg-amber-900/30 px-2 py-1 text-xs text-amber-200">Low</span>
-              {% endif %}
+              <span class="rounded-full px-2.5 py-1 text-xs {% if row.category == 'Advanced' %}bg-emerald-500/15 text-emerald-200{% elif row.category == 'Intermediate' %}bg-amber-500/15 text-amber-200{% else %}bg-rose-500/15 text-rose-200{% endif %}">
+                {{ row.category }}
+              </span>
             </td>
+            <td class="py-3.5 text-slate-300">{{ row.average_score }}</td>
+            <td class="py-3.5 text-slate-300">{{ row.accuracy }}%</td>
+            <td class="py-3.5 text-slate-300">{{ row.completion_rate }}%</td>
+            <td class="py-3.5 text-slate-300">{{ row.streak }}d</td>
+            <td class="py-3.5 text-emerald-200">{{ row.strongest_skill }}</td>
+            <td class="py-3.5 text-rose-200">{{ row.weakest_skill }}</td>
             <td class="py-3.5">
-              <a href="{% url 'student_performance' classroom.id row.student.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">
-                View Details
-              </a>
+              <a href="{% url 'student_performance' classroom.id row.student.id %}" class="btn-muted inline-flex px-3 py-1.5 text-sm">View Details</a>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="py-10 text-center text-slate-400">No student analytics available.</td>
+            <td colspan="10" class="py-10 text-center text-slate-400">No student analytics available.</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -109,85 +245,4 @@
     </div>
   </section>
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const rankingLabels = {{ student_ranking_labels|safe }};
-  const rankingValues = {{ student_ranking_values|safe }};
-  const assignmentLabels = {{ assignment_labels|safe }};
-  const assignmentAvgScores = {{ assignment_avg_scores|safe }};
-  const distributionLabels = {{ distribution_labels|safe }};
-  const distributionValues = {{ distribution_values|safe }};
-
-  const axisTick = { color: "#cbd5e1" };
-  const axisGrid = { color: "rgba(148, 163, 184, 0.2)" };
-
-  new Chart(document.getElementById("studentRankingChart"), {
-    type: "bar",
-    data: {
-      labels: rankingLabels,
-      datasets: [{
-        label: "Average Score",
-        data: rankingValues,
-        backgroundColor: "rgba(129, 140, 248, 0.75)",
-        borderColor: "#818cf8",
-        borderWidth: 1,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, grid: axisGrid, ticks: axisTick },
-        x: { grid: { display: false }, ticks: axisTick },
-      },
-    },
-  });
-
-  new Chart(document.getElementById("scoreDistributionChart"), {
-    type: "doughnut",
-    data: {
-      labels: distributionLabels,
-      datasets: [{
-        data: distributionValues,
-        backgroundColor: ["#34d399", "#60a5fa", "#f59e0b"],
-        borderColor: "rgba(15, 23, 42, 0.8)",
-        borderWidth: 2,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { labels: { color: "#cbd5e1" } },
-      },
-    },
-  });
-
-  new Chart(document.getElementById("assignmentDifficultyChart"), {
-    type: "line",
-    data: {
-      labels: assignmentLabels,
-      datasets: [{
-        label: "Assignment Average Score",
-        data: assignmentAvgScores,
-        borderColor: "#f472b6",
-        backgroundColor: "rgba(244, 114, 182, 0.15)",
-        fill: true,
-        borderWidth: 2,
-        tension: 0.25,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, grid: axisGrid, ticks: axisTick },
-        x: { grid: { display: false }, ticks: axisTick },
-      },
-    },
-  });
-</script>
 {% endblock %}

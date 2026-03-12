@@ -110,8 +110,15 @@ class CodingProblem(models.Model):
         ordering = ("order", "id")
 
     def save(self, *args, **kwargs):
+        base_slug = slugify(self.title) or "coding-problem"
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = base_slug
+        slug_qs = self.__class__.objects.exclude(pk=self.pk).filter(slug=self.slug)
+        if slug_qs.exists():
+            suffix = 2
+            while self.__class__.objects.exclude(pk=self.pk).filter(slug=f"{base_slug}-{suffix}").exists():
+                suffix += 1
+            self.slug = f"{base_slug}-{suffix}"
         super().save(*args, **kwargs)
 
     def __str__(self):

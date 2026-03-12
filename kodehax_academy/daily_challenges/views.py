@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -9,7 +10,8 @@ from django.utils import timezone
 
 from adminpanel.decorators import admin_required
 
-from .models import DailyChallenge
+from .forms import QuestionTemplateCSVImportForm, QuestionTemplateForm
+from .models import DailyChallenge, QuestionTemplate, StudentPoints
 from .services import (
     challenge_attempt_limit,
     challenge_dashboard_stats,
@@ -117,6 +119,8 @@ def today_challenges(request):
     )
     remaining_time = max(challenge_set.expires_at - timezone.now(), timedelta(0))
 
+    points, _ = StudentPoints.objects.get_or_create(student=request.user)
+
     return render(
         request,
         "daily_challenges/today.html",
@@ -125,6 +129,7 @@ def today_challenges(request):
             "remaining_time": remaining_time,
             "challenge_groups": _challenge_groups(challenge_set),
             "level_unlocks": level_unlock_state(challenge_set),
+            "student_points": points,
         },
     )
 
@@ -147,7 +152,7 @@ def submit_solution(request, challenge_id):
 
     preview_payload = None
     submission_payload = None
-    editor_code = challenge.latest_code or challenge.starter_code or challenge.problem.starter_code
+    editor_code = challenge.latest_code or ""
 
     if request.method == "POST":
         action = request.POST.get("action", "submit")
@@ -215,6 +220,7 @@ def submit_solution(request, challenge_id):
             "visible_hints": [hint for hint in (challenge.hint1, challenge.hint2)[: challenge.hints_used] if hint],
             "attempt_limit": challenge_attempt_limit(challenge),
             "attempts_remaining": max(0, challenge_attempt_limit(challenge) - challenge.attempts),
+            "student_points": StudentPoints.objects.get_or_create(student=request.user)[0],
         },
     )
 
@@ -222,11 +228,13 @@ def submit_solution(request, challenge_id):
 @admin_required
 def adminpanel_daily_challenges(request):
     stats = challenge_dashboard_stats()
+    csv_form = QuestionTemplateCSVImportForm()
     return render(
         request,
         "adminpanel/daily_challenges.html",
         {
             "current_section": "daily_challenges",
+            "csv_form": csv_form,
             **stats,
         },
     )
@@ -246,3 +254,117 @@ def adminpanel_regenerate_daily_challenges(request):
         regenerate_daily_challenges()
         messages.success(request, "Daily challenges regenerated for all students.")
     return redirect("adminpanel_daily_challenges")
+
+
+@admin_required
+def adminpanel_import_question_templates(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("Invalid request method.")
+
+    form = QuestionTemplateCSVImportForm(request.POST, request.FILES)
+    if not form.is_valid():
+        for error_list in form.errors.values():
+            for error in error_list:
+                messages.error(request, error)
+        return redirect("adminpanel_daily_challenges")
+
+    created_count = 0
+    for row in form.parse_rows():
+        title = (row.get("title_template") or "").strip()
+        description = (row.get("description_template") or title).strip()
+        difficulty = (row.get("difficulty") or QuestionTemplate.DIFFICULTY_EASY).strip().lower()
+        topic = (row.get("topic") or "general").strip().lower()
+        param_name = (row.get("param_name") or "").strip()
+        param_values = [item.strip() for item in (row.get("param_values") or "").split(",") if item.strip()]
+        test_cases_raw = (row.get("test_cases_template") or "").strip()
+        if not title:
+            continue
+        parameter_schema = {param_name: param_values} if param_name and param_values else {}
+        parsed_test_cases = []
+        if test_cases_raw:
+            try:
+                parsed_test_cases = json.loads(test_cases_raw)
+            except json.JSONDecodeError:
+                parsed_test_cases = []
+        auto_approve = bool(parsed_test_cases)
+        QuestionTemplate.objects.create(
+            title_template=title,
+            description_template=description,
+            difficulty=difficulty,
+            topic=topic,
+            parameter_schema=parameter_schema,
+            starter_code_template=(row.get("starter_code_template") or "").strip(),
+            function_name=(row.get("function_name") or "solve").strip(),
+            hint1_template=(row.get("hint1_template") or "").strip(),
+            hint2_template=(row.get("hint2_template") or "").strip(),
+            approval_status=QuestionTemplate.STATUS_APPROVED if auto_approve else QuestionTemplate.STATUS_PENDING,
+            approved_by=request.user if auto_approve else None,
+            approved_at=timezone.now() if auto_approve else None,
+            created_by=request.user,
+            is_active=auto_approve,
+            approval_note="" if auto_approve else "Imported without test cases; add test_cases_template JSON and approve before use.",
+            test_cases_template=parsed_test_cases,
+        )
+        created_count += 1
+
+    messages.success(request, f"Imported {created_count} question templates.")
+    return redirect("adminpanel_daily_challenges")
+
+
+@admin_required
+def adminpanel_review_question_template(request, template_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("Invalid request method.")
+
+    template = get_object_or_404(QuestionTemplate, id=template_id)
+    action = request.POST.get("action", "").strip()
+    note = request.POST.get("approval_note", "").strip()
+    if action == "approve":
+        template.approval_status = QuestionTemplate.STATUS_APPROVED
+        template.approved_by = request.user
+        template.approved_at = timezone.now()
+        template.is_active = True
+        template.approval_note = note
+        template.save(update_fields=["approval_status", "approved_by", "approved_at", "is_active", "approval_note", "updated_at"])
+        messages.success(request, f"Approved template '{template.title_template}'.")
+    elif action == "reject":
+        template.approval_status = QuestionTemplate.STATUS_REJECTED
+        template.approved_by = request.user
+        template.approved_at = timezone.now()
+        template.is_active = False
+        template.approval_note = note
+        template.save(update_fields=["approval_status", "approved_by", "approved_at", "is_active", "approval_note", "updated_at"])
+        messages.success(request, f"Rejected template '{template.title_template}'.")
+    else:
+        messages.error(request, "Unsupported action.")
+    return redirect("adminpanel_daily_challenges")
+
+
+@login_required
+def teacher_submit_question_template(request):
+    if request.user.role != "teacher":
+        messages.error(request, "Only teachers can submit question templates.")
+        return redirect("home")
+
+    if request.method == "POST":
+        form = QuestionTemplateForm(request.POST)
+        if form.is_valid():
+            template = form.save(commit=False)
+            template.created_by = request.user
+            template.approval_status = QuestionTemplate.STATUS_PENDING
+            template.is_active = False
+            template.save()
+            messages.success(request, "Template submitted for admin approval.")
+            return redirect("teacher_dashboard")
+    else:
+        form = QuestionTemplateForm()
+
+    my_templates = QuestionTemplate.objects.filter(created_by=request.user).order_by("-created_at")[:10]
+    return render(
+        request,
+        "teacher/question_template_form.html",
+        {
+            "form": form,
+            "my_templates": my_templates,
+        },
+    )

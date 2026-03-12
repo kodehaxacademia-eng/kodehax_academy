@@ -1,0 +1,54 @@
+{% extends "teacher/base.html" %}
+
+{% block title %}Submit Question Template{% endblock %}
+{% block page_title %}Question Templates{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+  <section class="glass-card p-6">
+    <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Teacher Contribution</p>
+    <h3 class="mt-1 text-2xl font-black text-white">Submit a reusable coding challenge template</h3>
+    <form method="post" class="mt-6 space-y-4">
+      {% csrf_token %}
+      {% for field in form %}
+      <div>
+        <label class="mb-2 block text-sm font-semibold text-slate-200">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+        <p class="mt-1 text-xs text-slate-400">{{ field.help_text }}</p>
+        {% endif %}
+        {% for error in field.errors %}
+        <p class="mt-1 text-xs text-rose-300">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn-primary inline-flex px-5 py-2.5">Submit For Approval</button>
+    </form>
+  </section>
+
+  <section class="glass-card p-6">
+    <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Recent Submissions</p>
+    <h3 class="mt-1 text-xl font-bold text-white">Your latest template drafts</h3>
+    <div class="mt-5 space-y-3">
+      {% for item in my_templates %}
+      <article class="rounded-2xl border border-slate-700 bg-slate-950/40 p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-semibold text-white">{{ item.title_template }}</p>
+            <p class="mt-1 text-sm text-slate-400">{{ item.topic|title }} | {{ item.difficulty|title }}</p>
+          </div>
+          <span class="rounded-full px-3 py-1 text-xs uppercase tracking-[0.15em] {% if item.approval_status == 'approved' %}bg-emerald-500/10 text-emerald-200{% elif item.approval_status == 'rejected' %}bg-rose-500/10 text-rose-200{% else %}bg-amber-500/10 text-amber-200{% endif %}">
+            {{ item.approval_status }}
+          </span>
+        </div>
+        {% if item.approval_note %}
+        <p class="mt-3 text-sm text-slate-300">{{ item.approval_note }}</p>
+        {% endif %}
+      </article>
+      {% empty %}
+      <p class="text-sm text-slate-400">No templates submitted yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -47,6 +47,16 @@ urlpatterns = [
         daily_challenge_views.adminpanel_regenerate_daily_challenges,
         name="adminpanel_regenerate_daily_challenges",
     ),
+    path(
+        "daily-challenges/templates/import/",
+        daily_challenge_views.adminpanel_import_question_templates,
+        name="adminpanel_import_question_templates",
+    ),
+    path(
+        "daily-challenges/templates/<int:template_id>/review/",
+        daily_challenge_views.adminpanel_review_question_template,
+        name="adminpanel_review_question_template",
+    ),
     path("skills/", skill_assessment_views.adminpanel_skill_overview, name="adminpanel_skills"),
     path(
         "skills/<int:student_id>/reset/",

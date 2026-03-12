@@ -233,6 +233,7 @@ def student_dashboard(request):
 
     daily_challenge_set = get_today_challenge_set(request.user)
     solved_daily_count = daily_challenge_set.challenges.filter(status="solved").count()
+    total_daily_count = daily_challenge_set.challenges.count()
 
     assignments = Assignment.objects.filter(
         classroom__students=request.user,
@@ -249,6 +250,7 @@ def student_dashboard(request):
         "medium_topics": skill_profile.assessment_snapshot.get("medium_topics", []),
         "daily_challenge_set": daily_challenge_set,
         "solved_daily_count": solved_daily_count,
+        "total_daily_count": total_daily_count,
     })
 
 @login_required

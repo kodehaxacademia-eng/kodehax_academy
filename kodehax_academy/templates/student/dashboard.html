@@ -84,14 +84,21 @@
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300/80">Daily Coding Challenge</p>
-        <h3 class="mt-2 text-2xl font-black text-white">{{ solved_daily_count }} / 3 solved</h3>
-        <p class="mt-2 text-sm text-slate-300">A fresh set of adaptive coding questions is available for the next 24 hours.</p>
+        <h3 class="mt-2 text-2xl font-black text-white">{{ solved_daily_count }} / {{ total_daily_count }} solved</h3>
+        <p class="mt-2 text-sm text-slate-300">Your daily set includes easy, medium, and hard coding tasks for the next 24 hours.</p>
       </div>
       <a href="{% url 'daily_challenges_today' %}" class="btn-primary px-4 py-2 text-sm">Open Daily Challenges</a>
     </div>
 
     <div class="mt-5 h-3 rounded-full bg-slate-900/70">
-      <div class="h-3 rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-teal-300" style="width: {% widthratio solved_daily_count 3 100 %}%;"></div>
+      <div class="h-3 rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-teal-300" style="width: {% if total_daily_count %}{% widthratio solved_daily_count total_daily_count 100 %}{% else %}0{% endif %}%;"></div>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-3 text-xs text-slate-400">
+      <span class="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1">{{ total_daily_count }} total tasks</span>
+      <span class="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1">{{ daily_challenge_set.easy_solved_count }} easy solved</span>
+      <span class="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1">{{ daily_challenge_set.medium_solved_count }} medium solved</span>
+      <span class="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1">{{ daily_challenge_set.hard_solved_count }} hard solved</span>
     </div>
 
     <div class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-3">

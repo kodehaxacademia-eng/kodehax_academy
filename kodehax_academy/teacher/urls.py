@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from daily_challenges import views as daily_challenge_views
 
 urlpatterns = [
     path("dashboard/",views.teacher_dashboard,name="teacher_dashboard"),
@@ -25,4 +26,5 @@ urlpatterns = [
     path("profile/",views.teacher_profile, name="teacher_profile"),
     path("profile/edit/",views.teacher_edit_profile, name="teacher_edit_profile"),
     path("ai-tools/",views.ai_tools,name="ai_tools"),
+    path("question-templates/new/", daily_challenge_views.teacher_submit_question_template, name="teacher_submit_question_template"),
 ]

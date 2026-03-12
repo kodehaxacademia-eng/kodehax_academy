@@ -17,11 +17,9 @@ from django.utils import timezone
 from django.db.models import Count
 from datetime import timedelta
 import re
-import json
 from .services.ai_tools import generate_quiz, generate_notes
 from .services.evaluation import (
     evaluate_quiz_for_assignment,
-    get_student_score_records,
     grade_code_submission_ai,
     grade_code_submission_manual,
     grade_file_submission_ai,
@@ -29,6 +27,8 @@ from .services.evaluation import (
 )
 from .services.performance import (
     get_classroom_performance_analytics,
+    get_student_detail_analytics,
+    get_teacher_dashboard_analytics,
     snapshot_assignment_performance,
 )
 
@@ -78,13 +78,13 @@ def teacher_dashboard(request):
         return redirect("home")
 
     classes = ClassRoom.objects.filter(teacher=request.user)
-    assignment_count = Assignment.objects.filter(classroom__teacher=request.user).count()
-    student_count = classes.aggregate(total=Count("students", distinct=True))["total"] or 0
+    analytics = get_teacher_dashboard_analytics(request.user)
 
     context = {
         "classes": classes,
-        "assignment_count": assignment_count,
-        "student_count": student_count,
+        "assignment_count": analytics["overview"]["assignments"],
+        "student_count": analytics["overview"]["students"],
+        "analytics": analytics,
     }
     return render(request, "teacher/dashboard.html", context)
 @login_required
@@ -603,14 +603,9 @@ def performance_list(request, class_id):
 
     return render(request, "teacher/performance_list.html", {
         "classroom": classroom,
+        "analytics": analytics,
         "summary": analytics["summary"],
         "student_rows": analytics["student_rows"],
-        "student_ranking_labels": json.dumps(analytics["charts"]["student_ranking_labels"]),
-        "student_ranking_values": json.dumps(analytics["charts"]["student_ranking_values"]),
-        "assignment_labels": json.dumps(analytics["charts"]["assignment_labels"]),
-        "assignment_avg_scores": json.dumps(analytics["charts"]["assignment_avg_scores"]),
-        "distribution_labels": json.dumps(analytics["charts"]["distribution_labels"]),
-        "distribution_values": json.dumps(analytics["charts"]["distribution_values"]),
     })
 
 
@@ -625,17 +620,10 @@ def student_performance(request, class_id, student_id):
         messages.error(request, "Student not found in this classroom.")
         return redirect("performance_list", class_id=classroom.id)
 
-    score_records, avg_score = get_student_score_records(classroom, student)
-    scores = [record["score"] for record in score_records if record["score"] is not None]
-    assignments = [record["assignment"].title for record in score_records if record["score"] is not None]
-
     context = {
         "classroom": classroom,
         "student": student,
-        "score_records": score_records,
-        "scores": scores,
-        "assignments": assignments,
-        "avg_score": round(avg_score,2)
+        "analytics": get_student_detail_analytics(classroom, student),
     }
 
     return render(request, "teacher/student_performance.html", context)

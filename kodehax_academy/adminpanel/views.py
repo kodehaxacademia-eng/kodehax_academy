@@ -1,4 +1,3 @@
-import json
 import socket
 from smtplib import SMTPException
 from datetime import timedelta
@@ -7,13 +6,14 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q, Sum
-from django.db.models.functions import TruncDate, TruncMonth
+from django.db.models.functions import TruncDate
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from accounts.forms import TeacherInvitationAdminForm, resend_teacher_invitation
 from accounts.models import TeacherInvitation
+from daily_challenges.models import DailyChallenge, StudentChallengeAttempt, StudentPoints
 from teacher.models import (
     Assignment,
     CodeSubmission,
@@ -21,6 +21,7 @@ from teacher.models import (
     QuizAnswer,
     Submission,
 )
+from teacher.services.performance import get_admin_analytics_page, get_admin_dashboard_analytics
 
 from .decorators import admin_required
 from .models import AdminUserState
@@ -37,7 +38,7 @@ def _render_admin(request, template_name, context):
 
 
 def _to_json(value):
-    return json.dumps(value)
+    return value
 
 
 def _seven_day_labels(today):
@@ -58,116 +59,16 @@ def admin_entry(request):
 
 @admin_required
 def dashboard(request):
-    today = timezone.localdate()
-    seven_days_ago = today - timedelta(days=6)
-    labels = _seven_day_labels(today)
-
-    total_students = User.objects.filter(role="student").count()
-    total_teachers = User.objects.filter(role="teacher").count()
-    total_assignments = Assignment.objects.count()
-    active_users_today = User.objects.filter(last_login__date=today).count()
-
-    file_submissions = Submission.objects.count()
-    code_submissions = CodeSubmission.objects.count()
-    quiz_submission_attempts = QuizAnswer.objects.values(
-        "question__assignment_id",
-        "student_id",
-    ).distinct().count()
-    total_submissions = file_submissions + code_submissions + quiz_submission_attempts
-
-    expected_submissions = (
-        Assignment.objects.annotate(
-            enrolled_count=Count("classroom__students", distinct=True),
-        ).aggregate(total=Sum("enrolled_count"))["total"]
-        or 0
-    )
-    completion_rate = (
-        round((total_submissions / expected_submissions) * 100, 2)
-        if expected_submissions
-        else 0
-    )
-
-    joined_qs = (
-        User.objects.filter(role="student", date_joined__date__gte=seven_days_ago)
-        .annotate(day=TruncDate("date_joined"))
-        .values("day")
-        .annotate(total=Count("id"))
-    )
-    student_growth_map = _build_daily_map(joined_qs)
-    student_activity_values = [
-        student_growth_map.get(today - timedelta(days=offset), 0)
-        for offset in range(6, -1, -1)
-    ]
-
-    file_qs = (
-        Submission.objects.filter(submitted_at__date__gte=seven_days_ago)
-        .annotate(day=TruncDate("submitted_at"))
-        .values("day")
-        .annotate(total=Count("id"))
-    )
-    code_qs = (
-        CodeSubmission.objects.filter(submitted_at__date__gte=seven_days_ago)
-        .annotate(day=TruncDate("submitted_at"))
-        .values("day")
-        .annotate(total=Count("id"))
-    )
-    quiz_qs = (
-        QuizAnswer.objects.filter(answered_at__date__gte=seven_days_ago)
-        .annotate(day=TruncDate("answered_at"))
-        .values("day", "student_id", "question__assignment_id")
-        .distinct()
-    )
-    file_map = _build_daily_map(file_qs)
-    code_map = _build_daily_map(code_qs)
-    quiz_map = {}
-    for row in quiz_qs:
-        quiz_map[row["day"]] = quiz_map.get(row["day"], 0) + 1
-
-    assignment_submission_values = []
-    for offset in range(6, -1, -1):
-        day = today - timedelta(days=offset)
-        assignment_submission_values.append(
-            file_map.get(day, 0) + code_map.get(day, 0) + quiz_map.get(day, 0)
-        )
-
-    performance_qs = (
-        PerformanceRecord.objects.filter(recorded_at__date__gte=seven_days_ago)
-        .annotate(day=TruncDate("recorded_at"))
-        .values("day")
-        .annotate(avg_score=Avg("score"))
-    )
-    performance_map = {
-        row["day"]: round(row["avg_score"] or 0, 2)
-        for row in performance_qs
-    }
-    performance_values = [
-        performance_map.get(today - timedelta(days=offset), 0)
-        for offset in range(6, -1, -1)
-    ]
-
     recent_users = User.objects.order_by("-date_joined")[:8]
     recent_assignments = Assignment.objects.select_related(
         "classroom",
         "classroom__teacher",
     ).order_by("-created_at")[:8]
+    analytics = get_admin_dashboard_analytics()
 
     context = {
         "current_section": "dashboard",
-        "total_students": total_students,
-        "total_teachers": total_teachers,
-        "total_assignments": total_assignments,
-        "active_users_today": active_users_today,
-        "submission_stats": {
-            "total": total_submissions,
-            "file": file_submissions,
-            "code": code_submissions,
-            "quiz": quiz_submission_attempts,
-            "completion_rate": completion_rate,
-        },
-        "chart_labels": _to_json(labels),
-        "student_activity_values": _to_json(student_activity_values),
-        "assignment_submission_values": _to_json(assignment_submission_values),
-        "performance_values": _to_json(performance_values),
+        "analytics": analytics,
         "recent_users": recent_users,
         "recent_assignments": recent_assignments,
     }
@@ -559,81 +460,8 @@ def assignment_action(request, assignment_id):
 
 @admin_required
 def analytics(request):
-    today = timezone.localdate()
-    start_month = (today.replace(day=1) - timedelta(days=150)).replace(day=1)
-
-    month_points = []
-    cursor = start_month
-    while cursor <= today.replace(day=1):
-        month_points.append(cursor)
-        if cursor.month == 12:
-            cursor = cursor.replace(year=cursor.year + 1, month=1)
-        else:
-            cursor = cursor.replace(month=cursor.month + 1)
-
-    month_labels = [point.strftime("%b %Y") for point in month_points]
-
-    student_growth_qs = (
-        User.objects.filter(role="student", date_joined__date__gte=start_month)
-        .annotate(month=TruncMonth("date_joined"))
-        .values("month")
-        .annotate(total=Count("id"))
-    )
-    teacher_growth_qs = (
-        User.objects.filter(role="teacher", date_joined__date__gte=start_month)
-        .annotate(month=TruncMonth("date_joined"))
-        .values("month")
-        .annotate(total=Count("id"))
-    )
-    completion_qs = (
-        PerformanceRecord.objects.filter(recorded_at__date__gte=start_month)
-        .annotate(month=TruncMonth("recorded_at"))
-        .values("month")
-        .annotate(
-            total=Count("id"),
-            graded=Count("id", filter=Q(score__isnull=False)),
-        )
-    )
-
-    student_map = {row["month"].date(): row["total"] for row in student_growth_qs}
-    teacher_map = {row["month"].date(): row["total"] for row in teacher_growth_qs}
-    completion_map = {
-        row["month"].date(): round((row["graded"] / row["total"]) * 100, 2)
-        if row["total"]
-        else 0
-        for row in completion_qs
-    }
-
-    student_growth_values = [student_map.get(point, 0) for point in month_points]
-    teacher_growth_values = [teacher_map.get(point, 0) for point in month_points]
-    completion_values = [completion_map.get(point, 0) for point in month_points]
-
-    top_students = (
-        User.objects.filter(role="student")
-        .annotate(
-            avg_score=Avg("performance_records__score"),
-            submission_count=Count("performance_records"),
-        )
-        .filter(submission_count__gt=0)
-        .order_by("-avg_score")[:8]
-    )
-
-    active_teachers = (
-        User.objects.filter(role="teacher")
-        .annotate(
-            class_count=Count("teacher_classes", distinct=True),
-            assignment_count=Count("teacher_classes__assignments", distinct=True),
-        )
-        .order_by("-assignment_count", "-class_count")[:8]
-    )
-
     context = {
         "current_section": "analytics",
-        "month_labels": _to_json(month_labels),
-        "student_growth_values": _to_json(student_growth_values),
-        "teacher_growth_values": _to_json(teacher_growth_values),
-        "completion_values": _to_json(completion_values),
-        "top_students": top_students,
-        "active_teachers": active_teachers,
+        "analytics": get_admin_analytics_page(),
     }
     return _render_admin(request, "adminpanel/analytics.html", context)

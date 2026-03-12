@@ -2,132 +2,249 @@
 
 {% block title %}Platform Analytics{% endblock %}
 {% block page_title %}Platform Analytics{% endblock %}
-{% block page_subtitle %}Growth, completion trends, and top performers{% endblock %}
+{% block page_subtitle %}Micro-analytics for skills, question quality, and intervention risk{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
-    <div class="rounded-2xl border border-slate-200 bg-white p-5">
-        <p class="text-sm font-semibold">Student Growth</p>
-        <canvas id="studentGrowthChart" class="mt-4"></canvas>
-    </div>
-    <div class="rounded-2xl border border-slate-200 bg-white p-5">
-        <p class="text-sm font-semibold">Teacher Growth</p>
-        <canvas id="teacherGrowthChart" class="mt-4"></canvas>
-    </div>
-</div>
-
-<div class="rounded-2xl border border-slate-200 bg-white p-5 mb-6">
-    <p class="text-sm font-semibold">Assignment Completion Rate</p>
-    <canvas id="completionChart" class="mt-4"></canvas>
-</div>
-
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-    <div class="rounded-2xl border border-slate-200 bg-white p-5">
-        <p class="text-sm font-semibold mb-3">Top Performing Students</p>
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
-                <thead class="text-left text-slate-500">
-                    <tr>
-                        <th class="pb-2">Student</th>
-                        <th class="pb-2">Avg Score</th>
-                        <th class="pb-2">Submissions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for student in top_students %}
-                    <tr>
-                        <td class="py-2">{{ student.username }}</td>
-                        <td class="py-2">{{ student.avg_score|floatformat:2 }}</td>
-                        <td class="py-2">{{ student.submission_count }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="3" class="py-4 text-slate-500">No data available.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="space-y-6">
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    {% for meter in analytics.meters %}
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">{{ meter.label }}</p>
+      <div class="mt-3 flex items-end justify-between gap-4">
+        <div>
+          <p class="text-3xl font-semibold text-slate-900">{{ meter.display }}</p>
+          <p class="mt-1 text-sm text-slate-500">{{ meter.helper }}</p>
         </div>
-    </div>
-    <div class="rounded-2xl border border-slate-200 bg-white p-5">
-        <p class="text-sm font-semibold mb-3">Most Active Teachers</p>
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
-                <thead class="text-left text-slate-500">
-                    <tr>
-                        <th class="pb-2">Teacher</th>
-                        <th class="pb-2">Classes</th>
-                        <th class="pb-2">Assignments</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for teacher in active_teachers %}
-                    <tr>
-                        <td class="py-2">{{ teacher.username }}</td>
-                        <td class="py-2">{{ teacher.class_count }}</td>
-                        <td class="py-2">{{ teacher.assignment_count }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="3" class="py-4 text-slate-500">No data available.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="h-14 w-14 rounded-2xl bg-slate-50 p-1">
+          <div class="flex h-full items-end gap-1 rounded-xl bg-white px-2 py-2">
+            <span class="w-2 rounded-full bg-{{ meter.tone }}-200" style="height: 35%"></span>
+            <span class="w-2 rounded-full bg-{{ meter.tone }}-300" style="height: 60%"></span>
+            <span class="w-2 rounded-full bg-{{ meter.tone }}-500" style="height: {{ meter.value }}%"></span>
+          </div>
         </div>
-    </div>
+      </div>
+      <div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+        <div class="h-full rounded-full bg-{{ meter.tone }}-500" style="width: {{ meter.value }}%"></div>
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Question Difficulty Analytics</p>
+      <h3 class="mt-1 text-xl font-semibold text-slate-900">Validate whether questions are truly balanced</h3>
+      <div class="mt-5 space-y-3">
+        {% for row in analytics.question_analytics %}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="font-medium text-slate-900">{{ row.problem.title }}</p>
+              <p class="text-xs text-slate-500">{{ row.problem.topic|title }} · {{ row.problem.get_difficulty_display }}</p>
+            </div>
+            <span class="rounded-full px-2.5 py-1 text-xs {% if row.tone == 'emerald' %}bg-emerald-100 text-emerald-700{% elif row.tone == 'amber' %}bg-amber-100 text-amber-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+              {{ row.difficulty_validation }}
+            </span>
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-3 text-sm">
+            <div class="rounded-xl bg-white px-3 py-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Success Rate</p>
+              <p class="mt-1 font-semibold text-slate-900">{{ row.success_rate }}%</p>
+            </div>
+            <div class="rounded-xl bg-white px-3 py-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Avg Attempts</p>
+              <p class="mt-1 font-semibold text-slate-900">{{ row.average_attempts }}</p>
+            </div>
+            <div class="rounded-xl bg-white px-3 py-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Samples</p>
+              <p class="mt-1 font-semibold text-slate-900">{{ row.sample_size }}</p>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-slate-500">Question analytics will appear once students have attempted daily challenges.</p>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Challenge Difficulty Balance</p>
+      <h3 class="mt-1 text-xl font-semibold text-slate-900">Easy / Medium / Hard distribution</h3>
+      <div class="mt-5 rounded-2xl bg-slate-900 p-5 text-white">
+        <p class="text-sm text-white/60">Current status</p>
+        <p class="mt-2 text-2xl font-semibold">{{ analytics.challenge_balance.label }}</p>
+      </div>
+      <div class="mt-4 grid grid-cols-3 gap-3">
+        {% for segment in analytics.challenge_balance.segments %}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
+          <p class="text-xs uppercase tracking-wide text-slate-500">{{ segment.label }}</p>
+          <p class="mt-2 text-2xl font-semibold text-slate-900">{{ segment.value }}</p>
+          <p class="text-xs text-slate-500">{{ segment.percent }}%</p>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-5 space-y-3">
+        {% for card in analytics.daily_challenge_cards %}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="font-medium text-slate-900">{{ card.label }} completion</p>
+            <span class="text-sm font-semibold text-{{ card.tone }}-600">{{ card.rate }}%</span>
+          </div>
+          <div class="mt-3 h-2 overflow-hidden rounded-full bg-white">
+            <div class="h-full rounded-full bg-{{ card.tone }}-500" style="width: {{ card.rate }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Student Spotlight</p>
+      <h3 class="mt-1 text-xl font-semibold text-slate-900">Skill score breakdown</h3>
+      <div class="mt-5 space-y-3">
+        {% for row in analytics.student_spotlight %}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="font-medium text-slate-900">{{ row.student.username }}</p>
+              <p class="text-xs text-slate-500">{{ row.strongest_skill }} strongest · {{ row.weakest_skill }} weakest</p>
+            </div>
+            <span class="rounded-full px-2.5 py-1 text-xs {% if row.category == 'Advanced' %}bg-emerald-100 text-emerald-700{% elif row.category == 'Intermediate' %}bg-amber-100 text-amber-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+              {{ row.skill_score }} · {{ row.category }}
+            </span>
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-3 text-sm">
+            <div class="rounded-xl bg-white px-3 py-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Accuracy</p>
+              <p class="mt-1 font-semibold text-slate-900">{{ row.accuracy }}%</p>
+            </div>
+            <div class="rounded-xl bg-white px-3 py-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Completion</p>
+              <p class="mt-1 font-semibold text-slate-900">{{ row.completion_rate }}%</p>
+            </div>
+            <div class="rounded-xl bg-white px-3 py-2">
+              <p class="text-xs uppercase tracking-wide text-slate-500">Streak</p>
+              <p class="mt-1 font-semibold text-slate-900">{{ row.streak }}d</p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Leaderboard Intelligence</p>
+      <h3 class="mt-1 text-xl font-semibold text-slate-900">Point leaders with context</h3>
+      <div class="mt-5 space-y-3">
+        {% for entry in analytics.leaderboard %}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white">#{{ entry.rank }}</div>
+              <div>
+                <p class="font-medium text-slate-900">{{ entry.student.username }}</p>
+                <p class="text-xs text-slate-500">{{ entry.achievement_tag }}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-lg font-semibold text-emerald-600">{{ entry.points }}</p>
+              <p class="text-xs text-slate-500">Skill {{ entry.skill_score }}</p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Needs Attention</p>
+      <h3 class="mt-1 text-xl font-semibold text-slate-900">Intervention queue</h3>
+      <div class="mt-5 space-y-3">
+        {% for row in analytics.needs_attention %}
+        <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="font-medium text-slate-900">{{ row.student.username }}</p>
+            <span class="rounded-full bg-white px-2.5 py-1 text-xs text-rose-600">Skill {{ row.skill_score }}</span>
+          </div>
+          <p class="mt-2 text-sm text-rose-700">{{ row.reason|title }}</p>
+          <p class="mt-1 text-xs text-slate-500">Accuracy {{ row.accuracy }}% · Fails {{ row.failed_attempts }} · Compile errors {{ row.compile_errors }}</p>
+        </div>
+        {% empty %}
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">No platform-wide risk signals at the moment.</div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Teacher Insight Panel</p>
+      <h3 class="mt-1 text-xl font-semibold text-slate-900">Automated observations</h3>
+      <div class="mt-5 space-y-3">
+        {% for insight in analytics.teacher_insights %}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="font-medium text-slate-900">{{ insight.title }}</p>
+            <span class="text-sm font-semibold text-{{ insight.tone }}-600">{{ insight.value }}</span>
+          </div>
+          <p class="mt-2 text-sm text-slate-500">{{ insight.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Class Skill Distribution</p>
+      <h3 class="mt-1 text-xl font-semibold text-slate-900">Beginner to Advanced</h3>
+      <div class="mt-5 space-y-3">
+        {% for bucket in analytics.skill_distribution %}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="font-medium text-slate-900">{{ bucket.label }}</p>
+            <span class="text-sm font-semibold text-{{ bucket.tone }}-600">{{ bucket.count }}</span>
+          </div>
+          <div class="mt-3 h-2 overflow-hidden rounded-full bg-white">
+            <div class="h-full rounded-full bg-{{ bucket.tone }}-500" style="width: {% if analytics.overview.students %}{% widthratio bucket.count analytics.overview.students 100 %}{% else %}0{% endif %}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Behavior Insights</p>
+      <h3 class="mt-1 text-xl font-semibold text-slate-900">Attempts, speed, and error profile</h3>
+      <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {% for metric in analytics.behavior_metrics %}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-xs uppercase tracking-[0.12em] text-slate-500">{{ metric.label }}</p>
+          <p class="mt-2 text-2xl font-semibold text-{{ metric.tone }}-600">{{ metric.value }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Top Teachers</p>
+      <h3 class="mt-1 text-xl font-semibold text-slate-900">Most active teaching accounts</h3>
+      <div class="mt-5 space-y-3">
+        {% for teacher in analytics.top_teachers %}
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="font-medium text-slate-900">{{ teacher.username }}</p>
+            <p class="text-sm font-semibold text-slate-900">{{ teacher.assignment_count }}</p>
+          </div>
+          <p class="mt-2 text-xs text-slate-500">{{ teacher.class_count }} classes · {{ teacher.assignment_count }} assignments</p>
+        </div>
+        {% empty %}
+        <p class="text-sm text-slate-500">No teacher activity data yet.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
 </div>
-
-<script>
-const monthLabels = {{ month_labels|safe }};
-
-new Chart(document.getElementById("studentGrowthChart"), {
-    type: "line",
-    data: {
-        labels: monthLabels,
-        datasets: [{
-            label: "Students",
-            data: {{ student_growth_values|safe }},
-            borderColor: "#0ea5e9",
-            backgroundColor: "rgba(14,165,233,0.12)",
-            fill: true,
-            tension: 0.35
-        }]
-    },
-    options: { responsive: true, maintainAspectRatio: true }
-});
-
-new Chart(document.getElementById("teacherGrowthChart"), {
-    type: "line",
-    data: {
-        labels: monthLabels,
-        datasets: [{
-            label: "Teachers",
-            data: {{ teacher_growth_values|safe }},
-            borderColor: "#1d4ed8",
-            backgroundColor: "rgba(29,78,216,0.12)",
-            fill: true,
-            tension: 0.35
-        }]
-    },
-    options: { responsive: true, maintainAspectRatio: true }
-});
-
-new Chart(document.getElementById("completionChart"), {
-    type: "bar",
-    data: {
-        labels: monthLabels,
-        datasets: [{
-            label: "Completion %",
-            data: {{ completion_values|safe }},
-            backgroundColor: "#0f172a",
-            borderRadius: 6
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        scales: {
-            y: { beginAtZero: true, max: 100 }
-        }
-    }
-});
-</script>
 {% endblock %}
-

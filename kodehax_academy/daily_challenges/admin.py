@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import DailyChallenge, DailyChallengeSet, StudentChallengeAttempt, StudentPoints
+from .models import (
+    DailyChallenge,
+    DailyChallengeQuestion,
+    DailyChallengeSet,
+    QuestionTemplate,
+    StudentChallengeAttempt,
+    StudentPoints,
+)
 
 
 @admin.register(DailyChallengeSet)
@@ -13,10 +20,26 @@ class DailyChallengeSetAdmin(admin.ModelAdmin):
 
 @admin.register(DailyChallenge)
 class DailyChallengeAdmin(admin.ModelAdmin):
-    list_display = ("student", "title", "difficulty", "level", "status", "attempts", "score")
+    list_display = ("student", "title", "difficulty", "level", "status", "attempts", "score", "template")
     list_filter = ("date", "status", "difficulty", "level")
     search_fields = ("student__username", "title", "student__email")
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(QuestionTemplate)
+class QuestionTemplateAdmin(admin.ModelAdmin):
+    list_display = ("title_template", "difficulty", "topic", "approval_status", "is_active", "created_by", "approved_by")
+    list_filter = ("difficulty", "topic", "approval_status", "is_active")
+    search_fields = ("title_template", "topic", "created_by__username")
+    readonly_fields = ("created_at", "updated_at", "approved_at")
+
+
+@admin.register(DailyChallengeQuestion)
+class DailyChallengeQuestionAdmin(admin.ModelAdmin):
+    list_display = ("generated_question", "template", "date_used", "parameter_signature")
+    list_filter = ("date_used", "template__difficulty", "template__topic")
+    search_fields = ("generated_question", "template__title_template", "parameter_signature")
+    readonly_fields = ("created_at",)
 
 
 @admin.register(StudentChallengeAttempt)

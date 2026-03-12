@@ -59,6 +59,26 @@
         <h2 class="mt-2 text-3xl font-black text-white">{{ challenge.title }}</h2>
         <p class="mt-3 text-sm leading-7 text-slate-300">{{ challenge.description }}</p>
       </div>
+
+      <div class="flex flex-col gap-4 sm:flex-row">
+        <div class="rounded-2xl border border-teal-400/20 bg-teal-400/10 px-5 py-4 min-w-[15rem]" data-countdown-card data-started-at="{{ challenge_set.published_at|default:challenge_set.created_at|date:'c' }}" data-expires-at="{{ challenge_set.expires_at|date:'c' }}">
+          <p class="text-xs uppercase tracking-[0.18em] text-teal-200">Global Points</p>
+          <p class="mt-2 text-3xl font-black text-white">{{ student_points.points_remaining }}</p>
+          <div class="mt-3 flex items-center gap-3 border-t border-teal-400/20 pt-3">
+            <div class="hourglass" aria-hidden="true" style="transform: scale(0.8); transform-origin: left;">
+              <span class="hourglass__top"></span>
+              <span class="hourglass__neck"></span>
+              <span class="hourglass__bottom"></span>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.18em] text-teal-100/80">
+                <span>Time Left</span>
+                <span data-countdown-percent></span>
+              </div>
+              <p class="mt-1 text-sm font-semibold text-white" data-countdown-label>{{ remaining_time }}</p>
+            </div>
+          </div>
+        </div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 px-5 py-4 text-sm text-slate-300">
         <p>Status: <span class="font-semibold text-white">{{ challenge.status|title }}</span></p>
         <p class="mt-2">Points: <span class="font-semibold text-white">{{ challenge.points }}</span></p>
@@ -170,5 +190,103 @@
     </div>
   </section>
   {% endif %}
+</div>
+
+<style>
+  .hourglass {
+    position: relative;
+    width: 1.9rem;
+    height: 2.7rem;
+    flex: 0 0 auto;
+    border: 2px solid rgba(153, 246, 228, 0.65);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.45);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.08);
+  }
+
+  .hourglass__top,
+  .hourglass__bottom {
+    position: absolute;
+    left: 50%;
+    width: 0;
+    transform: translateX(-50%);
+    border-left: 0.65rem solid transparent;
+    border-right: 0.65rem solid transparent;
+    transition: opacity 1s linear, transform 1s linear;
+  }
+
+  .hourglass__top {
+    top: 0.28rem;
+    border-bottom: 0.95rem solid rgba(94, 234, 212, 0.92);
+    transform-origin: center top;
+  }
+
+  .hourglass__neck {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.14rem;
+    height: 0.34rem;
+    border-radius: 999px;
+    background: rgba(125, 211, 252, 0.9);
+    transform: translate(-50%, -50%);
+    opacity: 0.35;
+    transition: opacity 0.6s linear;
+  }
+
+  .hourglass__bottom {
+    bottom: 0.28rem;
+    border-top: 0.95rem solid rgba(103, 232, 249, 0.95);
+    transform-origin: center bottom;
+  }
+</style>
+
+<script>
+  (() => {
+    const card = document.querySelector("[data-countdown-card]");
+    if (!card) return;
+
+    const startMs = new Date(card.dataset.startedAt).getTime();
+    const endMs = new Date(card.dataset.expiresAt).getTime();
+    const label = card.querySelector("[data-countdown-label]");
+    const percentLabel = card.querySelector("[data-countdown-percent]");
+    const topSand = card.querySelector(".hourglass__top");
+    const bottomSand = card.querySelector(".hourglass__bottom");
+    const neck = card.querySelector(".hourglass__neck");
+    const total = Math.max(endMs - startMs, 1);
+
+    const formatDuration = (ms) => {
+      const totalSeconds = Math.max(Math.floor(ms / 1000), 0);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return [hours, minutes, seconds].map((value) => String(value).padStart(2, "0")).join(":");
+    };
+
+    const tick = () => {
+      const remaining = Math.max(endMs - Date.now(), 0);
+      const percent = Math.max(Math.min((remaining / total) * 100, 100), 0);
+      const elapsedPercent = 1 - (percent / 100);
+
+      if (label) label.textContent = formatDuration(remaining);
+      if (percentLabel) percentLabel.textContent = `${Math.ceil(percent)}% left`;
+      if (topSand) {
+        topSand.style.opacity = `${Math.max(percent / 100, 0.08)}`;
+        topSand.style.transform = `translateX(-50%) scale(${Math.max(percent / 100, 0.08)})`;
+      }
+      if (bottomSand) {
+        bottomSand.style.opacity = `${Math.max(elapsedPercent, 0.08)}`;
+        bottomSand.style.transform = `translateX(-50%) scale(${Math.max(elapsedPercent, 0.08)})`;
+      }
+      if (neck) {
+        neck.style.opacity = remaining > 0 ? "1" : "0.2";
+      }
+    };
+
+    tick();
+    window.setInterval(tick, 1000);
+  })();
+</script>
 </div>
 {% endblock %}

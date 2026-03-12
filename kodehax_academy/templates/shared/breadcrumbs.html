@@ -1,0 +1,14 @@
+{% if breadcrumb_items %}
+<nav aria-label="Breadcrumb" class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-[11px] uppercase tracking-[0.18em] text-slate-400">
+  {% for item in breadcrumb_items %}
+    {% if not forloop.first %}
+      <span class="text-slate-600">/</span>
+    {% endif %}
+    {% if item.url and not item.current %}
+      <a href="{{ item.url }}" class="transition hover:text-slate-200">{{ item.label }}</a>
+    {% else %}
+      <span class="{% if item.current %}text-slate-200{% endif %}">{{ item.label }}</span>
+    {% endif %}
+  {% endfor %}
+</nav>
+{% endif %}

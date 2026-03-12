@@ -375,6 +375,16 @@ LOGIC_HINTS = {
     "fibonacci_number": ("fibonacci_number(", "return", "+", "if "),
 }
 
+
+def build_starter_template(function_name, starter_code=""):
+    signature_line = f"def {function_name}(...):"
+    for line in (starter_code or "").splitlines():
+        stripped = line.strip()
+        if stripped.startswith(f"def {function_name}(") and stripped.endswith(":"):
+            signature_line = stripped
+            break
+    return f"{signature_line}\n    # Write your solution here\n    pass\n"
+
 RUNNER_SCRIPT = r"""
 import ast
 import builtins
@@ -478,7 +488,7 @@ def ensure_default_assessment_content():
             defaults={
                 "topic": item["topic"],
                 "description": item["description"],
-                "starter_code": item["starter_code"],
+                "starter_code": build_starter_template(item["function_name"], item["starter_code"]),
                 "function_name": item["function_name"],
                 "test_cases": item["test_cases"],
                 "difficulty": item["difficulty"],

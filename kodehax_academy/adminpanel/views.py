@@ -381,6 +381,18 @@ def resend_teacher_invite(request, invitation_id):
 
 
 @admin_required
+def delete_teacher_invite(request, invitation_id):
+    if request.method != "POST":
+        return HttpResponseBadRequest("Invalid request method.")
+
+    invitation = get_object_or_404(TeacherInvitation, id=invitation_id)
+    invitation_email = invitation.email
+    invitation.delete()
+    messages.success(request, f"Invitation data deleted for {invitation_email}.")
+    return redirect("adminpanel_teachers")
+
+
+@admin_required
 def teacher_action(request, teacher_id):
     if request.method != "POST":
         return HttpResponseBadRequest("Invalid request method.")

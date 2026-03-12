@@ -92,6 +92,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'teacher.context_processors.teacher_profile_nav',
             ],
+            'libraries': {
+                'breadcrumbs': 'users.templatetags.breadcrumbs',
+            },
         },
     },
 ]
@@ -154,6 +157,9 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+DAILY_CHALLENGE_TIMEZONE = os.getenv("DAILY_CHALLENGE_TIMEZONE", "Asia/Kolkata")
+DAILY_CHALLENGE_PUBLISH_HOUR = int(os.getenv("DAILY_CHALLENGE_PUBLISH_HOUR", "10"))
 
 STATICFILES_DIRS = [
     BASE_DIR / "static"

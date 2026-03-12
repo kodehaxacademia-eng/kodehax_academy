@@ -1,4 +1,4 @@
-{% load static %}
+{% load static breadcrumbs %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -431,6 +431,9 @@
             Profile
           </a>
         </nav>
+        <div class="mt-3 rounded-2xl border border-slate-800/80 bg-slate-950/35 px-4 py-2.5 reveal delay-4">
+          {% module_breadcrumbs "teacher" %}
+        </div>
       </div>
     </aside>
 

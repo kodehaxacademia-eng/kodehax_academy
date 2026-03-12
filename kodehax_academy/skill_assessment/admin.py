@@ -48,3 +48,22 @@ class CodingProblemAdmin(admin.ModelAdmin):
     list_filter = ("topic", "difficulty", "is_active")
     search_fields = ("title", "topic", "description", "function_name")
     list_editable = ("order", "is_active")
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "title",
+                    "topic",
+                    "description",
+                    "starter_code",
+                    "function_name",
+                    "test_cases",
+                    "difficulty",
+                    "order",
+                    "is_active",
+                )
+            },
+        ),
+        ("Daily Challenge Hints", {"fields": ("hint1", "hint2")}),
+    )

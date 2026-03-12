@@ -146,6 +146,11 @@ class TeacherInvitationAdminForm(StyledFormMixin, forms.ModelForm):
             raise forms.ValidationError("A user with this email already exists.")
         return email
 
+    def validate_unique(self):
+        # Invitations are upserted in save(), so an existing invitation email
+        # should not raise the ModelForm unique-field error here.
+        return
+
     def save(self, request, commit=True):
         with transaction.atomic():
             invitation, created = TeacherInvitation.objects.update_or_create(
@@ -239,6 +244,7 @@ class TeacherInviteRegistrationForm(StyledFormMixin, forms.Form):
         self.invitation.is_used = True
         self.invitation.used_at = timezone.now()
         self.invitation.save(update_fields=["is_used", "used_at"])
+        self.invitation.delete()
         return user
 
 

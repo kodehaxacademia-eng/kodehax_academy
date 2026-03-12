@@ -28,44 +28,47 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            background: radial-gradient(circle at top, #e0f2fe 0%, #f8fafc 40%, #eef2ff 100%);
+            background: #ffffff;
         }
     </style>
 </head>
 <body class="min-h-screen text-slate-800">
-    <div class="flex min-h-screen">
-        <aside class="hidden lg:flex lg:w-72 lg:flex-col border-r border-slate-200/80 bg-white/80 backdrop-blur-xl">
-            <div class="px-6 py-6 border-b border-slate-200/80">
-                <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Kodehax</p>
-                <h1 class="text-2xl font-semibold mt-2">Control Center</h1>
-            </div>
-            <nav class="flex-1 px-4 py-5 space-y-1 text-sm">
-                <a href="{% url 'adminpanel_dashboard' %}" class="block rounded-xl px-4 py-3 {% if current_section == 'dashboard' %}bg-slate-900 text-white{% else %}hover:bg-slate-100{% endif %}">Dashboard</a>
-                <a href="{% url 'adminpanel_users' %}" class="block rounded-xl px-4 py-3 {% if current_section == 'users' %}bg-slate-900 text-white{% else %}hover:bg-slate-100{% endif %}">Users</a>
-                <a href="{% url 'adminpanel_teachers' %}" class="block rounded-xl px-4 py-3 {% if current_section == 'teachers' %}bg-slate-900 text-white{% else %}hover:bg-slate-100{% endif %}">Teachers</a>
-                <a href="{% url 'adminpanel_students' %}" class="block rounded-xl px-4 py-3 {% if current_section == 'students' %}bg-slate-900 text-white{% else %}hover:bg-slate-100{% endif %}">Students</a>
-                <a href="{% url 'adminpanel_daily_challenges' %}" class="block rounded-xl px-4 py-3 {% if current_section == 'daily_challenges' %}bg-slate-900 text-white{% else %}hover:bg-slate-100{% endif %}">Daily Challenges</a>
-                <a href="{% url 'adminpanel_skills' %}" class="block rounded-xl px-4 py-3 {% if current_section == 'skills' %}bg-slate-900 text-white{% else %}hover:bg-slate-100{% endif %}">Skill Assessments</a>
-                <a href="{% url 'adminpanel_assignments' %}" class="block rounded-xl px-4 py-3 {% if current_section == 'assignments' %}bg-slate-900 text-white{% else %}hover:bg-slate-100{% endif %}">Assignments</a>
-                <a href="{% url 'adminpanel_analytics' %}" class="block rounded-xl px-4 py-3 {% if current_section == 'analytics' %}bg-slate-900 text-white{% else %}hover:bg-slate-100{% endif %}">Analytics</a>
-                <a href="{% url 'adminpanel_analytics' %}" class="block rounded-xl px-4 py-3 hover:bg-slate-100">Settings</a>
-            </nav>
-            <div class="p-4 border-t border-slate-200/80 text-sm text-slate-500">
-                Logged in as <span class="font-medium text-slate-700">{{ request.user.username }}</span>
-            </div>
-        </aside>
+    <div class="min-h-screen">
+        <header class="border-b border-slate-200 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+                <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
+                            <img src="{% static 'image/logo2.png' %}" alt="Kodehax Academy logo" class="h-11 w-11 object-contain">
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-baseline gap-3 flex-wrap">
+                                <p class="text-sm uppercase tracking-[0.38em] text-slate-500">Kodehax Academy</p>
 
-        <main class="flex-1">
-            <header class="bg-white/70 backdrop-blur-xl border-b border-slate-200/80">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl sm:text-2xl font-semibold">{% block page_title %}Admin Panel{% endblock %}</h2>
-                        <p class="text-xs sm:text-sm text-slate-500">{% block page_subtitle %}Platform management{% endblock %}</p>
+                            </div>
+                            <p class="mt-1 text-sm text-slate-500">{% block page_subtitle %}Platform management{% endblock %}</p>
+                        </div>
                     </div>
-                    <a href="{% url 'home' %}" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50">Exit</a>
+                    <div class="flex items-center gap-3">
+                        <span class="hidden sm:inline text-sm text-slate-500">Logged in as <span class="font-medium text-slate-700">{{ request.user.username }}</span></span>
+                        <a href="{% url 'home' %}" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50">Exit</a>
+                    </div>
                 </div>
-            </header>
+                <nav class="mt-4 flex flex-wrap gap-2 text-sm">
+                    <a href="{% url 'adminpanel_dashboard' %}" class="rounded-xl px-4 py-2.5 transition {% if current_section == 'dashboard' %}bg-slate-900 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Dashboard</a>
+                    <a href="{% url 'adminpanel_users' %}" class="rounded-xl px-4 py-2.5 transition {% if current_section == 'users' %}bg-slate-900 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Users</a>
+                    <a href="{% url 'adminpanel_teachers' %}" class="rounded-xl px-4 py-2.5 transition {% if current_section == 'teachers' %}bg-slate-900 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Teachers</a>
+                    <a href="{% url 'adminpanel_students' %}" class="rounded-xl px-4 py-2.5 transition {% if current_section == 'students' %}bg-slate-900 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Students</a>
+                    <a href="{% url 'adminpanel_daily_challenges' %}" class="rounded-xl px-4 py-2.5 transition {% if current_section == 'daily_challenges' %}bg-slate-900 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Daily Challenges</a>
+                    <a href="{% url 'adminpanel_skills' %}" class="rounded-xl px-4 py-2.5 transition {% if current_section == 'skills' %}bg-slate-900 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Skill Assessments</a>
+                    <a href="{% url 'adminpanel_assignments' %}" class="rounded-xl px-4 py-2.5 transition {% if current_section == 'assignments' %}bg-slate-900 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Assignments</a>
+                    <a href="{% url 'adminpanel_analytics' %}" class="rounded-xl px-4 py-2.5 transition {% if current_section == 'analytics' %}bg-slate-900 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Analytics</a>
+                    <a href="{% url 'adminpanel_analytics' %}" class="rounded-xl px-4 py-2.5 bg-slate-100 text-slate-700 transition hover:bg-slate-200">Settings</a>
+                </nav>
+            </div>
+        </header>
 
+        <main>
             <section class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
                 {% if messages %}
                     <div class="space-y-2 mb-4">

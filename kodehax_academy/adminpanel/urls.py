@@ -19,6 +19,11 @@ urlpatterns = [
         name="adminpanel_resend_teacher_invite",
     ),
     path(
+        "teachers/invitations/<int:invitation_id>/delete/",
+        views.delete_teacher_invite,
+        name="adminpanel_delete_teacher_invite",
+    ),
+    path(
         "teachers/<int:teacher_id>/action/",
         views.teacher_action,
         name="adminpanel_teacher_action",

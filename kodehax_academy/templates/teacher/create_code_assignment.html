@@ -4,11 +4,11 @@
 {% block page_title %}New Coding Assignment{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-  <section class="glass-card hover-lift p-7 reveal">
+<div class="mx-auto max-w-3xl">
+  <section class="glass-card hover-lift p-4 sm:p-7 reveal">
     <div class="mb-6">
       <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom: {{ classroom.name }}</p>
-      <h3 class="text-3xl font-black text-white mt-1">Create Coding Assignment</h3>
+      <h3 class="mt-1 text-2xl font-black text-white sm:text-3xl">Create Coding Assignment</h3>
     </div>
 
     {% if error %}
@@ -42,7 +42,7 @@
         </select>
       </div>
 
-      <button type="submit" class="btn-primary px-6 py-2.5">Create Coding Assignment</button>
+      <button type="submit" class="btn-primary w-full px-6 py-2.5 sm:w-auto">Create Coding Assignment</button>
     </form>
   </section>
 </div>

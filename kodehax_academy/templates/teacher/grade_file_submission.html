@@ -4,15 +4,15 @@
 {% block page_title %}Grade File Submission{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto space-y-6">
-  <section class="glass-card hover-lift p-6 reveal">
-    <h3 class="text-2xl font-black text-white">{{ assignment.title }}</h3>
+<div class="mx-auto max-w-4xl space-y-6">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal">
+    <h3 class="text-2xl font-black text-white sm:text-3xl">{{ assignment.title }}</h3>
     <p class="mt-2 text-slate-300">Student: {{ submission.student.username }} ({{ submission.student.email }})</p>
     <p class="text-slate-400 text-sm">Submitted: {{ submission.submitted_at|date:"M d, Y H:i" }}</p>
     <a href="{{ submission.file.url }}" target="_blank" class="mt-4 inline-flex text-blue-300 font-semibold hover:underline">Open Submitted File</a>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-1">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-1">
     <h4 class="text-xl font-bold text-white mb-4">Manual Grade</h4>
     <form method="post" class="space-y-4">
       {% csrf_token %}
@@ -25,16 +25,16 @@
         <label class="block text-sm font-semibold text-slate-200 mb-2">Feedback</label>
         <textarea name="feedback" rows="6" class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200">{{ submission.ai_feedback }}</textarea>
       </div>
-      <button type="submit" class="btn-primary px-6 py-2.5">Save Manual Grade</button>
+      <button type="submit" class="btn-primary h-11 px-6">Save Manual Grade</button>
     </form>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-2">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-2">
     <h4 class="text-xl font-bold text-white mb-4">AI Grade</h4>
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="action" value="ai">
-      <button type="submit" class="btn-primary px-6 py-2.5">Run AI Evaluation</button>
+      <button type="submit" class="btn-primary h-11 px-6">Run AI Evaluation</button>
     </form>
   </section>
 </div>

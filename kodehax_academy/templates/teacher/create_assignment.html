@@ -4,11 +4,11 @@
 {% block page_title %}New Assignment{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-  <section class="glass-card hover-lift p-7 reveal">
+<div class="mx-auto max-w-3xl">
+  <section class="glass-card hover-lift p-4 sm:p-7 reveal">
     <div class="mb-6">
       <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom: {{ classroom.name }}</p>
-      <h3 class="text-3xl font-black text-white mt-1">Create Assignment</h3>
+      <h3 class="mt-1 text-2xl font-black text-white sm:text-3xl">Create Assignment</h3>
       <p class="text-xs uppercase tracking-[0.14em] text-teal-300 mt-1">Type: File Upload</p>
       <p class="text-slate-300 mt-2">Define the task, set a deadline, and provide instructions for your students.</p>
     </div>
@@ -48,13 +48,13 @@
         </select>
       </div>
 
-      <div class="pt-4 flex items-center justify-between reveal delay-4">
+      <div class="flex flex-col gap-3 pt-4 reveal delay-4 sm:flex-row sm:items-center sm:justify-between">
         <a href="{% url 'class_detail' classroom.id %}" 
-           class="btn-muted px-5 py-2.5">
+           class="btn-muted inline-flex items-center justify-center px-5 py-2.5">
           Cancel
         </a>
-        <div class="flex gap-2">
-          <a href="{% url 'assignment_type_selector' classroom.id %}" class="btn-muted px-4 py-2.5">
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <a href="{% url 'assignment_type_selector' classroom.id %}" class="btn-muted inline-flex items-center justify-center px-4 py-2.5">
             Change Type
           </a>
           <button type="submit" class="btn-primary px-6 py-2.5">

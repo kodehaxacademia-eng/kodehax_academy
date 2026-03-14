@@ -3,8 +3,8 @@
 {% block header %}Update Profile{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto reveal">
-  <form method="POST" enctype="multipart/form-data" class="rounded-2xl border border-slate-700 bg-slate-900/45 p-6 sm:p-8 space-y-6">
+<div class="mx-auto max-w-4xl reveal">
+  <form method="POST" enctype="multipart/form-data" class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4 sm:p-6 lg:p-8 space-y-6">
     {% csrf_token %}
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -84,11 +84,11 @@
       <input id="profile_picture" type="file" name="profile_picture" class="block w-full cursor-pointer rounded-xl border border-slate-600 bg-slate-900/60 text-sm text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-500 file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/25">
     </div>
 
-    <div class="flex items-center gap-3 pt-1">
-      <button type="submit" class="btn-primary inline-flex items-center justify-center px-5 py-2.5 text-sm">
+    <div class="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center">
+      <button type="submit" class="btn-primary inline-flex h-11 items-center justify-center px-5 text-sm">
         Update Profile
       </button>
-      <a href="{% url 'student_profile' %}" class="btn-muted inline-flex items-center justify-center px-5 py-2.5 text-sm">
+      <a href="{% url 'student_profile' %}" class="btn-muted inline-flex h-11 items-center justify-center px-5 text-sm">
         Cancel
       </a>
     </div>

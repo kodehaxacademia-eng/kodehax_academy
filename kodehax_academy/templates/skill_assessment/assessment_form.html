@@ -83,12 +83,12 @@
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
         <p class="text-xs uppercase tracking-[0.22em] text-teal-300/80">Student Skill System</p>
-        <h2 class="mt-2 text-3xl font-black tracking-tight text-white">Build your coding skill profile</h2>
+        <h2 class="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">Build your coding skill profile</h2>
         <p class="mt-3 max-w-3xl text-sm text-slate-300">
           Complete the three-level evaluation once. Your results will power future adaptive daily coding challenges.
         </p>
       </div>
-      <div class="min-w-[220px] rounded-2xl border border-teal-400/20 bg-teal-400/10 p-4">
+      <div class="w-full rounded-2xl border border-teal-400/20 bg-teal-400/10 p-4 lg:max-w-xs">
         <div class="flex items-center justify-between text-sm">
           <span class="text-slate-300">Progress</span>
           <span class="font-semibold text-teal-300">{{ step_percent }}%</span>
@@ -244,7 +244,7 @@
           <span>One-time evaluation. Answers are locked after completion.</span>
           {% endif %}
         </div>
-        <button type="submit" class="btn-primary inline-flex items-center justify-center px-5 py-2.5 text-sm">
+        <button type="submit" class="btn-primary inline-flex h-11 items-center justify-center px-5 text-sm">
           {% if step == total_steps %}Finish Evaluation{% else %}Save and Continue{% endif %}
         </button>
       </div>

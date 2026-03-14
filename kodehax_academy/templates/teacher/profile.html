@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="space-y-6">
-  <section class="glass-card hover-lift p-6 reveal">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-      <div class="flex items-center gap-4">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
         {% if profile.profile_picture %}
         <img src="{{ profile.profile_picture.url }}" alt="Profile picture" class="h-24 w-24 rounded-2xl object-cover border border-slate-600">
         {% else %}
@@ -17,7 +17,7 @@
         {% endif %}
         <div>
           <p class="text-xs tracking-[0.2em] uppercase text-slate-400">Profile</p>
-          <h2 class="mt-1 text-3xl font-black text-white">
+          <h2 class="mt-1 text-2xl font-black text-white sm:text-3xl">
             {{ profile.full_name|default:teacher.username }}
           </h2>
           <p class="text-slate-300">{{ teacher.email }}</p>
@@ -26,7 +26,7 @@
           </p>
         </div>
       </div>
-      <a href="{% url 'teacher_edit_profile' %}" class="btn-primary inline-flex items-center justify-center px-5 py-2.5 text-sm">
+      <a href="{% url 'teacher_edit_profile' %}" class="btn-primary inline-flex h-11 items-center justify-center px-5 text-sm">
         Edit Profile
       </a>
     </div>
@@ -57,7 +57,7 @@
     </article>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-2">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-2">
     <h3 class="text-xl font-bold text-white mb-4">Profile Details</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
       <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-4">

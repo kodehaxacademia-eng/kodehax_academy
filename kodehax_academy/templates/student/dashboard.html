@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="space-y-6">
-  <section class="glass-card hover-lift p-6 reveal">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal">
     <div class="flex flex-col sm:flex-row sm:items-center gap-4">
       {% if profile.profile_picture %}
       <img src="{{ profile.profile_picture.url }}" alt="Profile picture" class="h-16 w-16 rounded-full object-cover border-2 border-teal-400/70 shadow-lg">
@@ -16,13 +16,13 @@
       {% endif %}
       <div>
         <p class="text-sm text-slate-400">Welcome back,</p>
-        <h2 class="mt-1 text-3xl font-black text-white tracking-tight">{{ request.user.username }}</h2>
+        <h2 class="mt-1 text-2xl font-black text-white tracking-tight sm:text-3xl">{{ request.user.username }}</h2>
         <p class="mt-2 max-w-2xl text-sm text-slate-300">Track assignments, manage submissions, and keep your academic workflow organized.</p>
       </div>
     </div>
   </section>
 
-  <section class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+  <section class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
     <article class="glass-card hover-lift p-5 reveal delay-1">
       <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Username</p>
       <p class="mt-2 text-sm font-medium text-slate-200">{{ request.user.username }}</p>
@@ -50,14 +50,14 @@
     </article>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-2">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-2">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-teal-300/80">Coding Skill Profile</p>
         <h3 class="mt-2 text-2xl font-black text-white">{{ skill_profile.skill_level }}</h3>
         <p class="mt-2 text-sm text-slate-300">Score: {{ skill_profile.skill_score }} / 100</p>
       </div>
-      <a href="{% url 'skill_assessment_profile' %}" class="btn-primary px-4 py-2 text-sm">Open Skill Profile</a>
+      <a href="{% url 'skill_assessment_profile' %}" class="btn-primary w-full px-4 py-2 text-center text-sm sm:w-auto">Open Skill Profile</a>
     </div>
 
     <div class="mt-5 h-3 rounded-full bg-slate-900/70">
@@ -93,14 +93,14 @@
     </div>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-2">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-2">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300/80">Daily Coding Challenge</p>
         <h3 class="mt-2 text-2xl font-black text-white">{{ solved_daily_count }} / {{ total_daily_count }} solved</h3>
         <p class="mt-2 text-sm text-slate-300">Your daily set includes easy, medium, and hard coding tasks for the next 24 hours.</p>
       </div>
-      <a href="{% url 'daily_challenges_today' %}" class="btn-primary px-4 py-2 text-sm">Open Daily Challenges</a>
+      <a href="{% url 'daily_challenges_today' %}" class="btn-primary w-full px-4 py-2 text-center text-sm sm:w-auto">Open Daily Challenges</a>
     </div>
 
     <div class="mt-5 h-3 rounded-full bg-slate-900/70">
@@ -130,7 +130,7 @@
         </div>
         <p class="mt-3 text-sm text-slate-400">Attempts: {{ challenge.attempts }} / 3</p>
         <div class="mt-4">
-          <a href="{% url 'daily_challenge_workspace' challenge.id %}" class="btn-muted px-4 py-2 text-sm">
+          <a href="{% url 'daily_challenge_workspace' challenge.id %}" class="btn-muted inline-flex w-full items-center justify-center px-4 py-2 text-sm sm:w-auto">
             {% if challenge.status == 'pending' %}Solve{% else %}View{% endif %}
           </a>
         </div>
@@ -139,19 +139,19 @@
     </div>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-3">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-3">
     <h3 class="text-xl font-bold text-white">Quick Actions</h3>
-    <div class="mt-4 flex flex-wrap gap-3">
-      <a href="{% url 'view_assignments' %}" class="btn-primary px-4 py-2 text-sm">
+    <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <a href="{% url 'view_assignments' %}" class="btn-primary inline-flex items-center justify-center px-4 py-2 text-sm">
         Go to Assignments
       </a>
-      <a href="{% url 'student_profile' %}" class="btn-muted px-4 py-2 text-sm">
+      <a href="{% url 'student_profile' %}" class="btn-muted inline-flex items-center justify-center px-4 py-2 text-sm">
         View Profile
       </a>
     </div>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-3">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-3">
     <h3 class="text-xl font-bold text-white">Join Classroom</h3>
     <form method="post" action="{% url 'join_classroom' %}" class="mt-4 flex flex-col gap-3 sm:flex-row">
       {% csrf_token %}
@@ -162,16 +162,16 @@
         placeholder="Enter class code"
         class="w-full rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-2.5 text-slate-200 focus:border-teal-400 focus:outline-none focus:ring-4 focus:ring-teal-500/25"
       />
-      <button type="submit" class="btn-primary px-4 py-2 text-sm">Join</button>
+      <button type="submit" class="btn-primary w-full px-4 py-2 text-sm sm:w-auto">Join</button>
     </form>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-3">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-3">
     <h3 class="text-xl font-bold text-white">Joined Classes</h3>
     <div class="mt-4 space-y-3">
       {% for classroom in joined_classes %}
       <a href="{% url 'student_class_detail' classroom.id %}" class="block rounded-xl border border-slate-700 bg-slate-900/50 p-4 hover:border-teal-400">
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p class="font-semibold text-slate-100">{{ classroom.name }}</p>
             <p class="text-xs text-slate-400">Teacher: {{ classroom.teacher.username }} | Code: {{ classroom.class_code }}</p>

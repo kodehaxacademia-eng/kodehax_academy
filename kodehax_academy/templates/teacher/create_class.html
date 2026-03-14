@@ -4,11 +4,11 @@
 {% block page_title %}Create Classroom{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-  <section class="glass-card hover-lift p-7 reveal">
+<div class="mx-auto max-w-3xl">
+  <section class="glass-card hover-lift p-4 sm:p-7 reveal">
     <div class="mb-6">
       <p class="text-xs uppercase tracking-[0.14em] text-slate-400">New Classroom</p>
-      <h3 class="text-3xl font-black text-white mt-1">Set up your learning space</h3>
+      <h3 class="mt-1 text-2xl font-black text-white sm:text-3xl">Set up your learning space</h3>
       <p class="text-slate-300 mt-2">Add a clear title and context so students understand this class instantly.</p>
     </div>
 
@@ -25,11 +25,11 @@
         {{ form.description }}
       </div>
 
-      <div class="pt-2 flex items-center justify-between reveal delay-3">
-        <a href="{% url 'teacher_dashboard' %}" class="btn-muted px-5 py-2.5">
+      <div class="flex flex-col gap-3 pt-2 reveal delay-3 sm:flex-row sm:items-center sm:justify-between">
+        <a href="{% url 'teacher_dashboard' %}" class="btn-muted inline-flex items-center justify-center px-5 py-2.5">
           Cancel
         </a>
-        <button type="submit" class="btn-primary px-6 py-2.5">
+        <button type="submit" class="btn-primary h-11 px-6">
           Create Classroom
         </button>
       </div>

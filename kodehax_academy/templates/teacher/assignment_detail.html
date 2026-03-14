@@ -6,18 +6,18 @@
 {% block content %}
 <div class="space-y-6">
   <!-- Assignment Overview -->
-  <section class="glass-card hover-lift p-6 reveal">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal">
     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
       <div class="flex-1">
         <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Assignment</p>
-        <h3 class="text-3xl font-black text-white mt-1">{{ assignment.title }}</h3>
+        <h3 class="mt-1 text-2xl font-black text-white sm:text-3xl">{{ assignment.title }}</h3>
         <p class="mt-2 text-sm text-slate-400">Type: {{ assignment.get_assignment_type_display }}</p>
         <p class="mt-1 text-sm text-slate-400">Attempts: {{ assignment.get_attempt_policy_display }}</p>
         <div class="mt-4 prose prose-slate max-w-none text-slate-300">
           {{ assignment.description|linebreaks }}
         </div>
       </div>
-      <div class="min-w-[200px] rounded-xl border border-rose-500/40 bg-rose-900/20 px-4 py-3 text-right">
+      <div class="w-full rounded-xl border border-rose-500/40 bg-rose-900/20 px-4 py-3 text-left md:max-w-xs md:text-right">
         <p class="text-xs uppercase tracking-[0.1em] text-rose-300 font-semibold">Deadline</p>
         <p class="text-lg font-bold text-rose-300 mt-1">{{ assignment.due_date|date:"M d, Y" }}</p>
         <p class="text-sm text-rose-300/80">{{ assignment.due_date|date:"H:i" }}</p>
@@ -30,7 +30,7 @@
     </div>
   </section>
 
-  <section class="glass-card p-6 reveal">
+  <section class="glass-card p-4 sm:p-6 reveal">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <h4 class="text-lg font-bold text-rose-300">Danger Zone</h4>
@@ -46,7 +46,7 @@
         data-confirm-message="Delete {{ assignment.title|escapejs }} and all related records? This cannot be undone."
       >
         {% csrf_token %}
-        <button type="submit" class="btn-danger inline-flex items-center justify-center px-4 py-2.5 text-sm">
+        <button type="submit" class="btn-danger inline-flex w-full items-center justify-center px-4 py-2.5 text-sm sm:w-auto">
           Delete Assignment Permanently
         </button>
       </form>
@@ -55,8 +55,8 @@
 
   <!-- File submissions -->
   {% if assignment.assignment_type == "file" %}
-  <section class="glass-card hover-lift p-6 reveal delay-1">
-    <div class="flex items-center justify-between mb-6">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-1">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h4 class="text-xl font-bold text-white">File Submissions</h4>
       <span class="text-sm rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
         {{ file_submissions.count }} total
@@ -64,7 +64,7 @@
     </div>
 
     <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[600px]">
+      <table class="w-full text-left min-w-[560px]">
         <thead>
           <tr class="text-sm text-slate-400 border-b border-slate-700">
             <th class="py-3 font-semibold">Student</th>
@@ -95,8 +95,10 @@
               {{ submission.ai_feedback|default:"No feedback yet" }}
             </td>
             <td class="py-4 text-right">
-              <a href="{{ submission.file.url }}" class="text-blue-300 font-semibold text-sm hover:underline" target="_blank">Open File</a>
-              <a href="{% url 'grade_file_submission' submission.id %}" class="ml-3 text-emerald-300 font-semibold text-sm hover:underline">Grade</a>
+              <div class="flex flex-col items-start gap-2 sm:items-end">
+                <a href="{{ submission.file.url }}" class="text-blue-300 font-semibold text-sm hover:underline" target="_blank">Open File</a>
+                <a href="{% url 'grade_file_submission' submission.id %}" class="text-emerald-300 font-semibold text-sm hover:underline">Grade</a>
+              </div>
             </td>
           </tr>
           {% empty %}
@@ -109,16 +111,16 @@
     </div>
   </section>
   {% elif assignment.assignment_type == "quiz" %}
-  <section class="glass-card hover-lift p-6 reveal delay-1">
-    <div class="flex items-center justify-between mb-6">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-1">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h4 class="text-xl font-bold text-white">Quiz Questions</h4>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
         <span class="text-sm rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
           {{ quiz_questions.count }} questions | {{ quiz_attempt_count }} attempts
         </span>
         <form method="post" action="{% url 'auto_grade_quiz' assignment.id %}">
           {% csrf_token %}
-          <button type="submit" class="btn-primary px-3 py-1.5 text-sm">Auto Grade</button>
+          <button type="submit" class="btn-primary w-full px-3 py-1.5 text-sm sm:w-auto">Auto Grade</button>
         </form>
       </div>
     </div>
@@ -141,7 +143,7 @@
     </div>
 
     <div class="mt-6 overflow-x-auto">
-      <table class="w-full min-w-[600px] text-left">
+      <table class="w-full min-w-[560px] text-left">
         <thead>
           <tr class="text-sm text-slate-400 border-b border-slate-700">
             <th class="py-3 font-semibold">Student</th>
@@ -170,8 +172,8 @@
     </div>
   </section>
   {% elif assignment.assignment_type == "code" %}
-  <section class="glass-card hover-lift p-6 reveal delay-1">
-    <div class="flex items-center justify-between mb-6">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-1">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h4 class="text-xl font-bold text-white">Code Submissions</h4>
       <span class="text-sm rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
         {{ code_submissions.count }} total

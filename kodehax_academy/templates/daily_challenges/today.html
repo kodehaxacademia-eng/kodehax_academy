@@ -5,11 +5,11 @@
 
 {% block content %}
 <div class="space-y-6">
-  <section class="glass-card p-6 sm:p-8">
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(420px,0.85fr)] xl:items-center">
+  <section class="glass-card p-4 sm:p-6 lg:p-8">
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] xl:items-center">
       <div class="max-w-3xl">
         <p class="text-xs uppercase tracking-[0.2em] text-teal-300/80">Publishes Daily At 10:00 AM</p>
-        <h2 class="mt-2 text-3xl font-black text-white">9 adaptive coding problems</h2>
+        <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">9 adaptive coding problems</h2>
         <p class="mt-2 max-w-3xl text-sm text-slate-300">Each day includes 3 Easy, 3 Medium, and 3 Hard challenges. Solve 2 Easy questions to unlock Medium, then solve 2 Medium questions to unlock Hard.</p>
       </div>
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1.05fr_0.95fr]">
@@ -45,7 +45,7 @@
         </div>
         <div class="rounded-2xl border border-slate-700 bg-slate-950/35 px-5 py-4 text-sm text-slate-300">
           <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Session Summary</p>
-          <div class="mt-4 grid grid-cols-2 gap-3">
+          <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div class="rounded-xl border border-slate-700/80 bg-slate-900/35 px-4 py-3">
               <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">Attempted</p>
               <p class="mt-2 text-2xl font-black text-white">{{ current_session.questions_attempted|default:0 }}</p>
@@ -67,7 +67,7 @@
       </div>
     </div>
 
-    <div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4">
         <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Solved</p>
         <p class="mt-2 text-2xl font-black text-white">{{ challenge_set.solved_count }} / 9</p>
@@ -88,7 +88,7 @@
   </section>
 
   {% for group in challenge_groups %}
-  <section class="glass-card p-6">
+  <section class="glass-card p-4 sm:p-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p class="text-xs uppercase tracking-[0.2em] {% if group.unlocked %}text-teal-300{% else %}text-slate-500{% endif %}">{{ group.title }} - {{ group.difficulty }}</p>
@@ -113,14 +113,14 @@
           </span>
         </div>
 
-        <div class="mt-4 flex items-center justify-between text-sm text-slate-400">
+        <div class="mt-4 flex flex-col gap-2 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <span>Points: {{ challenge.points }}</span>
           <span>Attempts: {{ challenge.attempts }} / {% if challenge.difficulty == 'easy' %}3{% elif challenge.difficulty == 'medium' %}5{% else %}10{% endif %}</span>
         </div>
 
         <div class="mt-5">
           {% if group.unlocked %}
-            <a href="{% url 'daily_challenge_workspace' challenge.id %}" class="btn-primary inline-flex px-4 py-2 text-sm">
+            <a href="{% url 'daily_challenge_workspace' challenge.id %}" class="btn-primary inline-flex w-full items-center justify-center px-4 py-2 text-sm sm:w-auto">
               {% if challenge.status == 'pending' %}Open Challenge{% else %}Review Challenge{% endif %}
             </a>
           {% else %}

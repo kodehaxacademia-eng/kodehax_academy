@@ -5,23 +5,25 @@
 
 {% block content %}
 <div class="space-y-6">
-  <section class="glass-card hover-lift p-6 reveal">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal">
     <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
       <div>
         <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Teaching Analytics</p>
-        <h3 class="mt-1 text-3xl font-black text-white">Micro-insights for {{ request.user.username }}</h3>
+        <h3 class="mt-1 text-2xl font-black text-white sm:text-3xl">Micro-insights for {{ request.user.username }}</h3>
         <p class="mt-2 max-w-2xl text-slate-300">Monitor skill health, streaks, daily challenge balance, and students who need intervention without chart-heavy dashboards.</p>
       </div>
-      <a href="{% url 'create_class' %}" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">
-        + Create Class
-      </a>
-      <a href="{% url 'teacher_submit_question_template' %}" class="btn-muted inline-flex items-center justify-center px-5 py-2.5">
-        + Submit Challenge Template
-      </a>
+      <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+        <a href="{% url 'create_class' %}" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">
+          + Create Class
+        </a>
+        <a href="{% url 'teacher_submit_question_template' %}" class="btn-muted inline-flex items-center justify-center px-5 py-2.5">
+          + Submit Challenge Template
+        </a>
+      </div>
     </div>
   </section>
 
-  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
     {% for meter in analytics.meters %}
     <article class="glass-card p-5 reveal">
       <div class="flex items-start justify-between gap-4">
@@ -233,7 +235,7 @@
       <div class="mt-5 rounded-2xl border border-slate-700 bg-slate-950/40 p-4">
         <p class="text-xs uppercase tracking-[0.1em] text-slate-400">Difficulty Balance</p>
         <p class="mt-2 text-lg font-bold text-white">{{ analytics.challenge_balance.label }}</p>
-        <div class="mt-4 grid grid-cols-3 gap-2">
+        <div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
           {% for segment in analytics.challenge_balance.segments %}
           <div class="rounded-xl bg-slate-900/70 p-3 text-center">
             <p class="text-xs text-slate-400">{{ segment.label }}</p>

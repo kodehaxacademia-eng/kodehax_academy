@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-  <section class="glass-card p-6">
+  <section class="glass-card p-4 sm:p-6">
     <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Teacher Contribution</p>
-    <h3 class="mt-1 text-2xl font-black text-white">Submit a reusable coding challenge template</h3>
+    <h3 class="mt-1 text-2xl font-black text-white sm:text-3xl">Submit a reusable coding challenge template</h3>
     <form method="post" class="mt-6 space-y-4">
       {% csrf_token %}
       {% for field in form %}
@@ -22,11 +22,11 @@
         {% endfor %}
       </div>
       {% endfor %}
-      <button type="submit" class="btn-primary inline-flex px-5 py-2.5">Submit For Approval</button>
+      <button type="submit" class="btn-primary inline-flex h-11 items-center px-5">Submit For Approval</button>
     </form>
   </section>
 
-  <section class="glass-card p-6">
+  <section class="glass-card p-4 sm:p-6">
     <p class="text-xs uppercase tracking-[0.12em] text-slate-400">Recent Submissions</p>
     <h3 class="mt-1 text-xl font-bold text-white">Your latest template drafts</h3>
     <div class="mt-5 space-y-3">

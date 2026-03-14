@@ -78,17 +78,17 @@
 
 {% block content %}
 <div class="space-y-6">
-  <section class="glass-card hover-lift p-6 md:p-8 reveal relative overflow-hidden">
+  <section class="glass-card hover-lift relative overflow-hidden p-4 sm:p-6 md:p-8 reveal">
     <div class="absolute -top-16 -right-12 h-48 w-48 rounded-full bg-cyan-200/30 blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-20 -left-12 h-52 w-52 rounded-full bg-blue-200/30 blur-3xl pointer-events-none"></div>
     <div class="relative">
       <p class="text-xs uppercase tracking-[0.14em] text-slate-400">AI Assistant</p>
-      <h3 class="text-3xl md:text-4xl font-black text-white mt-2">Smart Content Studio</h3>
+      <h3 class="mt-2 text-2xl font-black text-white md:text-4xl">Smart Content Studio</h3>
       <p class="text-slate-300 mt-3 max-w-2xl">Generate classroom-ready quizzes and structured lecture notes, then instantly push quiz questions into assignments.</p>
     </div>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-1">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-1">
     <form method="POST" class="space-y-6">
       {% csrf_token %}
       <input type="hidden" name="action" value="generate">
@@ -97,9 +97,9 @@
         <input type="text" name="topic" required value="{{ topic|default:'' }}" placeholder="Example: Neural Networks" class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
       </div>
 
-      <div class="flex flex-wrap gap-3">
-        <button type="submit" name="tool" value="quiz" class="btn-primary px-6 py-2.5">Generate Quiz</button>
-        <button type="submit" name="tool" value="notes" class="btn-muted px-6 py-2.5 border-emerald-500/40 hover:bg-emerald-900/20">Generate Lecture Notes</button>
+      <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <button type="submit" name="tool" value="quiz" class="btn-primary h-11 px-6">Generate Quiz</button>
+        <button type="submit" name="tool" value="notes" class="btn-muted h-11 border-emerald-500/40 px-6 hover:bg-emerald-900/20">Generate Lecture Notes</button>
       </div>
     </form>
   </section>
@@ -118,7 +118,7 @@
 
   {% if result %}
   <section class="grid grid-cols-1 xl:grid-cols-5 gap-6">
-    <article class="xl:col-span-3 glass-card hover-lift p-6 reveal delay-2">
+    <article class="xl:col-span-3 glass-card hover-lift p-4 sm:p-6 reveal delay-2">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
         <h4 class="text-xl font-bold text-white">AI Output</h4>
         <span class="px-3 py-1 bg-blue-900/20 text-blue-300 text-xs font-bold rounded-full uppercase tracking-wider">{{ tool_used|default:"content" }}</span>
@@ -130,7 +130,7 @@
     </article>
 
     {% if tool_used == "quiz" %}
-    <aside class="xl:col-span-2 glass-card hover-lift p-6 reveal delay-3">
+    <aside class="xl:col-span-2 glass-card hover-lift p-4 sm:p-6 reveal delay-3">
       <h4 class="text-lg font-bold text-white">Upload Quiz To Assignment</h4>
       <p class="text-sm text-slate-300 mt-2">Creates an assignment from the generated quiz. Answer key is removed automatically.</p>
 

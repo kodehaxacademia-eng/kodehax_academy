@@ -5,22 +5,22 @@
 
 {% block content %}
 <div class="space-y-6">
-  <section class="glass-card hover-lift p-6 reveal">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom</p>
-        <h3 class="text-3xl font-black text-white mt-1">{{ classroom.name }}</h3>
+        <h3 class="mt-1 text-2xl font-black text-white sm:text-3xl">{{ classroom.name }}</h3>
         <p class="text-slate-300 mt-2">Manage and review all tasks assigned to this class.</p>
       </div>
-      <a href="{% url 'assignment_type_selector' classroom.id %}" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">
+      <a href="{% url 'assignment_type_selector' classroom.id %}" class="btn-primary inline-flex w-full items-center justify-center px-5 py-2.5 sm:w-auto">
         + New Assignment
       </a>
     </div>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-1">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-1">
     <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[600px]">
+      <table class="w-full text-left min-w-[560px]">
         <thead>
           <tr class="text-sm text-slate-400 border-b border-slate-700">
             <th class="py-3 font-semibold">Assignment Title</th>

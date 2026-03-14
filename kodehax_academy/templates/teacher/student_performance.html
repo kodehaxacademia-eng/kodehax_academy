@@ -5,11 +5,11 @@
 
 {% block content %}
 <div class="space-y-6">
-  <section class="glass-card hover-lift p-6 reveal">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
         <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Student Profile</p>
-        <h3 class="mt-1 text-3xl font-black text-white">{{ student.username }}</h3>
+        <h3 class="mt-1 text-2xl font-black text-white sm:text-3xl">{{ student.username }}</h3>
         <p class="text-slate-300">{{ student.email }}</p>
       </div>
       <div class="flex flex-wrap gap-3">
@@ -25,7 +25,7 @@
     </div>
   </section>
 
-  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
     {% for meter in analytics.meters %}
     <article class="glass-card p-5 reveal">
       <p class="text-xs uppercase tracking-[0.1em] text-slate-400">{{ meter.label }}</p>
@@ -88,7 +88,7 @@
         {% for stage in analytics.progress_timeline %}
         <div class="flex items-center gap-4 rounded-2xl border p-4 {% if stage.current %}border-sky-400/40 bg-sky-500/10{% elif stage.passed %}border-emerald-500/20 bg-emerald-500/10{% else %}border-slate-700 bg-slate-950/40{% endif %}">
           <div class="flex h-10 w-10 items-center justify-center rounded-2xl {% if stage.current %}bg-sky-400 text-slate-950{% elif stage.passed %}bg-emerald-400 text-slate-950{% else %}bg-slate-800 text-slate-300{% endif %}">
-            {% if stage.current %}●{% elif stage.passed %}✓{% else %}○{% endif %}
+            {% if stage.current %}&#9679;{% elif stage.passed %}&#10003;{% else %}&#9675;{% endif %}
           </div>
           <div>
             <p class="font-semibold text-white">{{ stage.label }}</p>
@@ -142,7 +142,7 @@
   <section class="glass-card hover-lift p-6 reveal delay-2">
     <h4 class="text-xl font-bold text-white">Assignment History</h4>
     <div class="mt-5 overflow-x-auto">
-      <table class="w-full min-w-[860px] text-left">
+      <table class="w-full min-w-[760px] text-left">
         <thead>
           <tr class="border-b border-slate-700 text-sm text-slate-400">
             <th class="py-3 font-semibold">Assignment</th>

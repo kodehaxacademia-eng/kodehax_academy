@@ -5,7 +5,7 @@
 {% block page_title %}Student AI Assistant{% endblock %}
 
 {% block content %}
-<div class="glass-card p-4">
+<div class="glass-card p-4 sm:p-6">
     <div class="mode-row">
         <button onclick="setMode('tutor')" id="btn-tutor" class="mode-btn active-mode">AI Tutor</button>
         <button onclick="setMode('course_qa')" id="btn-course_qa" class="mode-btn">Course Q&A</button>
@@ -68,7 +68,7 @@
   }
 
   .chat-shell {
-    height: 58vh;
+    height: 52vh;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -326,6 +326,29 @@
     40% {
       transform: scale(1);
       opacity: 1;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .chat-input-row {
+      flex-direction: column;
+    }
+
+    .chat-input-row input,
+    .send-btn {
+      min-height: 2.75rem;
+      width: 100%;
+    }
+
+    .chat-shell {
+      height: 56vh;
+      padding-bottom: 1rem;
+    }
+
+    .mode-btn {
+      min-height: 2.75rem;
+      flex: 1 1 calc(50% - 0.5rem);
+      text-align: center;
     }
   }
 </style>

@@ -7,7 +7,7 @@
 <style>
   .challenge-code-editor {
     width: 100%;
-    min-height: 20rem;
+    min-height: 16rem;
     border-radius: 1rem;
     border: 1px solid rgba(71, 85, 105, 0.9);
     background: linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.92));
@@ -26,10 +26,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-6 pb-28 md:pb-0">
   <section class="glass-card p-4 sm:p-5">
     <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-      <div class="flex flex-wrap gap-3">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap">
         {% for item in workspace_nav_items %}
           <div class="rounded-2xl border px-4 py-3 {% if item.current %}border-teal-300/30 bg-teal-400/10{% elif item.unlocked %}border-slate-700 bg-slate-900/35{% else %}border-slate-800 bg-slate-950/30 opacity-60{% endif %}">
             <p class="text-[11px] uppercase tracking-[0.18em] {% if item.current %}text-teal-200{% else %}text-slate-500{% endif %}">Level {{ item.challenge.level }}</p>
@@ -37,30 +37,30 @@
           </div>
         {% endfor %}
       </div>
-      <div class="flex flex-wrap gap-3">
+      <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         {% if previous_challenge %}
-          <a href="{% url 'daily_challenge_workspace' previous_challenge.id %}" class="btn-muted px-4 py-2 text-sm">Previous</a>
+          <a href="{% url 'daily_challenge_workspace' previous_challenge.id %}" class="btn-muted w-full px-4 py-2 text-center text-sm sm:w-auto">Previous</a>
         {% endif %}
         {% if next_challenge %}
           {% if next_challenge_unlocked %}
-            <a href="{% url 'daily_challenge_workspace' next_challenge.id %}" class="btn-primary px-4 py-2 text-sm">Next</a>
+            <a href="{% url 'daily_challenge_workspace' next_challenge.id %}" class="btn-primary w-full px-4 py-2 text-center text-sm sm:w-auto">Next</a>
           {% else %}
-            <span class="inline-flex cursor-not-allowed rounded-xl border border-slate-700 bg-slate-900/35 px-4 py-2 text-sm font-medium text-slate-500">Next level locked</span>
+            <span class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-700 bg-slate-900/35 px-4 py-2 text-sm font-medium text-slate-500 sm:w-auto">Next level locked</span>
           {% endif %}
         {% endif %}
       </div>
     </div>
   </section>
 
-  <section class="glass-card p-6 sm:p-8">
+  <section class="glass-card p-4 sm:p-6 lg:p-8">
     <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
       <div class="max-w-3xl">
         <p class="text-xs uppercase tracking-[0.2em] text-teal-300/80">Level {{ challenge.level }} - {{ challenge.difficulty|title }} - {{ challenge.problem.topic|title }}</p>
-        <h2 class="mt-2 text-3xl font-black text-white">{{ challenge.title }}</h2>
+        <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">{{ challenge.title }}</h2>
         <p class="mt-3 text-sm leading-7 text-slate-300">{{ challenge.description }}</p>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:min-w-[34rem]">
+      <div class="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 xl:max-w-2xl">
         <div class="space-y-4">
           <div class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4">
             <p class="text-xs uppercase tracking-[0.18em] text-cyan-200">Global Points</p>
@@ -98,9 +98,9 @@
     </div>
   </section>
 
-  <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1.45fr_0.85fr]">
-    <div class="glass-card p-6 sm:p-8">
-      <form method="post" class="space-y-5">
+  <section class="flex flex-col gap-6 lg:flex-row">
+    <div class="glass-card w-full p-4 sm:p-6 lg:w-1/2 lg:p-8">
+      <form method="post" id="challenge-action-form" class="space-y-5">
         {% csrf_token %}
         <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4 text-sm text-slate-400">
           <p class="uppercase tracking-[0.18em] text-slate-500">Required function</p>
@@ -109,20 +109,26 @@
 
         <textarea name="code" spellcheck="false" class="challenge-code-editor">{{ editor_code }}</textarea>
 
-        <div class="flex flex-wrap gap-3">
-          <button type="submit" name="action" value="run" class="btn-muted px-4 py-2 text-sm">Run</button>
-          <button type="submit" name="action" value="submit" class="btn-primary px-4 py-2 text-sm">Submit</button>
+        <div class="hidden flex-col gap-3 sm:flex-row sm:flex-wrap md:flex">
+          <button type="submit" name="action" value="run" class="btn-muted w-full px-4 py-2 text-sm sm:w-auto">Run</button>
+          <button type="submit" name="action" value="submit" class="btn-primary w-full px-4 py-2 text-sm sm:w-auto">Submit</button>
           {% if challenge.hints_used < 2 %}
-            <button type="submit" name="action" value="hint" class="btn-muted px-4 py-2 text-sm">Unlock Hint (-5)</button>
+            <button type="submit" name="action" value="hint" class="btn-muted w-full px-4 py-2 text-sm sm:w-auto">Unlock Hint (-5)</button>
           {% else %}
-            <span class="inline-flex rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-500">All hints used</span>
+            <span class="inline-flex w-full items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-500 sm:w-auto">All hints used</span>
           {% endif %}
-          <a href="{% url 'daily_challenges_today' %}" class="btn-muted px-4 py-2 text-sm">Back</a>
+          <a href="{% url 'daily_challenges_today' %}" class="btn-muted inline-flex w-full items-center justify-center px-4 py-2 text-sm sm:w-auto">Back</a>
         </div>
       </form>
+      <div class="fixed inset-x-3 bottom-24 z-30 rounded-[1.25rem] border border-slate-700/80 bg-slate-950/92 p-3 shadow-[0_18px_40px_rgba(2,6,23,0.45)] backdrop-blur md:hidden">
+        <div class="grid grid-cols-2 gap-3">
+          <button type="submit" form="challenge-action-form" name="action" value="run" class="btn-muted h-11 w-full px-4 text-sm">Run</button>
+          <button type="submit" form="challenge-action-form" name="action" value="submit" class="btn-primary h-11 w-full px-4 text-sm">Submit</button>
+        </div>
+      </div>
     </div>
 
-    <div class="space-y-5">
+    <div class="w-full space-y-5 lg:w-1/2">
       <section class="glass-card p-6">
         <h3 class="text-lg font-bold text-white">Question Status</h3>
         <div class="mt-4 space-y-2 text-sm text-slate-300">
@@ -162,12 +168,12 @@
   </section>
 
   {% if preview_payload %}
-  <section class="glass-card p-6">
+  <section class="glass-card p-4 sm:p-6">
     <h3 class="text-xl font-bold text-white">Run Results</h3>
     {% if preview_payload.error %}
       <p class="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{{ preview_payload.error }}</p>
     {% endif %}
-    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
+    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Passed</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.summary.passed }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Failed</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.summary.failed }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Runtime</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.summary.runtime }}</p></div>
@@ -194,12 +200,12 @@
   {% endif %}
 
   {% if submission_payload %}
-  <section class="glass-card p-6">
+  <section class="glass-card p-4 sm:p-6">
     <h3 class="text-xl font-bold text-white">Submission Results</h3>
     {% if submission_payload.error %}
       <p class="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{{ submission_payload.error }}</p>
     {% endif %}
-    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
+    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Passed</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.summary.passed }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Failed</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.summary.failed }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Runtime</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.summary.runtime }}</p></div>
@@ -325,5 +331,4 @@
     window.setInterval(tick, 1000);
   })();
 </script>
-</div>
 {% endblock %}

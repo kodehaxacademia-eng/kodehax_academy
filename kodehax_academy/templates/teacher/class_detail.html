@@ -5,14 +5,14 @@
 
 {% block content %}
 <div class="space-y-6">
-  <section class="glass-card hover-lift p-6 reveal">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal">
     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
       <div>
         <p class="text-xs uppercase tracking-[0.14em] text-slate-400">Classroom</p>
-        <h3 class="text-3xl font-black text-white mt-1">{{ classroom.name }}</h3>
+        <h3 class="mt-1 text-2xl font-black text-white sm:text-3xl">{{ classroom.name }}</h3>
         <p class="text-slate-300 mt-2 max-w-3xl">{{ classroom.description }}</p>
       </div>
-      <div class="min-w-[180px] rounded-xl border border-blue-800 bg-blue-900/30 px-4 py-3 text-right">
+      <div class="w-full rounded-xl border border-blue-800 bg-blue-900/30 px-4 py-3 text-left md:max-w-[180px] md:text-right">
         <p class="text-xs uppercase tracking-[0.1em] text-blue-400 font-semibold">Class Code</p>
         <p class="text-2xl font-black text-blue-300 mt-1">{{ classroom.class_code }}</p>
       </div>
@@ -20,8 +20,8 @@
     <p class="text-sm text-slate-400 mt-5">Created on {{ classroom.created_at|date:"M d, Y" }}</p>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-1">
-    <div class="flex items-center justify-between mb-5">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-1">
+    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h4 class="text-xl font-bold text-white">Students</h4>
       <span class="text-sm rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
         {{ students.count }} enrolled
@@ -29,7 +29,7 @@
     </div>
 
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[500px] text-left">
+      <table class="w-full min-w-[480px] text-left">
         <thead>
           <tr class="border-b border-slate-700 text-sm text-slate-400">
             <th class="py-3 font-semibold">Name</th>
@@ -67,17 +67,17 @@
     </div>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-2">
-    <div class="flex items-center justify-between mb-5">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-2">
+    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h4 class="text-xl font-bold text-white">Assignments</h4>
         <a href="{% url 'assignment_type_selector' classroom.id %}"
-            class="btn-primary px-4 py-2 text-sm">
+            class="btn-primary inline-flex w-full items-center justify-center px-4 py-2 text-sm sm:w-auto">
             Create Assignment
         </a>    
     </div>
 
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[620px] text-left">
+      <table class="w-full min-w-[560px] text-left">
         <thead>
           <tr class="border-b border-slate-700 text-sm text-slate-400">
             <th class="py-3 font-semibold">Title</th>
@@ -104,14 +104,14 @@
     </div>
   </section>
 
-  <section class="glass-card hover-lift p-6 reveal delay-3">
+  <section class="glass-card hover-lift p-4 sm:p-6 reveal delay-3">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <h4 class="text-xl font-bold text-white">Classroom Chat</h4>
         <p class="text-slate-300 text-sm mt-1">Communicate with students in real-time and keep conversations organized.</p>
       </div>
       <a href="#"
-         class="inline-flex items-center justify-center rounded-xl bg-emerald-500 text-white px-6 py-2.5 font-semibold hover:bg-emerald-600 transition hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20">
+         class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-500 px-6 py-2.5 font-semibold text-white transition shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5 hover:bg-emerald-600 sm:w-auto">
         Open Chatroom
       </a>
     </div>

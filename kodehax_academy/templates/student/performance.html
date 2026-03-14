@@ -5,7 +5,7 @@
 
 {% block content %}
 <section class="space-y-6 reveal">
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
     <article class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4">
       <p class="text-xs uppercase tracking-wide text-slate-400">Average Score</p>
       <p class="mt-2 text-2xl font-black text-teal-300">{{ summary.average_score }}</p>
@@ -25,13 +25,13 @@
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5">
+    <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4 sm:p-5">
       <h3 class="text-lg font-bold text-white">Score Progression</h3>
       <div class="mt-4 h-72">
         <canvas id="scoreProgressionChart"></canvas>
       </div>
     </section>
-    <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5">
+    <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4 sm:p-5">
       <h3 class="text-lg font-bold text-white">Assignment Score History</h3>
       <div class="mt-4 h-72">
         <canvas id="assignmentScoreChart"></canvas>
@@ -39,17 +39,17 @@
     </section>
   </div>
 
-  <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5">
+  <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4 sm:p-5">
     <h3 class="text-lg font-bold text-white">Submission Trend</h3>
     <div class="mt-4 h-72">
       <canvas id="submissionTrendChart"></canvas>
     </div>
   </section>
 
-  <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5">
+  <section class="rounded-2xl border border-slate-700 bg-slate-900/45 p-4 sm:p-5">
     <h3 class="text-lg font-bold text-white mb-4">Performance History</h3>
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[760px] text-left">
+      <table class="w-full min-w-[640px] text-left">
         <thead>
           <tr class="border-b border-slate-700 text-sm text-slate-400">
             <th class="py-3 font-semibold">Assignment</th>

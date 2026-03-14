@@ -4,9 +4,9 @@
 {% block header %}Submit Code{% endblock %}
 
 {% block content %}
-<section class="space-y-5 reveal">
+<section class="space-y-5 reveal pb-28 md:pb-0">
   <div class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
-    <h2 class="text-xl font-bold text-white">{{ assignment.title }}</h2>
+    <h2 class="text-xl font-bold text-white sm:text-2xl">{{ assignment.title }}</h2>
     <p class="text-sm text-slate-400 mt-1">Class: {{ assignment.classroom.name }}</p>
     <p class="text-sm text-slate-400">Due: {{ assignment.due_date|date:"M d, Y H:i" }}</p>
     <div class="mt-4 rounded-lg border border-slate-700 bg-slate-950/40 p-4">
@@ -21,7 +21,7 @@
   </div>
   {% endif %}
 
-  <form method="POST" class="space-y-5 rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
+  <form method="POST" id="student-code-form" class="space-y-5 rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
     {% csrf_token %}
     <div>
       <label class="block mb-2 text-sm font-semibold text-slate-200">Language</label>
@@ -32,8 +32,13 @@
       <textarea name="code" rows="16" {% if can_submit %}required{% else %}readonly{% endif %} class="w-full rounded-xl border border-slate-600 bg-slate-950/80 px-4 py-2.5 font-mono text-sm text-slate-200">{% if existing_submission %}{{ existing_submission.code }}{% endif %}</textarea>
     </div>
     {% if can_submit %}
-    <button type="submit" class="btn-primary inline-flex items-center justify-center px-5 py-2.5">Submit Code</button>
+    <button type="submit" class="btn-primary hidden w-full items-center justify-center px-5 py-2.5 sm:w-auto md:inline-flex">Submit Code</button>
     {% endif %}
   </form>
+  {% if can_submit %}
+  <div class="fixed inset-x-3 bottom-24 z-30 rounded-[1.25rem] border border-slate-700/80 bg-slate-950/92 p-3 shadow-[0_18px_40px_rgba(2,6,23,0.45)] backdrop-blur md:hidden">
+    <button type="submit" form="student-code-form" class="btn-primary h-11 w-full px-5 text-sm">Submit Code</button>
+  </div>
+  {% endif %}
 </section>
 {% endblock %}

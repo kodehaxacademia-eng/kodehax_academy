@@ -3,7 +3,7 @@
 {% block header %}Student Profile{% endblock %}
 
 {% block content %}
-<div class="flex items-center gap-5 mb-6 reveal">
+<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center reveal">
 
     {% if profile.profile_picture %}
         <img src="{{ profile.profile_picture.url }}"
@@ -15,7 +15,7 @@
     {% endif %}
 
     <div>
-        <h2 class="text-2xl font-bold text-white">{{ request.user.username }}</h2>
+        <h2 class="text-2xl font-bold text-white sm:text-3xl">{{ request.user.username }}</h2>
         <p class="text-slate-400">{{ request.user.email }}</p>
     </div>
 
@@ -24,7 +24,7 @@
   <div class="rounded-2xl border border-slate-700 bg-slate-900/45 p-6 sm:p-8">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <h2 class="text-2xl font-bold tracking-tight text-white">Student Information</h2>
-      <a href="{% url 'edit_student_profile' %}" class="btn-primary inline-flex items-center justify-center px-4 py-2 text-sm">
+      <a href="{% url 'edit_student_profile' %}" class="btn-primary inline-flex h-11 items-center justify-center px-4 text-sm">
         Edit Profile
       </a>
     </div>

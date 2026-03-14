@@ -2,6 +2,7 @@ import ast
 import json
 import itertools
 import random
+import re
 import subprocess
 import sys
 from datetime import datetime, time, timedelta
@@ -24,6 +25,7 @@ from skill_assessment.services import (
 
 from .models import (
     DailyChallenge,
+    DailyChallengeSession,
     DailyChallengeQuestion,
     DailyChallengeSet,
     QuestionTemplate,
@@ -37,6 +39,7 @@ PUBLISH_HOUR = settings.DAILY_CHALLENGE_PUBLISH_HOUR
 
 HINT_COST = 5
 LEVEL_SIZE = 3
+SESSION_FAILURE_DEDUCTION = 1
 PENALTY_WEIGHTS = {
     "failed": 1,
     "runtime": 1,
@@ -69,6 +72,7 @@ import contextlib
 import io
 import json
 import sys
+import time
 
 payload = json.loads(sys.stdin.read())
 code = payload["code"]
@@ -78,23 +82,13 @@ test_cases = payload["test_cases"]
 blocked_calls = {"eval", "exec", "open", "__import__", "compile", "input", "globals", "locals", "vars"}
 blocked_modules = {"os", "sys", "subprocess", "socket", "pathlib", "shutil"}
 
-tree = ast.parse(code, mode="exec")
-for node in ast.walk(tree):
-    if isinstance(node, (ast.Import, ast.ImportFrom)):
-        names = []
-        if isinstance(node, ast.Import):
-            names = [alias.name.split(".")[0] for alias in node.names]
-        else:
-            if node.module:
-                names = [node.module.split(".")[0]]
-        if any(name in blocked_modules for name in names):
-            raise ValueError("Restricted import detected.")
-    if isinstance(node, ast.Call):
-        func = node.func
-        if isinstance(func, ast.Name) and func.id in blocked_calls:
-            raise ValueError("Restricted call detected.")
-    if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
-        raise ValueError("Dunder attribute access is not allowed.")
+def serialize_error(exc, category):
+    return {
+        "category": category,
+        "type": exc.__class__.__name__,
+        "message": str(exc),
+        "line": getattr(exc, "lineno", None),
+    }
 
 captured_stdout = io.StringIO()
 
@@ -127,17 +121,43 @@ allowed_builtins = {
 }
 
 namespace = {"__builtins__": allowed_builtins}
-with contextlib.redirect_stdout(captured_stdout):
-    exec(compile(tree, "<daily-challenge>", "exec"), namespace, namespace)
+try:
+    tree = ast.parse(code, mode="exec")
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            names = []
+            if isinstance(node, ast.Import):
+                names = [alias.name.split(".")[0] for alias in node.names]
+            else:
+                if node.module:
+                    names = [node.module.split(".")[0]]
+            if any(name in blocked_modules for name in names):
+                raise ValueError("Restricted import detected.")
+        if isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name) and func.id in blocked_calls:
+                raise ValueError("Restricted call detected.")
+        if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
+            raise ValueError("Dunder attribute access is not allowed.")
+
+    with contextlib.redirect_stdout(captured_stdout):
+        exec(compile(tree, "<daily-challenge>", "exec"), namespace, namespace)
+except Exception as exc:
+    category = "compilation" if isinstance(exc, (SyntaxError, IndentationError, ValueError)) else "runtime"
+    sys.stdout.write(json.dumps({"results": [], "fatal_error": serialize_error(exc, category), "execution_ms": 0}))
+    sys.exit(0)
 
 target = namespace.get(function_name)
 if not callable(target):
-    raise ValueError(f"Function '{function_name}' was not defined.")
+    sys.stdout.write(json.dumps({"results": [], "fatal_error": {"category": "compilation", "type": "ValueError", "message": f"Function '{function_name}' was not defined.", "line": None}, "execution_ms": 0}))
+    sys.exit(0)
 
 results = []
+total_start = time.perf_counter()
 for case in test_cases:
     args = case.get("input", [])
     expected = case.get("expected")
+    case_start = time.perf_counter()
     try:
         actual = target(*args)
         results.append(
@@ -145,8 +165,11 @@ for case in test_cases:
                 "passed": actual == expected,
                 "actual": actual,
                 "expected": expected,
+                "input": args,
                 "error_type": "",
+                "error_category": "",
                 "error": "",
+                "execution_ms": round((time.perf_counter() - case_start) * 1000, 2),
             }
         )
     except Exception as exc:
@@ -155,12 +178,15 @@ for case in test_cases:
                 "passed": False,
                 "actual": None,
                 "expected": expected,
-                "error_type": "runtime",
+                "input": args,
+                "error_type": exc.__class__.__name__,
+                "error_category": "runtime",
                 "error": str(exc),
+                "execution_ms": round((time.perf_counter() - case_start) * 1000, 2),
             }
         )
 
-sys.stdout.write(json.dumps({"results": results}))
+sys.stdout.write(json.dumps({"results": results, "fatal_error": None, "execution_ms": round((time.perf_counter() - total_start) * 1000, 2)}))
 """
 
 DEFAULT_QUESTION_TEMPLATES = [
@@ -410,6 +436,54 @@ def _coerce_rendered_value(value):
         return value
 
 
+def _safe_evaluate_expression(value):
+    if not isinstance(value, str):
+        return value
+
+    safe_globals = {
+        "__builtins__": {},
+        "sum": sum,
+        "len": len,
+        "min": min,
+        "max": max,
+        "sorted": sorted,
+        "any": any,
+        "all": all,
+        "list": list,
+        "tuple": tuple,
+        "set": set,
+        "dict": dict,
+        "range": range,
+        "enumerate": enumerate,
+        "zip": zip,
+        "abs": abs,
+        "True": True,
+        "False": False,
+        "None": None,
+    }
+    try:
+        parsed = ast.parse(value, mode="eval")
+    except SyntaxError:
+        return value
+
+    allowed_methods = {"count", "index", "lower"}
+    for node in ast.walk(parsed):
+        if isinstance(node, (ast.Import, ast.ImportFrom, ast.Lambda)):
+            return value
+        if isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Name) and node.func.id not in safe_globals:
+                return value
+            if isinstance(node.func, ast.Attribute) and node.func.attr in allowed_methods:
+                continue
+            if not isinstance(node.func, ast.Name):
+                return value
+
+    try:
+        return eval(compile(parsed, "<challenge-template>", "eval"), safe_globals, {})
+    except Exception:
+        return value
+
+
 def _augment_template_params(params):
     enriched = dict(params)
     for key, value in list(params.items()):
@@ -436,12 +510,30 @@ def _augment_template_params(params):
 
 def _render_template_value(value, params):
     if isinstance(value, str):
-        return _coerce_rendered_value(_safe_format_string(value, params))
+        rendered = _safe_format_string(value, params)
+        coerced = _coerce_rendered_value(rendered)
+        return _safe_evaluate_expression(coerced)
     if isinstance(value, list):
         return [_render_template_value(item, params) for item in value]
     if isinstance(value, dict):
         return {key: _render_template_value(item, params) for key, item in value.items()}
     return value
+
+
+def _normalize_rendered_value(value):
+    if isinstance(value, str):
+        coerced = _coerce_rendered_value(value)
+        return _safe_evaluate_expression(coerced)
+    if isinstance(value, list):
+        return [_normalize_rendered_value(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _normalize_rendered_value(item) for key, item in value.items()}
+    return value
+
+
+def _normalize_test_cases(test_cases):
+    normalized = _normalize_rendered_value(test_cases)
+    return normalized if isinstance(normalized, list) else []
 
 
 def _parameter_options(template):
@@ -726,6 +818,7 @@ def _sanitize_unsolved_challenge_code(challenge):
         challenge.function_name,
         challenge.starter_code or challenge.problem.starter_code,
     )
+    normalized_test_cases = _normalize_test_cases(challenge.test_cases)
     changed_fields = []
 
     if challenge.starter_code != safe_starter:
@@ -737,6 +830,10 @@ def _sanitize_unsolved_challenge_code(challenge):
     if challenge.status == DailyChallenge.STATUS_PENDING and challenge.attempts == 0 and challenge.latest_code:
         challenge.latest_code = ""
         changed_fields.append("latest_code")
+
+    if challenge.test_cases != normalized_test_cases:
+        challenge.test_cases = normalized_test_cases
+        changed_fields.append("test_cases")
 
     if changed_fields:
         changed_fields.append("updated_at")
@@ -875,6 +972,7 @@ def regenerate_daily_challenges(student=None, challenge_date=None):
 
 
 def _run_code(problem, code):
+    normalized_test_cases = _normalize_test_cases(problem.test_cases)
     try:
         completed = subprocess.run(
             [sys.executable, "-I", "-c", RUNNER_SCRIPT],
@@ -882,7 +980,7 @@ def _run_code(problem, code):
                 {
                     "code": code,
                     "function_name": problem.function_name,
-                    "test_cases": problem.test_cases,
+                    "test_cases": normalized_test_cases,
                 }
             ),
             capture_output=True,
@@ -891,23 +989,38 @@ def _run_code(problem, code):
             check=False,
         )
     except subprocess.TimeoutExpired:
-        return [], "timeout", "Execution timed out."
+        return [], {"category": "timeout", "type": "TimeoutExpired", "message": "Execution timed out.", "line": None}, 3000
 
     if completed.returncode != 0:
         stderr = (completed.stderr or completed.stdout or "Execution failed.").strip()
         lowered = stderr.lower()
-        error_type = "compilation" if any(token in lowered for token in ("syntaxerror", "indentationerror", "valueerror", "restricted")) else "runtime"
-        return [], error_type, stderr
+        error_category = "compilation" if any(token in lowered for token in ("syntaxerror", "indentationerror", "valueerror", "restricted")) else "runtime"
+        return [], {"category": error_category, "type": "ExecutionError", "message": stderr, "line": None}, 0
 
     try:
         payload = json.loads(completed.stdout or "{}")
     except json.JSONDecodeError:
-        return [], "runtime", "Execution returned an invalid response."
+        return [], {"category": "runtime", "type": "JSONDecodeError", "message": "Execution returned an invalid response.", "line": None}, 0
 
-    return payload.get("results", []), "", ""
+    return payload.get("results", []), payload.get("fatal_error"), payload.get("execution_ms", 0)
 
 
-def _summarize_results(results, error_type):
+def _format_execution_error(error_payload):
+    if not error_payload:
+        return ""
+    prefix = {
+        "compilation": "Compilation Error",
+        "runtime": "Runtime Error",
+        "timeout": "Timeout",
+    }.get(error_payload.get("category"), "Execution Error")
+    line_text = f" on line {error_payload['line']}" if error_payload.get("line") else ""
+    error_type = error_payload.get("type")
+    type_text = f" ({error_type})" if error_type else ""
+    message = error_payload.get("message") or "Unknown execution failure."
+    return f"{prefix}{type_text}{line_text}: {message}"
+
+
+def _summarize_results(results, error_payload):
     summary = {
         "passed": 0,
         "failed": 0,
@@ -918,16 +1031,17 @@ def _summarize_results(results, error_type):
     for item in results:
         if item.get("passed"):
             summary["passed"] += 1
-        elif item.get("error_type") == "runtime":
+        elif item.get("error_category") == "runtime":
             summary["runtime"] += 1
         else:
             summary["failed"] += 1
 
-    if error_type == "timeout":
+    error_category = (error_payload or {}).get("category")
+    if error_category == "timeout":
         summary["timeout"] += 1
-    elif error_type == "compilation":
+    elif error_category == "compilation":
         summary["compilation"] += 1
-    elif error_type == "runtime" and not results:
+    elif error_category == "runtime" and not results:
         summary["runtime"] += 1
     return summary
 
@@ -959,14 +1073,70 @@ def challenge_attempt_limit(challenge):
     return ATTEMPT_LIMITS.get(challenge.difficulty, 10)
 
 
+def _get_or_create_daily_session(student, session_date=None):
+    session_date = session_date or _today()
+    return DailyChallengeSession.objects.get_or_create(
+        student=student,
+        date=session_date,
+    )[0]
+
+
+def _refresh_daily_session(session, challenge_set=None):
+    challenge_set = challenge_set or DailyChallengeSet.objects.filter(
+        student=session.student,
+        date=session.date,
+    ).prefetch_related("challenges").first()
+    challenges = challenge_set.challenges.all() if challenge_set else DailyChallenge.objects.none()
+
+    attempted_ids = {
+        int(item)
+        for item in (session.attempted_challenge_ids or [])
+        if str(item).isdigit()
+    }
+    attempted_ids.update(challenges.filter(attempts__gt=0).values_list("id", flat=True))
+
+    session.questions_attempted = len(attempted_ids)
+    session.questions_solved = challenges.filter(status=DailyChallenge.STATUS_SOLVED).count()
+    session.points_earned = challenge_set.total_score if challenge_set else 0
+    session.session_score = session.points_earned - session.points_deducted
+    session.attempted_challenge_ids = sorted(attempted_ids)
+    session.save(
+        update_fields=[
+            "questions_attempted",
+            "questions_solved",
+            "points_earned",
+            "session_score",
+            "attempted_challenge_ids",
+            "updated_at",
+        ]
+    )
+    return session
+
+
+def _apply_session_penalty(challenge, *, penalty_points=SESSION_FAILURE_DEDUCTION):
+    session = _get_or_create_daily_session(challenge.student, challenge.date)
+    attempted_ids = {
+        int(item)
+        for item in (session.attempted_challenge_ids or [])
+        if str(item).isdigit()
+    }
+    attempted_ids.add(challenge.id)
+    session.attempted_challenge_ids = sorted(attempted_ids)
+    session.points_deducted += penalty_points
+    session.save(update_fields=["attempted_challenge_ids", "points_deducted", "updated_at"])
+    return _refresh_daily_session(session, challenge.challenge_set)
+
+
 def _recalculate_student_points(student):
     earned = DailyChallengeSet.objects.filter(student=student).aggregate(total=Sum("total_score"))["total"] or 0
     spent = DailyChallenge.objects.filter(student=student).aggregate(total=Sum("hints_used"))["total"] or 0
+    daily_session = DailyChallengeSession.objects.filter(student=student, date=_today()).first()
     points, _ = StudentPoints.objects.get_or_create(student=student)
     points.total_points = earned
+    points.daily_points = daily_session.session_score if daily_session else 0
     points.points_spent = spent * HINT_COST
     points.points_remaining = max(0, earned - points.points_spent)
-    points.save(update_fields=["total_points", "points_spent", "points_remaining", "updated_at"])
+    points.save(update_fields=["total_points", "daily_points", "points_spent", "points_remaining", "updated_at"])
     return points
 
 
@@ -1027,6 +1197,8 @@ def refresh_challenge_set(challenge_set):
             "updated_at",
         ]
     )
+    session = _get_or_create_daily_session(challenge_set.student, challenge_set.date)
+    _refresh_daily_session(session, challenge_set)
     _recalculate_student_points(challenge_set.student)
     return challenge_set
 
@@ -1051,18 +1223,29 @@ def preview_solution(challenge, code):
     if challenge.attempts >= challenge_attempt_limit(challenge):
         return {"allowed": False, "error": "Attempt limit reached for this question.", "results": [], "summary": {}}
 
-    results, error_type, error_message = _run_code(challenge, code)
-    summary = _summarize_results(results, error_type)
+    results, error_payload, execution_ms = _run_code(challenge, code)
+    summary = _summarize_results(results, error_payload)
     penalty = _calculate_penalty(summary, challenge.hints_used)
     preview_score = max(0, challenge.points - penalty)
+    points_deducted = 0
+    if summary["failed"] or summary["runtime"] or summary["compilation"] or summary["timeout"]:
+        session = _apply_session_penalty(challenge)
+        points_deducted = SESSION_FAILURE_DEDUCTION
+    else:
+        session = _refresh_daily_session(_get_or_create_daily_session(challenge.student, challenge.date), challenge.challenge_set)
+    _recalculate_student_points(challenge.student)
     return {
         "allowed": True,
-        "error": error_message,
-        "error_type": error_type,
+        "error": _format_execution_error(error_payload),
+        "error_type": (error_payload or {}).get("category", ""),
+        "error_details": error_payload or {},
         "results": results,
         "summary": summary,
         "penalty_points": penalty,
         "preview_score": preview_score,
+        "execution_ms": execution_ms,
+        "points_deducted": points_deducted,
+        "session": session,
     }
 
 
@@ -1092,14 +1275,16 @@ def submit_solution_for_challenge(challenge, code):
         return {"ok": False, "error": "Challenge owner mismatch."}
     if not can_access_challenge(challenge):
         return {"ok": False, "error": "Solve the required lower-level challenges first."}
+    if challenge.status == DailyChallenge.STATUS_SOLVED:
+        return {"ok": False, "error": "This challenge is already solved. Attempts are locked after a successful submission."}
     if challenge.attempts >= attempt_limit:
         return {"ok": False, "error": "Attempt limit reached."}
 
     challenge.attempts += 1
     challenge.latest_code = code
 
-    results, error_type, error_message = _run_code(challenge, code)
-    summary = _summarize_results(results, error_type)
+    results, error_payload, execution_ms = _run_code(challenge, code)
+    summary = _summarize_results(results, error_payload)
     solved, penalty, final_score = _calculate_final_score(challenge, summary)
 
     challenge.failed_tests = summary["failed"]
@@ -1111,8 +1296,10 @@ def submit_solution_for_challenge(challenge, code):
     challenge.latest_result = {
         "results": results,
         "summary": summary,
-        "error": error_message,
-        "error_type": error_type,
+        "error": _format_execution_error(error_payload),
+        "error_type": (error_payload or {}).get("category", ""),
+        "error_details": error_payload or {},
+        "execution_ms": execution_ms,
     }
     challenge.status = DailyChallenge.STATUS_SOLVED if solved else DailyChallenge.STATUS_PENDING
     if challenge.attempts >= attempt_limit and not solved:
@@ -1150,13 +1337,22 @@ def submit_solution_for_challenge(challenge, code):
         result_payload={
             "results": results,
             "summary": summary,
-            "error": error_message,
-            "error_type": error_type,
+            "error": _format_execution_error(error_payload),
+            "error_type": (error_payload or {}).get("category", ""),
+            "error_details": error_payload or {},
+            "execution_ms": execution_ms,
         },
     )
 
     refresh_challenge_set(challenge.challenge_set)
     challenge.challenge_set.refresh_from_db()
+    if solved:
+        session = _refresh_daily_session(_get_or_create_daily_session(challenge.student, challenge.date), challenge.challenge_set)
+        points_delta = final_score
+    else:
+        session = _apply_session_penalty(challenge)
+        points_delta = -SESSION_FAILURE_DEDUCTION
+    points = _recalculate_student_points(challenge.student)
     update_student_skill_from_daily_score(challenge.student, challenge.challenge_set.total_score)
 
     message = "Challenge solved successfully." if solved else "Submission recorded. Review the failing output and try again."
@@ -1167,15 +1363,20 @@ def submit_solution_for_challenge(challenge, code):
         "ok": True,
         "solved": solved,
         "message": message,
-        "error": error_message,
-        "error_type": error_type,
+        "error": _format_execution_error(error_payload),
+        "error_type": (error_payload or {}).get("category", ""),
+        "error_details": error_payload or {},
         "results": results,
         "summary": summary,
         "penalty_points": penalty,
         "final_score": final_score,
+        "execution_ms": execution_ms,
+        "points_delta": points_delta,
         "challenge": challenge,
         "challenge_set": challenge.challenge_set,
         "attempt_limit": attempt_limit,
+        "session": session,
+        "student_points": points,
     }
 
 

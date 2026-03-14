@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     DailyChallenge,
+    DailyChallengeSession,
     DailyChallengeQuestion,
     DailyChallengeSet,
     QuestionTemplate,
@@ -52,6 +53,23 @@ class StudentChallengeAttemptAdmin(admin.ModelAdmin):
 
 @admin.register(StudentPoints)
 class StudentPointsAdmin(admin.ModelAdmin):
-    list_display = ("student", "total_points", "points_spent", "points_remaining", "updated_at")
+    list_display = ("student", "total_points", "daily_points", "points_spent", "points_remaining", "updated_at")
     search_fields = ("student__username", "student__email")
     readonly_fields = ("updated_at",)
+
+
+@admin.register(DailyChallengeSession)
+class DailyChallengeSessionAdmin(admin.ModelAdmin):
+    list_display = (
+        "student",
+        "date",
+        "questions_attempted",
+        "questions_solved",
+        "points_earned",
+        "points_deducted",
+        "session_score",
+        "updated_at",
+    )
+    list_filter = ("date",)
+    search_fields = ("student__username", "student__email")
+    readonly_fields = ("created_at", "updated_at")

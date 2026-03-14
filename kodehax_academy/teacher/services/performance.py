@@ -565,6 +565,8 @@ def _leaderboard(scope_students=None, limit=5):
             "rank": rank,
             "student": points.student,
             "points": points.total_points,
+            "daily_points": points.daily_points,
+            "points_remaining": points.points_remaining,
             "skill_score": profile["score"],
             "achievement_tag": _achievement_tag(points.total_points, accuracy, profile["speed_score"]),
             "accuracy": int(round(accuracy)),

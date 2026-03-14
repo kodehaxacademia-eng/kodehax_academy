@@ -247,9 +247,31 @@ class StudentPoints(models.Model):
         related_name="daily_challenge_points",
     )
     total_points = models.PositiveIntegerField(default=0)
+    daily_points = models.IntegerField(default=0)
     points_spent = models.PositiveIntegerField(default=0)
     points_remaining = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ("-total_points", "student__username")
+
+
+class DailyChallengeSession(models.Model):
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="daily_challenge_sessions",
+    )
+    date = models.DateField()
+    questions_attempted = models.PositiveSmallIntegerField(default=0)
+    questions_solved = models.PositiveSmallIntegerField(default=0)
+    points_earned = models.PositiveIntegerField(default=0)
+    points_deducted = models.PositiveIntegerField(default=0)
+    session_score = models.IntegerField(default=0)
+    attempted_challenge_ids = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-date", "-updated_at")
+        unique_together = ("student", "date")

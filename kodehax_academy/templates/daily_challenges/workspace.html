@@ -60,33 +60,40 @@
         <p class="mt-3 text-sm leading-7 text-slate-300">{{ challenge.description }}</p>
       </div>
 
-      <div class="flex flex-col gap-4 sm:flex-row">
-        <div class="rounded-2xl border border-teal-400/20 bg-teal-400/10 px-5 py-4 min-w-[15rem]" data-countdown-card data-started-at="{{ challenge_set.published_at|default:challenge_set.created_at|date:'c' }}" data-expires-at="{{ challenge_set.expires_at|date:'c' }}">
-          <p class="text-xs uppercase tracking-[0.18em] text-teal-200">Global Points</p>
-          <p class="mt-2 text-3xl font-black text-white">{{ student_points.points_remaining }}</p>
-          <div class="mt-3 flex items-center gap-3 border-t border-teal-400/20 pt-3">
-            <div class="hourglass" aria-hidden="true" style="transform: scale(0.8); transform-origin: left;">
-              <span class="hourglass__top"></span>
-              <span class="hourglass__neck"></span>
-              <span class="hourglass__bottom"></span>
-            </div>
-            <div class="min-w-0">
-              <div class="flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.18em] text-teal-100/80">
-                <span>Time Left</span>
-                <span data-countdown-percent></span>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:min-w-[34rem]">
+        <div class="space-y-4">
+          <div class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4">
+            <p class="text-xs uppercase tracking-[0.18em] text-cyan-200">Global Points</p>
+            <p class="mt-2 text-3xl font-black text-white">{{ student_points.total_points }}</p>
+            <p class="mt-2 text-xs uppercase tracking-[0.16em] text-cyan-100/75">Hint balance: {{ student_points.points_remaining }}</p>
+          </div>
+          <div class="rounded-2xl border border-teal-400/20 bg-teal-400/10 px-5 py-4" data-countdown-card data-started-at="{{ challenge_set.published_at|default:challenge_set.created_at|date:'c' }}" data-expires-at="{{ challenge_set.expires_at|date:'c' }}">
+            <p class="text-xs uppercase tracking-[0.18em] text-teal-200">Challenge Timer</p>
+            <div class="mt-3 flex items-center gap-3 border-t border-teal-400/20 pt-3">
+              <div class="hourglass" aria-hidden="true" style="transform: scale(0.8); transform-origin: left;">
+                <span class="hourglass__top"></span>
+                <span class="hourglass__neck"></span>
+                <span class="hourglass__bottom"></span>
               </div>
-              <p class="mt-1 text-sm font-semibold text-white" data-countdown-label>{{ remaining_time }}</p>
+              <div class="min-w-0">
+                <div class="flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.18em] text-teal-100/80">
+                  <span>Time Left</span>
+                  <span data-countdown-percent></span>
+                </div>
+                <p class="mt-1 text-sm font-semibold text-white" data-countdown-label>{{ remaining_time }}</p>
+              </div>
             </div>
           </div>
         </div>
-      <div class="rounded-2xl border border-slate-700 bg-slate-950/35 px-5 py-4 text-sm text-slate-300">
-        <p>Status: <span class="font-semibold text-white">{{ challenge.status|title }}</span></p>
-        <p class="mt-2">Points: <span class="font-semibold text-white">{{ challenge.points }}</span></p>
-        <p class="mt-2">Attempts: <span class="font-semibold text-white">{{ challenge.attempts }} / {{ attempt_limit }}</span></p>
-        <p class="mt-2">Attempts remaining: <span class="font-semibold text-white">{{ attempts_remaining }}</span></p>
-        <p class="mt-2">Hints used: <span class="font-semibold text-white">{{ challenge.hints_used }} / 2</span></p>
-        <p class="mt-2">Current score: <span class="font-semibold text-teal-200">{{ challenge.score }}</span></p>
-        <p class="mt-2">Penalty points: <span class="font-semibold text-rose-200">{{ challenge.penalty_points }}</span></p>
+        <div class="rounded-2xl border border-slate-700 bg-slate-950/35 px-5 py-4 text-sm text-slate-300">
+          <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Session Panel</p>
+          <p class="mt-3">Current session score: <span class="font-semibold text-teal-200">{{ current_session.session_score|default:0 }}</span></p>
+          <p class="mt-2">Questions solved today: <span class="font-semibold text-white">{{ current_session.questions_solved|default:0 }}</span></p>
+          <p class="mt-2">Points gained: <span class="font-semibold text-emerald-200">{{ current_session.points_earned|default:0 }}</span></p>
+          <p class="mt-2">Points deducted: <span class="font-semibold text-rose-200">{{ current_session.points_deducted|default:0 }}</span></p>
+          <p class="mt-2">Remaining challenges: <span class="font-semibold text-white">{{ remaining_challenges }}</span></p>
+          <p class="mt-2">Current question score: <span class="font-semibold text-teal-200">{{ challenge.score }}</span></p>
+        </div>
       </div>
     </div>
   </section>
@@ -116,6 +123,18 @@
     </div>
 
     <div class="space-y-5">
+      <section class="glass-card p-6">
+        <h3 class="text-lg font-bold text-white">Question Status</h3>
+        <div class="mt-4 space-y-2 text-sm text-slate-300">
+          <p>Status: <span class="font-semibold text-white">{{ challenge.status|title }}</span></p>
+          <p>Points: <span class="font-semibold text-white">{{ challenge.points }}</span></p>
+          <p>Attempts: <span class="font-semibold text-white">{{ challenge.attempts }} / {{ attempt_limit }}</span></p>
+          <p>Attempts remaining: <span class="font-semibold text-white">{{ attempts_remaining }}</span></p>
+          <p>Hints used: <span class="font-semibold text-white">{{ challenge.hints_used }} / 2</span></p>
+          <p>Penalty points: <span class="font-semibold text-rose-200">{{ challenge.penalty_points }}</span></p>
+        </div>
+      </section>
+
       <section class="glass-card p-6">
         <h3 class="text-lg font-bold text-white">Hints</h3>
         <div class="mt-4 space-y-3">
@@ -148,13 +167,28 @@
     {% if preview_payload.error %}
       <p class="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{{ preview_payload.error }}</p>
     {% endif %}
-    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Passed</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.summary.passed }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Failed</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.summary.failed }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Runtime</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.summary.runtime }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Compile</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.summary.compilation }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Timeout</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.summary.timeout }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Preview Score</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.preview_score }}</p></div>
+      <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Time Taken</p><p class="mt-2 text-2xl font-black text-white">{{ preview_payload.execution_ms }}ms</p></div>
+      <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Points Deducted</p><p class="mt-2 text-2xl font-black text-rose-200">-{{ preview_payload.points_deducted }}</p></div>
+    </div>
+    <div class="mt-6 space-y-3">
+      {% for item in preview_payload.results %}
+      <div class="rounded-xl border border-slate-700 bg-slate-950/35 px-4 py-3 text-sm">
+        <p class="{% if item.passed %}text-emerald-200{% else %}text-rose-200{% endif %}">Test Case {{ forloop.counter }} {% if item.passed %}Passed{% else %}Failed{% endif %}</p>
+        <p class="mt-1 text-slate-400">Input: {{ item.input }}</p>
+        <p class="mt-1 text-slate-400">Expected Output: {{ item.expected }}</p>
+        <p class="mt-1 text-slate-400">Your Output: {{ item.actual }}</p>
+        {% if item.error %}
+          <p class="mt-1 text-rose-200">{{ item.error_type }}: {{ item.error }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
     </div>
   </section>
   {% endif %}
@@ -165,23 +199,26 @@
     {% if submission_payload.error %}
       <p class="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{{ submission_payload.error }}</p>
     {% endif %}
-    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Passed</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.summary.passed }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Failed</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.summary.failed }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Runtime</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.summary.runtime }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Compile</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.summary.compilation }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Timeout</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.summary.timeout }}</p></div>
       <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Final Score</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.final_score }}</p></div>
+      <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Time Taken</p><p class="mt-2 text-2xl font-black text-white">{{ submission_payload.execution_ms }}ms</p></div>
+      <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4"><p class="text-xs uppercase tracking-[0.18em] text-slate-500">Points Change</p><p class="mt-2 text-2xl font-black {% if submission_payload.points_delta >= 0 %}text-emerald-200{% else %}text-rose-200{% endif %}">{% if submission_payload.points_delta >= 0 %}+{% endif %}{{ submission_payload.points_delta }}</p></div>
     </div>
 
     <div class="mt-6 space-y-3">
       {% for item in submission_payload.results %}
       <div class="rounded-xl border border-slate-700 bg-slate-950/35 px-4 py-3 text-sm">
-        <p class="{% if item.passed %}text-emerald-200{% else %}text-rose-200{% endif %}">Test {{ forloop.counter }}: {% if item.passed %}Passed{% else %}Failed{% endif %}</p>
-        <p class="mt-1 text-slate-400">Expected: {{ item.expected }}</p>
-        <p class="mt-1 text-slate-400">Actual: {{ item.actual }}</p>
+        <p class="{% if item.passed %}text-emerald-200{% else %}text-rose-200{% endif %}">Test Case {{ forloop.counter }} {% if item.passed %}Passed{% else %}Failed{% endif %}</p>
+        <p class="mt-1 text-slate-400">Input: {{ item.input }}</p>
+        <p class="mt-1 text-slate-400">Expected Output: {{ item.expected }}</p>
+        <p class="mt-1 text-slate-400">Your Output: {{ item.actual }}</p>
         {% if item.error %}
-          <p class="mt-1 text-rose-200">{{ item.error }}</p>
+          <p class="mt-1 text-rose-200">{{ item.error_type }}: {{ item.error }}</p>
         {% endif %}
       </div>
       {% empty %}

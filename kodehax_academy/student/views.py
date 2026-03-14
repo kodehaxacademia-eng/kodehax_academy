@@ -9,7 +9,8 @@ import re
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from chat.views import RESPONSE_STYLE_INSTRUCTION, format_ai_reply
-from daily_challenges.services import get_today_challenge_set
+from daily_challenges.models import DailyChallengeSession, StudentPoints
+from daily_challenges.services import get_today_challenge_set, refresh_challenge_set
 from skill_assessment.models import StudentSkill
 from teacher.models import (
     Assignment,
@@ -232,8 +233,15 @@ def student_dashboard(request):
     ).select_related("teacher").prefetch_related("assignments").order_by("-created_at")
 
     daily_challenge_set = get_today_challenge_set(request.user)
+    refresh_challenge_set(daily_challenge_set)
+    daily_challenge_set.refresh_from_db()
     solved_daily_count = daily_challenge_set.challenges.filter(status="solved").count()
     total_daily_count = daily_challenge_set.challenges.count()
+    student_points, _ = StudentPoints.objects.get_or_create(student=request.user)
+    current_session = DailyChallengeSession.objects.filter(
+        student=request.user,
+        date=daily_challenge_set.date,
+    ).first()
 
     assignments = Assignment.objects.filter(
         classroom__students=request.user,
@@ -251,6 +259,8 @@ def student_dashboard(request):
         "daily_challenge_set": daily_challenge_set,
         "solved_daily_count": solved_daily_count,
         "total_daily_count": total_daily_count,
+        "student_points": student_points,
+        "current_session": current_session,
     })
 
 @login_required

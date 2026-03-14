@@ -11,7 +11,7 @@ from django.utils import timezone
 from adminpanel.decorators import admin_required
 
 from .forms import QuestionTemplateCSVImportForm, QuestionTemplateForm
-from .models import DailyChallenge, QuestionTemplate, StudentPoints
+from .models import DailyChallenge, DailyChallengeSession, QuestionTemplate, StudentPoints
 from .services import (
     challenge_attempt_limit,
     challenge_dashboard_stats,
@@ -120,6 +120,10 @@ def today_challenges(request):
     remaining_time = max(challenge_set.expires_at - timezone.now(), timedelta(0))
 
     points, _ = StudentPoints.objects.get_or_create(student=request.user)
+    current_session = DailyChallengeSession.objects.filter(
+        student=request.user,
+        date=challenge_set.date,
+    ).first()
 
     return render(
         request,
@@ -130,6 +134,7 @@ def today_challenges(request):
             "challenge_groups": _challenge_groups(challenge_set),
             "level_unlocks": level_unlock_state(challenge_set),
             "student_points": points,
+            "current_session": current_session,
         },
     )
 
@@ -183,7 +188,14 @@ def submit_solution(request, challenge_id):
             if not submission_payload["ok"]:
                 messages.error(request, submission_payload["error"])
             else:
-                messages.success(request, submission_payload["message"])
+                success_message = submission_payload["message"]
+                if submission_payload["solved"]:
+                    success_message = (
+                        f"{success_message} "
+                        f"Question score: +{submission_payload['final_score']}. "
+                        f"Daily score: {submission_payload['challenge_set'].total_score}."
+                    )
+                messages.success(request, success_message)
                 challenge.refresh_from_db()
                 challenge.challenge_set.refresh_from_db()
                 if submission_payload["solved"]:
@@ -221,6 +233,14 @@ def submit_solution(request, challenge_id):
             "attempt_limit": challenge_attempt_limit(challenge),
             "attempts_remaining": max(0, challenge_attempt_limit(challenge) - challenge.attempts),
             "student_points": StudentPoints.objects.get_or_create(student=request.user)[0],
+            "current_session": DailyChallengeSession.objects.filter(
+                student=request.user,
+                date=challenge.challenge_set.date,
+            ).first(),
+            "remaining_challenges": max(
+                0,
+                challenge.challenge_set.challenges.count() - challenge.challenge_set.solved_count,
+            ),
         },
     )
 

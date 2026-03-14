@@ -22,7 +22,7 @@
     </div>
   </section>
 
-  <section class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+  <section class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
     <article class="glass-card hover-lift p-5 reveal delay-1">
       <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Username</p>
       <p class="mt-2 text-sm font-medium text-slate-200">{{ request.user.username }}</p>
@@ -34,6 +34,19 @@
     <article class="glass-card hover-lift p-5 reveal delay-3">
       <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Course</p>
       <p class="mt-2 text-sm font-medium text-slate-200">{{ profile.course|default:"Not specified" }}</p>
+    </article>
+    <article class="glass-card hover-lift p-5 reveal delay-2">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Global Points</p>
+      <p class="mt-2 text-2xl font-black text-teal-200">{{ student_points.total_points }}</p>
+      <p class="mt-2 text-xs text-slate-400">Spendable: {{ student_points.points_remaining }}</p>
+    </article>
+    <article class="glass-card hover-lift p-5 reveal delay-3">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Today's Score</p>
+      <p class="mt-2 text-2xl font-black text-cyan-200">{{ student_points.daily_points }}</p>
+      <p class="mt-2 text-xs text-slate-400">
+        Solved: {{ current_session.questions_solved|default:0 }}
+        | Deducted: {{ current_session.points_deducted|default:0 }}
+      </p>
     </article>
   </section>
 
@@ -99,6 +112,8 @@
       <span class="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1">{{ daily_challenge_set.easy_solved_count }} easy solved</span>
       <span class="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1">{{ daily_challenge_set.medium_solved_count }} medium solved</span>
       <span class="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1">{{ daily_challenge_set.hard_solved_count }} hard solved</span>
+      <span class="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1">Points earned today: {{ current_session.points_earned|default:0 }}</span>
+      <span class="rounded-full border border-slate-700 bg-slate-900/40 px-3 py-1">Points deducted today: {{ current_session.points_deducted|default:0 }}</span>
     </div>
 
     <div class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-3">

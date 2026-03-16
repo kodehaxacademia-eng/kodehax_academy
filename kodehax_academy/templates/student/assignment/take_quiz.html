@@ -2,6 +2,7 @@
 
 {% block title %}Take Quiz{% endblock %}
 {% block header %}Take Quiz{% endblock %}
+{% block header_subtitle %}Answer one question at a time in a mobile-friendly stacked quiz flow with a clear submit action.{% endblock %}
 
 {% block content %}
 <section class="space-y-5 reveal pb-28 md:pb-0">
@@ -25,7 +26,8 @@
     {% for row in question_rows %}
     {% with question=row.question selected=row.selected_option %}
     <div class="rounded-xl border border-slate-700 bg-slate-950/40 p-4">
-      <p class="font-semibold text-slate-100">Q{{ forloop.counter }}. {{ question.question }}</p>
+      <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Question {{ forloop.counter }}</p>
+      <p class="mt-2 font-semibold text-slate-100">{{ question.question }}</p>
       <div class="mt-4 space-y-4 text-sm text-slate-300">
         <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 px-3 py-3 hover:border-teal-400/70 hover:bg-slate-900">
           <input type="radio" name="question_{{ question.id }}" value="A" {% if can_submit %}required{% else %}disabled{% endif %} {% if selected == "A" %}checked{% endif %} class="h-4 w-4 accent-teal-500">

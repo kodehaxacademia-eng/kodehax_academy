@@ -6,252 +6,305 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Student Panel{% endblock %}</title>
     <link rel="icon" type="image/png" href="{% static 'image/image.png' %}">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-    :root {
-      --bg: #000212;
-      --surface: #111827; /* slate-900 */
-      --border: #334155; /* slate-700 */
-      --text: #e2e8f0; /* slate-200 */
-      --muted: #94a3b8; /* slate-400 */
-      --accent: #14b8a6; /* teal-500 */
-    }
+      :root {
+        --bg: #020617;
+        --surface: #0f172a;
+        --surface-soft: rgba(15, 23, 42, 0.76);
+        --surface-elevated: rgba(15, 23, 42, 0.92);
+        --border: rgba(71, 85, 105, 0.72);
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #14b8a6;
+      }
 
-    body {
-      background-color: var(--bg);
-      background-image: radial-gradient(ellipse 80% 80% at 50% -20%, rgba(20, 184, 166, 0.2), transparent);
-      color: var(--text);
-    }
+      body {
+        background-color: var(--bg);
+        background-image:
+          radial-gradient(circle at top left, rgba(45, 212, 191, 0.12), transparent 30%),
+          radial-gradient(circle at top right, rgba(34, 211, 238, 0.1), transparent 24%),
+          linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(2, 6, 23, 1));
+        color: var(--text);
+      }
 
-    .glass-card {
-      background: linear-gradient(180deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8)); /* slate-800 -> slate-900 */
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid var(--border);
-      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
-      border-radius: 1rem;
-    }
+      .glass-card,
+      .surface-card {
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.74));
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        box-shadow: 0 20px 45px rgba(2, 6, 23, 0.28);
+      }
 
-    .hover-lift {
-      transition: transform 220ms ease, box-shadow 220ms ease;
-    }
+      .hover-lift {
+        transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+      }
 
-    .hover-lift:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
-    }
+      .hover-lift:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 22px 42px rgba(2, 6, 23, 0.34);
+      }
 
-    .reveal {
-      animation: revealUp 460ms ease both;
-    }
+      .btn-primary {
+        background: var(--accent);
+        color: #03111f;
+        border-radius: 0.875rem;
+        font-weight: 700;
+        transition: 180ms ease;
+        box-shadow: 0 12px 24px rgba(20, 184, 166, 0.22);
+      }
 
-    .delay-1 { animation-delay: 70ms; }
-    .delay-2 { animation-delay: 140ms; }
-    .delay-3 { animation-delay: 210ms; }
+      .btn-primary:hover {
+        background: #0f9f90;
+        transform: translateY(-1px);
+      }
 
-    .nav-link {
-      transition: 180ms ease;
-      border: 1px solid transparent;
-    }
+      .btn-muted {
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.55);
+        color: var(--text);
+        border-radius: 0.875rem;
+        font-weight: 600;
+        transition: 180ms ease;
+      }
 
-    .nav-link:hover {
-      transform: translateX(2px);
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.1);
-    }
+      .btn-muted:hover {
+        border-color: rgba(45, 212, 191, 0.42);
+        background: rgba(15, 23, 42, 0.85);
+      }
 
-    .nav-link.active {
-      background: var(--accent);
-      border-color: transparent;
-      color: #ffffff;
-      box-shadow: 0 0 15px rgba(20, 184, 166, 0.5);
-    }
+      .nav-link,
+      .mobile-tab {
+        transition: 180ms ease;
+      }
 
-    .btn-primary {
-      background: var(--accent);
-      color: #000212;
-      border-radius: 0.75rem;
-      font-weight: 700;
-      transition: 180ms ease;
-      box-shadow: 0 10px 20px rgba(20, 184, 166, 0.22);
-    }
+      .nav-link {
+        border: 1px solid transparent;
+      }
 
-    .btn-primary:hover {
-      background: #10a391; /* darker teal */
-      transform: translateY(-1px);
-      box-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
-    }
+      .nav-link:hover {
+        background: rgba(15, 23, 42, 0.7);
+        border-color: rgba(71, 85, 105, 0.7);
+      }
 
-    .btn-muted {
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      border-radius: 0.75rem;
-      font-weight: 600;
-      transition: 180ms ease;
-    }
+      .nav-link.active {
+        background: rgba(20, 184, 166, 0.16);
+        border-color: rgba(45, 212, 191, 0.34);
+        color: #ffffff;
+        box-shadow: inset 3px 0 0 0 rgba(45, 212, 191, 0.92);
+      }
 
-    .btn-muted:hover {
-      border-color: var(--muted);
-      background: rgba(255, 255, 255, 0.05);
-    }
+      .mobile-tab.active {
+        color: #ffffff;
+        background: rgba(20, 184, 166, 0.16);
+        box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.34);
+      }
 
-    .custom-scroll {
-      scrollbar-width: thin;
-      scrollbar-color: var(--accent) rgba(0,0,0,0.2);
-    }
+      .custom-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(45, 212, 191, 0.9) rgba(15, 23, 42, 0.24);
+      }
 
-    .custom-scroll::-webkit-scrollbar { width: 6px; }
-    .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 999px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 999px; }
+      .custom-scroll::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
 
-    .mobile-tab {
-      transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
-    }
+      .custom-scroll::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.24);
+        border-radius: 999px;
+      }
 
-    .mobile-tab:hover {
-      transform: translateY(-1px);
-    }
+      .custom-scroll::-webkit-scrollbar-thumb {
+        background: rgba(45, 212, 191, 0.85);
+        border-radius: 999px;
+      }
 
-    .mobile-tab.active {
-      color: #ffffff;
-      background: rgba(20, 184, 166, 0.18);
-      box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.28);
-    }
+      .reveal {
+        animation: revealUp 420ms ease both;
+      }
 
-    @keyframes revealUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+      .delay-1 { animation-delay: 70ms; }
+      .delay-2 { animation-delay: 140ms; }
+      .delay-3 { animation-delay: 210ms; }
+
+      @keyframes revealUp {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
     {% block extra_styles %}{% endblock %}
 </head>
-
 <body class="min-h-screen overflow-x-hidden">
-
-<div class="relative min-h-screen">
-    <aside class="z-30 bg-black/30 backdrop-blur-lg border-b border-slate-700/70">
-        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-            <div class="flex flex-wrap items-center justify-between gap-4 reveal">
+{% with current_path=request.path %}
+<div class="min-h-screen flex flex-col lg:flex-row">
+    <aside class="hidden lg:block w-64 shrink-0 border-r border-slate-800/90 bg-slate-950/85 backdrop-blur-xl">
+        <div class="flex h-screen flex-col px-5 py-6">
+            <div class="reveal">
                 <div class="flex items-center gap-3">
-                    <img src="{% static 'image/image.png' %}" alt="Kodehax Academy logo" class="h-10 w-10 rounded-xl object-cover">
+                    <img src="{% static 'image/image.png' %}" alt="Kodehax Academy logo" class="h-11 w-11 rounded-2xl object-cover">
                     <div>
-                        <p class="text-xs tracking-[0.18em] uppercase text-slate-400">Kodehax Academy</p>
-                        <h2 class="text-lg font-bold tracking-tight text-white sm:text-xl">Student Panel</h2>
+                        <p class="text-[11px] uppercase tracking-[0.22em] text-slate-500">Kodehax Academy</p>
+                        <h1 class="mt-1 text-lg font-black text-white">Student Hub</h1>
                     </div>
                 </div>
-                <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
-                    <button
-                        type="button"
-                        class="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-100 md:hidden"
-                        data-mobile-nav-toggle="student-nav"
-                        aria-controls="student-nav"
-                        aria-expanded="false"
-                    >
-                        Menu
-                    </button>
-                    <a href="{% url 'logout' %}" class="inline-flex items-center justify-center rounded-lg bg-rose-600/90 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-rose-500">
-                        Logout
-                    </a>
+                <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/55 p-4">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Logged in as</p>
+                    <p class="mt-2 truncate text-sm font-semibold text-slate-100">{{ request.user.username }}</p>
+                    <p class="mt-1 truncate text-xs text-slate-400">{{ request.user.email }}</p>
                 </div>
             </div>
 
-            <nav id="student-nav" class="mt-4 hidden flex-col gap-2 reveal delay-1 custom-scroll md:flex md:flex-row md:items-center md:overflow-x-auto md:pb-1">
-                <a href="{% url 'student_dashboard' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'dashboard' in request.path %}active{% endif %}">
+            <nav class="mt-6 space-y-2 reveal delay-1">
+                <a href="{% url 'student_dashboard' %}" class="nav-link {% if '/student/dashboard/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
                     Dashboard
                 </a>
-                <a href="{% url 'skill_assessment_profile' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'skill-assessment' in request.path %}active{% endif %}">
-                    Skill Profile
+                <a href="{% url 'daily_challenges_today' %}" class="nav-link {% if '/daily-challenges/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+                    Daily Challenges
                 </a>
-                <a href="{% url 'daily_challenges_today' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'daily-challenges' in request.path %}active{% endif %}">
-                    Daily Challenge
+                <a href="{% url 'view_assignments' %}" class="nav-link {% if '/student/assignments/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+                    Quiz
                 </a>
-                <a href="{% url 'view_assignments' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'assignments' in request.path %}active{% endif %}">
-                    Assignments
+                <a href="{% url 'student_performance_dashboard' %}" class="nav-link {% if '/student/performance/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+                    Performance Dashboard
                 </a>
-                <a href="{% url 'student_performance_dashboard' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if 'performance' in request.path %}active{% endif %}">
-                    Performance
-                </a>
-                <a href="{% url 'chat_page' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium">
-                    Chatroom
-                </a>
-                <a href="{% url 'student_profile' %}" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium {% if request.path == '/student/profile/' %}active{% endif %}">
+                <a href="{% url 'student_profile' %}" class="nav-link {% if '/student/profile/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
                     Profile
                 </a>
             </nav>
-            <div class="mt-3 rounded-2xl border border-slate-800/80 bg-slate-950/35 px-4 py-2.5 reveal delay-2">
-                {% module_breadcrumbs "student" %}
+
+            <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/45 p-4 reveal delay-2">
+                <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Workspace</p>
+                <div class="mt-3 space-y-2 text-sm">
+                    <a href="{% url 'skill_assessment_profile' %}" class="block rounded-xl px-3 py-2 text-slate-300 transition hover:bg-slate-900 hover:text-white">Skill Profile</a>
+                    <a href="{% url 'chat_page' %}" class="block rounded-xl px-3 py-2 text-slate-300 transition hover:bg-slate-900 hover:text-white">AI Assistant</a>
+                </div>
+            </div>
+
+            <div class="mt-auto pt-6">
+                <a href="{% url 'logout' %}" class="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-rose-600/90 px-4 text-sm font-semibold text-white transition hover:bg-rose-500">
+                    Logout
+                </a>
             </div>
         </div>
     </aside>
 
-    <header class="border-b border-slate-800 bg-black/10 px-4 py-4 backdrop-blur-sm sm:px-6">
-        <div class="mx-auto flex max-w-7xl items-center justify-between">
-            <h1 class="text-lg font-semibold tracking-tight text-white sm:text-xl">
-                {% block header %}Student Dashboard{% endblock %}
-            </h1>
-            <div class="hidden sm:block text-sm text-slate-400">
-                {{ request.user.username }}
+    <div class="flex min-h-screen flex-1 flex-col">
+        <header class="border-b border-slate-800/90 bg-slate-950/70 px-4 py-4 backdrop-blur-xl sm:px-6 lg:hidden">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <img src="{% static 'image/image.png' %}" alt="Kodehax Academy logo" class="h-10 w-10 rounded-2xl object-cover">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500">Kodehax Academy</p>
+                        <h2 class="text-base font-black text-white">Student Hub</h2>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    class="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-700 px-4 text-sm font-semibold text-slate-100"
+                    data-mobile-nav-toggle="student-mobile-menu"
+                    aria-controls="student-mobile-menu"
+                    aria-expanded="false"
+                >
+                    Menu
+                </button>
             </div>
-        </div>
-    </header>
+            <div id="student-mobile-menu" class="mt-4 hidden space-y-4 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+                    <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Logged in as</p>
+                    <p class="mt-2 text-sm font-semibold text-slate-100">{{ request.user.username }}</p>
+                    <p class="mt-1 break-all text-xs text-slate-400">{{ request.user.email }}</p>
+                </div>
+                <div class="grid grid-cols-1 gap-2 text-sm">
+                    <a href="{% url 'skill_assessment_profile' %}" class="btn-muted inline-flex min-h-11 items-center justify-center px-4">Skill Profile</a>
+                    <a href="{% url 'chat_page' %}" class="btn-muted inline-flex min-h-11 items-center justify-center px-4">AI Assistant</a>
+                    <a href="{% url 'logout' %}" class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-rose-600/90 px-4 font-semibold text-white">Logout</a>
+                </div>
+            </div>
+        </header>
 
-    <main class="overflow-x-hidden p-3 pb-28 sm:p-6 sm:pb-8 custom-scroll">
-        <div class="mx-auto max-w-7xl glass-card p-4 sm:p-6 reveal">
-            {% if messages %}
-                <div class="mb-4 space-y-2">
-                    {% for message in messages %}
-                        <div class="rounded-lg border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm text-slate-100">
+        <main class="flex-1 overflow-y-auto custom-scroll">
+            <div class="px-4 py-5 pb-28 sm:px-6 sm:py-6 sm:pb-28 lg:pb-8">
+                <div class="mx-auto max-w-7xl space-y-6">
+                    <div class="hidden rounded-2xl border border-slate-800 bg-slate-900/45 px-4 py-3 text-xs text-slate-400 lg:block">
+                        {% module_breadcrumbs "student" %}
+                    </div>
+                    <section class="surface-card reveal p-5 sm:p-6">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.18em] text-slate-500 lg:block hidden">Student Workspace</p>
+                                <h1 class="text-xl font-black tracking-tight text-white md:text-2xl lg:text-3xl">{% block header %}Student Dashboard{% endblock %}</h1>
+                                <p class="mt-2 text-sm text-slate-400 md:text-base">{% block header_subtitle %}Stay on top of coding challenges, quizzes, classroom activity, and personal progress in one place.{% endblock %}</p>
+                            </div>
+                            <div class="hidden items-center gap-3 lg:flex">
+                                <a href="{% url 'chat_page' %}" class="btn-muted inline-flex h-11 items-center justify-center px-4 text-sm">AI Assistant</a>
+                                <a href="{% url 'student_profile' %}" class="btn-primary inline-flex h-11 items-center justify-center px-4 text-sm">Open Profile</a>
+                            </div>
+                        </div>
+                    </section>
+
+                    {% if messages %}
+                    <div class="space-y-2">
+                        {% for message in messages %}
+                        <div class="rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm text-slate-100">
                             {{ message }}
                         </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% block content %}{% endblock %}
                 </div>
-            {% endif %}
-            {% block content %}
-            {% endblock %}
-        </div>
-    </main>
+            </div>
+        </main>
+    </div>
 </div>
-<nav class="fixed inset-x-3 bottom-3 z-40 rounded-[1.35rem] border border-slate-700/80 bg-slate-950/90 p-2 shadow-[0_20px_45px_rgba(2,6,23,0.45)] backdrop-blur md:hidden">
-  <div class="grid grid-cols-5 gap-1 text-[11px]">
-    <a href="{% url 'student_dashboard' %}" class="mobile-tab {% if 'dashboard' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10.5V20h14v-9.5"/></svg>
-      <span>Dashboard</span>
-    </a>
-    <a href="{% url 'daily_challenges_today' %}" class="mobile-tab {% if 'daily-challenges' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18"/><path d="M5 8h14"/><path d="M7 21h10"/></svg>
-      <span>Challenges</span>
-    </a>
-    <a href="{% url 'view_assignments' %}" class="mobile-tab {% if 'assignments' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7h8"/><path d="M8 12h8"/><path d="M8 17h5"/><rect x="4" y="3" width="16" height="18" rx="2"/></svg>
-      <span>Quiz</span>
-    </a>
-    <a href="{% url 'student_performance_dashboard' %}" class="mobile-tab {% if 'performance' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-9"/></svg>
-      <span>Leaderboard</span>
-    </a>
-    <a href="{% url 'student_profile' %}" class="mobile-tab {% if request.path == '/student/profile/' or '/profile/edit/' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
-      <span>Profile</span>
-    </a>
-  </div>
+
+<nav class="fixed inset-x-3 bottom-3 z-40 rounded-[1.35rem] border border-slate-700/80 bg-slate-950/92 p-2 shadow-[0_20px_45px_rgba(2,6,23,0.45)] backdrop-blur lg:hidden">
+    <div class="grid grid-cols-5 gap-1 text-[11px]">
+        <a href="{% url 'student_dashboard' %}" class="mobile-tab {% if '/student/dashboard/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10.5V20h14v-9.5"/></svg>
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'daily_challenges_today' %}" class="mobile-tab {% if '/daily-challenges/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18"/><path d="M5 8h14"/><path d="M7 21h10"/></svg>
+            <span>Challenges</span>
+        </a>
+        <a href="{% url 'view_assignments' %}" class="mobile-tab {% if '/student/assignments/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 12h8"/><path d="M8 17h5"/></svg>
+            <span>Quiz</span>
+        </a>
+        <a href="{% url 'student_performance_dashboard' %}" class="mobile-tab {% if '/student/performance/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-9"/></svg>
+            <span>Leaderboard</span>
+        </a>
+        <a href="{% url 'student_profile' %}" class="mobile-tab {% if '/student/profile/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
+            <span>Profile</span>
+        </a>
+    </div>
 </nav>
+{% endwith %}
+
 <script>
   (() => {
-    const toggle = document.querySelector("[data-mobile-nav-toggle='student-nav']");
-    const nav = document.getElementById("student-nav");
-    if (!toggle || !nav) return;
+    const toggle = document.querySelector("[data-mobile-nav-toggle='student-mobile-menu']");
+    const menu = document.getElementById("student-mobile-menu");
+    if (!toggle || !menu) return;
 
     toggle.addEventListener("click", () => {
-      const isOpen = !nav.classList.contains("hidden");
-      nav.classList.toggle("hidden", isOpen);
+      const isOpen = !menu.classList.contains("hidden");
+      menu.classList.toggle("hidden", isOpen);
       toggle.setAttribute("aria-expanded", String(!isOpen));
     });
   })();
 </script>
 {% block extra_scripts %}{% endblock %}
-
 </body>
 </html>
-

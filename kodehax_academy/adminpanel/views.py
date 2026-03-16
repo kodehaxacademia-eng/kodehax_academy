@@ -465,3 +465,30 @@ def analytics(request):
         "analytics": get_admin_analytics_page(),
     }
     return _render_admin(request, "adminpanel/analytics.html", context)
+
+
+@admin_required
+def settings_view(request):
+    from .models import PlatformSettings
+    from .forms import PlatformSettingsForm
+
+    settings_obj = PlatformSettings.load()
+    
+    if request.method == "POST":
+        form = PlatformSettingsForm(request.POST, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Platform settings updated successfully.")
+            return redirect("adminpanel_settings")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = PlatformSettingsForm(instance=settings_obj)
+
+    context = {
+        "current_section": "settings",
+        "form": form,
+    }
+    return _render_admin(request, "adminpanel/settings.html", context)
+
+

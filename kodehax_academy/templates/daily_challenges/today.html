@@ -2,6 +2,7 @@
 
 {% block title %}Daily Challenges{% endblock %}
 {% block header %}Daily Coding Challenge{% endblock %}
+{% block header_subtitle %}Move through today’s adaptive challenge set with a production-style card layout that stays readable on small screens.{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -9,7 +10,7 @@
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] xl:items-center">
       <div class="max-w-3xl">
         <p class="text-xs uppercase tracking-[0.2em] text-teal-300/80">Publishes Daily At 10:00 AM</p>
-        <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">9 adaptive coding problems</h2>
+        <h2 class="mt-2 text-xl font-black text-white md:text-2xl lg:text-3xl">9 adaptive coding problems</h2>
         <p class="mt-2 max-w-3xl text-sm text-slate-300">Each day includes 3 Easy, 3 Medium, and 3 Hard challenges. Solve 2 Easy questions to unlock Medium, then solve 2 Medium questions to unlock Hard.</p>
       </div>
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1.05fr_0.95fr]">
@@ -36,10 +37,10 @@
             </div>
           </div>
           <div class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4">
-            <p class="text-xs uppercase tracking-[0.18em] text-cyan-200">Global Points</p>
+            <p class="text-xs uppercase tracking-[0.18em] text-cyan-200">Total Earned Points</p>
             <div class="mt-2 flex items-end justify-between gap-4">
               <p class="text-3xl font-black text-white">{{ student_points.total_points }}</p>
-              <p class="text-sm text-cyan-100/80">Hint balance: {{ student_points.points_remaining }}</p>
+              <p class="text-sm text-cyan-100/80">Available for hints: {{ student_points.points_remaining }}</p>
             </div>
           </div>
         </div>

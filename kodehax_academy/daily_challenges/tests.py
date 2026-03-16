@@ -7,7 +7,7 @@ from skill_assessment.models import CodingProblem
 from users.models import User
 
 from .models import DailyChallenge, DailyChallengeSession, DailyChallengeSet, StudentPoints
-from .services import _normalize_test_cases, _render_template_value, preview_solution, refresh_challenge_set
+from .services import _normalize_test_cases, _render_template_value, _run_code, _today, preview_solution, refresh_challenge_set
 
 
 class DailyChallengeWorkspaceTests(TestCase):
@@ -18,6 +18,7 @@ class DailyChallengeWorkspaceTests(TestCase):
             role="student",
         )
         self.client.force_login(self.student)
+        self.challenge_date = _today()
 
         self.problem_one = CodingProblem.objects.create(
             title="Count twos",
@@ -39,12 +40,12 @@ class DailyChallengeWorkspaceTests(TestCase):
             difficulty=CodingProblem.DIFFICULTY_BEGINNER,
             is_active=True,
         )
-        self.challenge_set = DailyChallengeSet.objects.create(student=self.student, date="2026-03-14")
+        self.challenge_set = DailyChallengeSet.objects.create(student=self.student, date=self.challenge_date)
         self.challenge_one = DailyChallenge.objects.create(
             challenge_set=self.challenge_set,
             student=self.student,
             problem=self.problem_one,
-            date="2026-03-14",
+            date=self.challenge_date,
             title="Count occurrences of 2",
             description="Solve the first problem.",
             topic="loops",
@@ -60,7 +61,7 @@ class DailyChallengeWorkspaceTests(TestCase):
             challenge_set=self.challenge_set,
             student=self.student,
             problem=self.problem_two,
-            date="2026-03-14",
+            date=self.challenge_date,
             title="Count occurrences of 3",
             description="Solve the second problem.",
             topic="loops",
@@ -70,6 +71,22 @@ class DailyChallengeWorkspaceTests(TestCase):
             difficulty=DailyChallenge.DIFFICULTY_EASY,
             level=1,
             question_number=2,
+            points=5,
+        )
+        self.challenge_three = DailyChallenge.objects.create(
+            challenge_set=self.challenge_set,
+            student=self.student,
+            problem=self.problem_two,
+            date=self.challenge_date,
+            title="Count occurrences of 3 again",
+            description="Solve the last problem.",
+            topic="loops",
+            starter_code=self.problem_two.starter_code,
+            function_name=self.problem_two.function_name,
+            test_cases=self.problem_two.test_cases,
+            difficulty=DailyChallenge.DIFFICULTY_EASY,
+            level=1,
+            question_number=3,
             points=5,
         )
 
@@ -103,7 +120,7 @@ class DailyChallengeWorkspaceTests(TestCase):
         self.assertEqual(session.points_deducted, 0)
         self.assertEqual(session.session_score, 5)
         self.assertContains(response, "Question score: +5. Daily score: 5.")
-        self.assertContains(response, "Global Points")
+        self.assertContains(response, "Total Earned Points")
         self.assertContains(response, "Current session score:")
 
     def test_workspace_shows_daily_score_separately_from_hint_balance(self):
@@ -115,9 +132,22 @@ class DailyChallengeWorkspaceTests(TestCase):
 
         response = self.client.get(reverse("daily_challenge_workspace", args=[self.challenge_one.id]))
 
-        self.assertContains(response, "Global Points")
-        self.assertContains(response, "Hint balance: 0")
+        self.assertContains(response, "Total Earned Points")
+        self.assertContains(response, "Available for hints: 0")
         self.assertContains(response, ">4</p>", html=False)
+
+    def test_workspace_remaining_challenges_counts_from_current_challenge_forward(self):
+        self.challenge_one.status = DailyChallenge.STATUS_SOLVED
+        self.challenge_one.score = 5
+        self.challenge_two.status = DailyChallenge.STATUS_FAILED
+        self.challenge_one.save(update_fields=["status", "score", "updated_at"])
+        self.challenge_two.save(update_fields=["status", "updated_at"])
+        refresh_challenge_set(self.challenge_set)
+
+        response = self.client.get(reverse("daily_challenge_workspace", args=[self.challenge_three.id]))
+
+        self.assertContains(response, "Remaining challenges:")
+        self.assertContains(response, ">1</span>", html=False)
 
     @patch("daily_challenges.services._run_code")
     def test_failed_preview_deducts_daily_points_only(self, run_code_mock):
@@ -162,3 +192,12 @@ class DailyChallengeWorkspaceTests(TestCase):
 
         self.assertEqual(normalized[0]["expected"], [4, 8])
         self.assertEqual(normalized[1]["expected"], [4, 8, 12])
+
+    def test_run_code_allows_safe_standard_library_imports(self):
+        results, error_payload, _ = _run_code(
+            self.challenge_one,
+            "import math\n\ndef count_target(values):\n    return math.floor(2.9)\n",
+        )
+
+        self.assertIsNone(error_payload)
+        self.assertEqual(results[0]["actual"], 2)

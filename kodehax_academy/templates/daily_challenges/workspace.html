@@ -2,25 +2,175 @@
 
 {% block title %}Solve Daily Challenge{% endblock %}
 {% block header %}Daily Challenge Workspace{% endblock %}
+{% block header_subtitle %}Read the problem, code your solution, and run or submit from a desktop split layout that collapses cleanly on mobile.{% endblock %}
 
 {% block extra_styles %}
 <style>
+  .workspace-shell {
+    --editor-bg: #0b1120;
+    --editor-panel: #111827;
+    --editor-border: rgba(71, 85, 105, 0.9);
+    --editor-muted: #94a3b8;
+    --editor-accent: #22d3ee;
+  }
+
+  .problem-statement {
+    border: 1px solid rgba(34, 211, 238, 0.12);
+    background:
+      linear-gradient(180deg, rgba(8, 47, 73, 0.24), rgba(15, 23, 42, 0.72)),
+      radial-gradient(circle at top right, rgba(34, 211, 238, 0.16), transparent 35%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .problem-statement code,
+  .challenge-code-shell code {
+    border-radius: 0.4rem;
+    background: rgba(15, 23, 42, 0.75);
+    padding: 0.15rem 0.4rem;
+    color: #67e8f9;
+    font-family: "Cascadia Code", "Fira Code", monospace;
+    font-size: 0.92em;
+  }
+
+  .challenge-code-shell {
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid var(--editor-border);
+    background: linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.94));
+    box-shadow: 0 24px 50px rgba(2, 6, 23, 0.38);
+  }
+
+  .challenge-code-shell:focus-within {
+    border-color: rgba(34, 211, 238, 0.85);
+    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12), 0 24px 50px rgba(2, 6, 23, 0.38);
+  }
+
+  .editor-toolbar {
+    border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.82));
+  }
+
+  .editor-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 999px;
+  }
+
   .challenge-code-editor {
     width: 100%;
-    min-height: 16rem;
-    border-radius: 1rem;
-    border: 1px solid rgba(71, 85, 105, 0.9);
-    background: linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.92));
-    color: #cbd5e1;
-    padding: 1rem;
+    min-height: 24rem;
     font-family: "Cascadia Code", "Fira Code", monospace;
     line-height: 1.6;
   }
 
-  .challenge-code-editor:focus {
+  .editor-textarea {
+    display: block;
+    resize: vertical;
+    border: 0;
+    background: transparent;
+    color: transparent;
+    caret-color: #67e8f9;
+    text-shadow: 0 0 0 rgba(219, 234, 254, 0.02);
+    padding: 0;
     outline: none;
-    border-color: rgba(45, 212, 191, 0.9);
-    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.18);
+    white-space: pre;
+    overflow: auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  .challenge-code-shell.cm-enhanced .editor-textarea {
+    display: none;
+  }
+
+  #challenge-code-editor {
+    display: none;
+  }
+
+  .challenge-code-shell.cm-enhanced #challenge-code-editor {
+    display: block;
+  }
+
+  .fallback-editor-stack {
+    position: relative;
+    min-height: 24rem;
+    display: grid;
+  }
+
+  .fallback-editor-stack > * {
+    grid-area: 1 / 1;
+  }
+
+  .fallback-highlight {
+    margin: 0;
+    min-height: 24rem;
+    overflow: auto;
+    padding: 1rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #dbeafe;
+    pointer-events: none;
+    position: relative;
+    z-index: 1;
+  }
+
+  .fallback-highlight .token-keyword { color: #c084fc; }
+  .fallback-highlight .token-builtin { color: #67e8f9; }
+  .fallback-highlight .token-string { color: #86efac; }
+  .fallback-highlight .token-number { color: #f9a8d4; }
+  .fallback-highlight .token-comment { color: #64748b; font-style: italic; }
+  .fallback-highlight .token-function { color: #fbbf24; }
+  .fallback-highlight .token-operator { color: #fda4af; }
+  .fallback-highlight .token-constant { color: #fde68a; }
+  .fallback-highlight .token-bracket { color: #93c5fd; }
+  .fallback-highlight .token-plain { color: #dbeafe; }
+
+  .editor-textarea::selection {
+    background: rgba(59, 130, 246, 0.28);
+  }
+
+  .challenge-code-shell .cm-editor {
+    min-height: 24rem;
+    background: transparent;
+    color: #dbeafe;
+    font-family: "Cascadia Code", "Fira Code", monospace;
+    font-size: 0.95rem;
+  }
+
+  .challenge-code-shell .cm-scroller {
+    overflow: auto;
+    font-family: inherit;
+    line-height: 1.6;
+  }
+
+  .challenge-code-shell .cm-gutters {
+    border-right: 1px solid rgba(51, 65, 85, 0.55);
+    background: rgba(15, 23, 42, 0.78);
+    color: var(--editor-muted);
+  }
+
+  .challenge-code-shell .cm-activeLine,
+  .challenge-code-shell .cm-activeLineGutter {
+    background: rgba(34, 211, 238, 0.08);
+  }
+
+  .challenge-code-shell .cm-focused {
+    outline: none;
+  }
+
+  .challenge-code-shell .cm-content,
+  .challenge-code-shell .cm-line {
+    caret-color: #67e8f9;
+  }
+
+  .challenge-code-shell .cm-selectionBackground,
+  .challenge-code-shell .cm-content ::selection {
+    background: rgba(59, 130, 246, 0.28);
+  }
+
+  .library-chip {
+    border: 1px solid rgba(100, 116, 139, 0.45);
+    background: rgba(15, 23, 42, 0.7);
   }
 </style>
 {% endblock %}
@@ -57,15 +207,36 @@
       <div class="max-w-3xl">
         <p class="text-xs uppercase tracking-[0.2em] text-teal-300/80">Level {{ challenge.level }} - {{ challenge.difficulty|title }} - {{ challenge.problem.topic|title }}</p>
         <h2 class="mt-2 text-2xl font-black text-white sm:text-3xl">{{ challenge.title }}</h2>
-        <p class="mt-3 text-sm leading-7 text-slate-300">{{ challenge.description }}</p>
+        <div class="problem-statement mt-4 rounded-3xl p-5 sm:p-6">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p class="text-xs uppercase tracking-[0.18em] text-cyan-200/85">Problem Brief</p>
+              <h3 class="mt-2 text-lg font-bold text-white">Objective</h3>
+            </div>
+            <div class="inline-flex items-center rounded-full border border-cyan-300/15 bg-cyan-300/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-100">
+              {{ challenge.problem.topic|title }}
+            </div>
+          </div>
+          <p class="mt-4 text-sm leading-7 text-slate-200">{{ challenge.description|linebreaksbr }}</p>
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-2xl border border-slate-700/70 bg-slate-950/35 p-4">
+              <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">Required Function</p>
+              <p class="mt-2 font-mono text-sm text-cyan-200">{{ challenge.function_name }}(...)</p>
+            </div>
+            <div class="rounded-2xl border border-slate-700/70 bg-slate-950/35 p-4">
+              <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">Safe Imports</p>
+              <p class="mt-2 text-sm text-slate-300">Use standard helpers like <code>math</code>, <code>collections</code>, <code>itertools</code>, <code>functools</code>, <code>heapq</code>, <code>bisect</code>, and <code>string</code>.</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 xl:max-w-2xl">
         <div class="space-y-4">
           <div class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4">
-            <p class="text-xs uppercase tracking-[0.18em] text-cyan-200">Global Points</p>
+            <p class="text-xs uppercase tracking-[0.18em] text-cyan-200">Total Earned Points</p>
             <p class="mt-2 text-3xl font-black text-white">{{ student_points.total_points }}</p>
-            <p class="mt-2 text-xs uppercase tracking-[0.16em] text-cyan-100/75">Hint balance: {{ student_points.points_remaining }}</p>
+            <p class="mt-2 text-xs uppercase tracking-[0.16em] text-cyan-100/75">Available for hints: {{ student_points.points_remaining }}</p>
           </div>
           <div class="rounded-2xl border border-teal-400/20 bg-teal-400/10 px-5 py-4" data-countdown-card data-started-at="{{ challenge_set.published_at|default:challenge_set.created_at|date:'c' }}" data-expires-at="{{ challenge_set.expires_at|date:'c' }}">
             <p class="text-xs uppercase tracking-[0.18em] text-teal-200">Challenge Timer</p>
@@ -85,14 +256,29 @@
             </div>
           </div>
         </div>
-        <div class="rounded-2xl border border-slate-700 bg-slate-950/35 px-5 py-4 text-sm text-slate-300">
-          <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Session Panel</p>
-          <p class="mt-3">Current session score: <span class="font-semibold text-teal-200">{{ current_session.session_score|default:0 }}</span></p>
-          <p class="mt-2">Questions solved today: <span class="font-semibold text-white">{{ current_session.questions_solved|default:0 }}</span></p>
-          <p class="mt-2">Points gained: <span class="font-semibold text-emerald-200">{{ current_session.points_earned|default:0 }}</span></p>
-          <p class="mt-2">Points deducted: <span class="font-semibold text-rose-200">{{ current_session.points_deducted|default:0 }}</span></p>
-          <p class="mt-2">Remaining challenges: <span class="font-semibold text-white">{{ remaining_challenges }}</span></p>
-          <p class="mt-2">Current question score: <span class="font-semibold text-teal-200">{{ challenge.score }}</span></p>
+        <div class="rounded-2xl border border-slate-700 bg-slate-950/35 px-4 py-4 text-sm text-slate-300">
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Session</p>
+            <span class="text-xs text-slate-500">Live</span>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+              <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">Score</p>
+              <p class="mt-1 text-lg font-black text-teal-200">{{ current_session.session_score|default:0 }}</p>
+            </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+              <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">Solved</p>
+              <p class="mt-1 text-lg font-black text-white">{{ current_session.questions_solved|default:0 }}</p>
+            </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+              <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">Remaining</p>
+              <p class="mt-1 text-lg font-black text-white">{{ remaining_challenges }}</p>
+            </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+              <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">Question</p>
+              <p class="mt-1 text-lg font-black text-cyan-200">{{ challenge.score }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -102,30 +288,36 @@
     <div class="glass-card w-full p-4 sm:p-6 lg:w-1/2 lg:p-8">
       <form method="post" id="challenge-action-form" class="space-y-5">
         {% csrf_token %}
-        <div class="rounded-2xl border border-slate-700 bg-slate-950/35 p-4 text-sm text-slate-400">
-          <p class="uppercase tracking-[0.18em] text-slate-500">Required function</p>
-          <p class="mt-2 font-mono text-sm text-teal-200">{{ challenge.function_name }}(...)</p>
+        <div class="challenge-code-shell">
+          <div class="editor-toolbar flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div class="flex items-center gap-2">
+              <span class="editor-dot bg-rose-400"></span>
+              <span class="editor-dot bg-amber-400"></span>
+              <span class="editor-dot bg-emerald-400"></span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+              <span class="rounded-full border border-slate-700/80 bg-slate-900/70 px-3 py-1 font-medium uppercase tracking-[0.16em] text-slate-300">solution.py</span>
+              <span class="uppercase tracking-[0.18em] text-cyan-200/85">{{ challenge.function_name }}()</span>
+            </div>
+          </div>
+          <div class="fallback-editor-stack">
+            <pre id="challenge-code-highlight" class="challenge-code-editor fallback-highlight" aria-hidden="true"></pre>
+            <textarea id="challenge-code-input" name="code" spellcheck="false" class="challenge-code-editor editor-textarea">{{ editor_code }}</textarea>
+            <div id="challenge-code-editor" class="challenge-code-editor" aria-label="Python code editor"></div>
+          </div>
         </div>
 
-        <textarea name="code" spellcheck="false" class="challenge-code-editor">{{ editor_code }}</textarea>
-
-        <div class="hidden flex-col gap-3 sm:flex-row sm:flex-wrap md:flex">
-          <button type="submit" name="action" value="run" class="btn-muted w-full px-4 py-2 text-sm sm:w-auto">Run</button>
-          <button type="submit" name="action" value="submit" class="btn-primary w-full px-4 py-2 text-sm sm:w-auto">Submit</button>
+        <div class="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:flex-wrap">
+          <button type="submit" name="action" value="run" class="btn-muted h-11 w-full px-4 text-sm sm:w-auto">Run</button>
+          <button type="submit" name="action" value="submit" class="btn-primary h-11 w-full px-4 text-sm sm:w-auto">Submit</button>
           {% if challenge.hints_used < 2 %}
-            <button type="submit" name="action" value="hint" class="btn-muted w-full px-4 py-2 text-sm sm:w-auto">Unlock Hint (-5)</button>
+            <button type="submit" name="action" value="hint" class="btn-muted h-11 w-full px-4 text-sm sm:w-auto">Unlock Hint (-5)</button>
           {% else %}
-            <span class="inline-flex w-full items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-500 sm:w-auto">All hints used</span>
+            <span class="inline-flex h-11 w-full items-center justify-center rounded-xl border border-slate-700 px-4 text-sm font-medium text-slate-500 sm:w-auto">All hints used</span>
           {% endif %}
-          <a href="{% url 'daily_challenges_today' %}" class="btn-muted inline-flex w-full items-center justify-center px-4 py-2 text-sm sm:w-auto">Back</a>
+          <a href="{% url 'daily_challenges_today' %}" class="btn-muted inline-flex h-11 w-full items-center justify-center px-4 text-sm sm:w-auto">Back</a>
         </div>
       </form>
-      <div class="fixed inset-x-3 bottom-24 z-30 rounded-[1.25rem] border border-slate-700/80 bg-slate-950/92 p-3 shadow-[0_18px_40px_rgba(2,6,23,0.45)] backdrop-blur md:hidden">
-        <div class="grid grid-cols-2 gap-3">
-          <button type="submit" form="challenge-action-form" name="action" value="run" class="btn-muted h-11 w-full px-4 text-sm">Run</button>
-          <button type="submit" form="challenge-action-form" name="action" value="submit" class="btn-primary h-11 w-full px-4 text-sm">Submit</button>
-        </div>
-      </div>
     </div>
 
     <div class="w-full space-y-5 lg:w-1/2">
@@ -330,5 +522,178 @@
     tick();
     window.setInterval(tick, 1000);
   })();
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="module">
+  const textarea = document.getElementById("challenge-code-input");
+  const editorRoot = document.getElementById("challenge-code-editor");
+  const editorShell = editorRoot ? editorRoot.closest(".challenge-code-shell") : null;
+  const fallbackHighlight = document.getElementById("challenge-code-highlight");
+
+  const escapeHtml = (value) =>
+    value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+
+  const highlightPython = (source) => {
+    const keywords = new Set([
+      "and", "as", "assert", "async", "await", "break", "class", "continue", "def",
+      "del", "elif", "else", "except", "finally", "for", "from", "global", "if",
+      "import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise",
+      "return", "try", "while", "with", "yield", "match", "case",
+    ]);
+    const builtins = new Set([
+      "abs", "all", "any", "bool", "dict", "enumerate", "filter", "float", "int",
+      "len", "list", "map", "max", "min", "print", "range", "reversed", "set",
+      "sorted", "str", "sum", "tuple", "zip",
+    ]);
+    const constants = new Set(["True", "False", "None"]);
+    const tokenPattern = /(#.*$)|("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|\b([A-Za-z_][A-Za-z0-9_]*)\b|(\d+(?:\.\d+)?)|([+\-*/%=<>!&|^~:]+)|([()[\]{}.,])/gm;
+
+    let html = "";
+    let lastIndex = 0;
+    let functionNamePending = false;
+    for (const match of source.matchAll(tokenPattern)) {
+      const index = match.index ?? 0;
+      html += `<span class="token-plain">${escapeHtml(source.slice(lastIndex, index))}</span>`;
+
+      const [fullMatch, comment, stringToken, identifier, numberToken, operatorToken, bracketToken] = match;
+      let className = "token-plain";
+      if (comment) {
+        className = "token-comment";
+      } else if (stringToken) {
+        className = "token-string";
+      } else if (identifier) {
+        if (functionNamePending) {
+          className = "token-function";
+          functionNamePending = false;
+        } else if (keywords.has(identifier)) {
+          className = "token-keyword";
+          if (identifier === "def" || identifier === "class") {
+            functionNamePending = true;
+          }
+        } else if (builtins.has(identifier)) {
+          className = "token-builtin";
+        } else if (constants.has(identifier)) {
+          className = "token-constant";
+        }
+      } else if (numberToken) {
+        className = "token-number";
+      } else if (operatorToken) {
+        className = "token-operator";
+      } else if (bracketToken) {
+        className = "token-bracket";
+      }
+
+      html += `<span class="${className}">${escapeHtml(fullMatch)}</span>`;
+      lastIndex = index + fullMatch.length;
+    }
+
+    html += `<span class="token-plain">${escapeHtml(source.slice(lastIndex))}</span>`;
+    return html || '<span class="token-plain">\n</span>';
+  };
+
+  const syncFallbackHighlight = () => {
+    if (!textarea || !fallbackHighlight || (editorShell && editorShell.classList.contains("cm-enhanced"))) {
+      return;
+    }
+    fallbackHighlight.innerHTML = highlightPython(textarea.value || "");
+    fallbackHighlight.scrollTop = textarea.scrollTop;
+    fallbackHighlight.scrollLeft = textarea.scrollLeft;
+  };
+
+  if (textarea) {
+    textarea.addEventListener("input", syncFallbackHighlight);
+    textarea.addEventListener("scroll", syncFallbackHighlight);
+    syncFallbackHighlight();
+  }
+
+  if (textarea && editorRoot && editorShell) {
+    try {
+      const [
+        stateModule,
+        viewModule,
+        languageModule,
+        pythonModule,
+        commandsModule,
+        searchModule,
+      ] = await Promise.all([
+        import("https://esm.sh/@codemirror/state@6.4.1"),
+        import("https://esm.sh/@codemirror/view@6.36.1"),
+        import("https://esm.sh/@codemirror/language@6.10.8"),
+        import("https://esm.sh/@codemirror/lang-python@6.1.6"),
+        import("https://esm.sh/@codemirror/commands@6.8.1"),
+        import("https://esm.sh/@codemirror/search@6.5.10"),
+      ]);
+
+      const {EditorState} = stateModule;
+      const {EditorView, keymap, lineNumbers, highlightActiveLineGutter, drawSelection, highlightActiveLine} = viewModule;
+      const {defaultHighlightStyle, syntaxHighlighting, indentOnInput, bracketMatching, foldGutter} = languageModule;
+      const {python} = pythonModule;
+      const {defaultKeymap, history, historyKeymap, indentWithTab} = commandsModule;
+      const {searchKeymap, highlightSelectionMatches} = searchModule;
+
+      const vscodeTheme = EditorView.theme(
+        {
+          "&": {
+            backgroundColor: "transparent",
+            color: "#dbeafe",
+          },
+          ".cm-content": {
+            padding: "1rem 0",
+            minHeight: "24rem",
+          },
+          ".cm-line": {
+            padding: "0 1rem",
+          },
+          ".cm-cursor, .cm-dropCursor": {
+            borderLeftColor: "#67e8f9",
+          },
+          ".cm-tooltip": {
+            backgroundColor: "#0f172a",
+            border: "1px solid rgba(51, 65, 85, 0.9)",
+          },
+        },
+        {dark: true}
+      );
+
+      const state = EditorState.create({
+        doc: textarea.value,
+        extensions: [
+          lineNumbers(),
+          highlightActiveLineGutter(),
+          history(),
+          drawSelection(),
+          indentOnInput(),
+          bracketMatching(),
+          foldGutter(),
+          highlightActiveLine(),
+          highlightSelectionMatches(),
+          syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
+          keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
+          python(),
+          vscodeTheme,
+          EditorView.lineWrapping,
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged) {
+              textarea.value = update.state.doc.toString();
+            }
+          }),
+        ],
+      });
+
+      new EditorView({
+        state,
+        parent: editorRoot,
+      });
+
+      editorShell.classList.add("cm-enhanced");
+    } catch (error) {
+      console.warn("Code editor enhancement failed. Falling back to textarea.", error);
+    }
+  }
 </script>
 {% endblock %}

@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model, password_validation
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import transaction
@@ -86,12 +87,38 @@ class StudentRegistrationForm(StyledFormMixin, forms.ModelForm):
 
 
 class LoginForm(StyledFormMixin, forms.Form):
-    username = forms.CharField(widget=forms.TextInput(attrs={"placeholder": "Username"}))
+    username = forms.CharField(widget=forms.TextInput(attrs={"placeholder": "Email or username"}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={"placeholder": "Password"}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._apply_classes()
+
+
+class LoginOTPForm(StyledFormMixin, forms.Form):
+    otp = forms.CharField(
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter 6-digit OTP",
+                "inputmode": "numeric",
+                "autocomplete": "one-time-code",
+                "pattern": "[0-9]*",
+                "maxlength": "6",
+            }
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_classes()
+
+    def clean_otp(self):
+        otp = "".join(ch for ch in self.cleaned_data["otp"].strip() if ch.isdigit())
+        if len(otp) != 6:
+            raise forms.ValidationError("Enter the 6-digit code sent to your email.")
+        return otp
 
 
 class ForgotPasswordForm(StyledFormMixin, forms.Form):
@@ -126,6 +153,16 @@ class ResetPasswordForm(StyledFormMixin, forms.Form):
             except forms.ValidationError as exc:
                 self.add_error("password1", exc)
         return cleaned_data
+
+
+class ProfilePasswordChangeForm(StyledFormMixin, PasswordChangeForm):
+    old_password = forms.CharField(widget=forms.PasswordInput(attrs={"placeholder": "Current password"}))
+    new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={"placeholder": "New password"}))
+    new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={"placeholder": "Confirm new password"}))
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(user, *args, **kwargs)
+        self._apply_classes()
 
 
 class TeacherInvitationAdminForm(StyledFormMixin, forms.ModelForm):

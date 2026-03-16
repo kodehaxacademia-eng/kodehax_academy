@@ -9,11 +9,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --bg: #030712;
+      --bg: #020617;
       --surface: #0f172a;
-      --surface-soft: rgba(15, 23, 42, 0.72);
-      --surface-elevated: rgba(30, 41, 59, 0.68);
-      --border: #334155;
+      --surface-soft: rgba(15, 23, 42, 0.76);
+      --surface-elevated: rgba(15, 23, 42, 0.92);
+      --border: rgba(71, 85, 105, 0.72);
       --text: #f1f5f9;
       --muted: #94a3b8;
       --accent: #6366f1;
@@ -22,98 +22,129 @@
     body {
       background-color: var(--bg);
       background-image:
-        radial-gradient(ellipse 80% 80% at 50% -20%, rgba(99, 102, 241, 0.35), transparent),
-        radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.16), transparent 44%);
+        radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%),
+        linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(2, 6, 23, 1));
       color: var(--text);
     }
 
-    .glass-card {
-      background: linear-gradient(180deg, var(--surface-elevated), var(--surface-soft));
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+    .glass-card,
+    .surface-card {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.74));
       border: 1px solid var(--border);
-      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
       border-radius: 1rem;
-    }
-
-    .reveal {
-      animation: revealUp 460ms ease both;
-    }
-
-    .delay-1 { animation-delay: 70ms; }
-    .delay-2 { animation-delay: 140ms; }
-    .delay-3 { animation-delay: 210ms; }
-    .delay-4 { animation-delay: 280ms; }
-
-    .nav-link {
-      transition: 180ms ease;
-      border: 1px solid transparent;
-    }
-
-    .nav-link:hover {
-      transform: translateX(2px);
-      background: rgba(30, 41, 59, 0.48);
-      border-color: rgba(148, 163, 184, 0.28);
-    }
-
-    .nav-link.active {
-      background: var(--accent);
-      border-color: transparent;
-      color: #ffffff;
-      box-shadow: 0 0 15px rgba(79, 70, 229, 0.5);
+      box-shadow: 0 20px 45px rgba(2, 6, 23, 0.28);
     }
 
     .hover-lift {
-      transition: transform 220ms ease, box-shadow 220ms ease;
+      transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
     }
 
     .hover-lift:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 22px 42px rgba(2, 6, 23, 0.34);
     }
 
     .btn-primary {
       background: var(--accent);
       color: #ffffff;
-      border-radius: 0.75rem;
+      border-radius: 0.875rem;
       font-weight: 700;
       transition: 180ms ease;
-      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.22);
+      box-shadow: 0 12px 24px rgba(99, 102, 241, 0.22);
     }
 
     .btn-primary:hover {
-      background: #4338ca; /* indigo-700 */
+      background: #4f46e5;
       transform: translateY(-1px);
-      box-shadow: 0 0 20px rgba(79, 70, 229, 0.6);
     }
 
     .btn-muted {
       border: 1px solid var(--border);
-      background: transparent;
+      background: rgba(15, 23, 42, 0.55);
       color: var(--text);
-      border-radius: 0.75rem;
-      font-weight: 700;
+      border-radius: 0.875rem;
+      font-weight: 600;
       transition: 180ms ease;
     }
 
     .btn-muted:hover {
-      border-color: var(--muted);
-      background: rgba(30, 41, 59, 0.5);
+      border-color: rgba(129, 140, 248, 0.48);
+      background: rgba(15, 23, 42, 0.85);
     }
 
     .btn-danger {
       background: #e11d48;
       color: #ffffff;
-      border-radius: 0.75rem;
+      border-radius: 0.875rem;
       font-weight: 700;
       transition: 180ms ease;
-      box-shadow: 0 10px 20px rgba(225, 29, 72, 0.22);
+      box-shadow: 0 12px 24px rgba(225, 29, 72, 0.22);
     }
 
     .btn-danger:hover {
       background: #be123c;
       transform: translateY(-1px);
-      box-shadow: 0 0 20px rgba(225, 29, 72, 0.45);
+    }
+
+    .nav-link,
+    .mobile-tab {
+      transition: 180ms ease;
+    }
+
+    .nav-link {
+      border: 1px solid transparent;
+    }
+
+    .nav-link:hover {
+      background: rgba(15, 23, 42, 0.72);
+      border-color: rgba(71, 85, 105, 0.72);
+    }
+
+    .nav-link.active {
+      background: rgba(99, 102, 241, 0.16);
+      border-color: rgba(129, 140, 248, 0.34);
+      color: #ffffff;
+      box-shadow: inset 3px 0 0 0 rgba(129, 140, 248, 0.92);
+    }
+
+    .mobile-tab.active {
+      color: #ffffff;
+      background: rgba(99, 102, 241, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.34);
+    }
+
+    .nav-link-disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .custom-scroll {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(129, 140, 248, 0.92) rgba(15, 23, 42, 0.24);
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.24);
+      border-radius: 999px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(129, 140, 248, 0.88);
+      border-radius: 999px;
+    }
+
+    .table-row {
+      transition: 180ms ease;
+    }
+
+    .table-row:hover {
+      background: rgba(15, 23, 42, 0.55);
     }
 
     .confirm-overlay {
@@ -123,524 +154,364 @@
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      background: rgba(2, 6, 23, 0.7);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      background: rgba(2, 6, 23, 0.78);
+      backdrop-filter: blur(8px);
       z-index: 1000;
     }
 
     .confirm-overlay.open {
       display: flex;
-      animation: fadeIn 180ms ease-out both;
     }
 
     .confirm-modal {
       width: 100%;
       max-width: 520px;
+      border: 1px solid rgba(251, 113, 133, 0.32);
       border-radius: 1rem;
-      border: 1px solid rgba(251, 113, 133, 0.35);
-      background: linear-gradient(
-        180deg,
-        rgba(30, 41, 59, 0.95),
-        rgba(15, 23, 42, 0.95)
-      );
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
       box-shadow: 0 24px 44px rgba(2, 6, 23, 0.55);
       overflow: hidden;
-      animation: popIn 180ms ease-out both;
+    }
+
+    .confirm-head,
+    .confirm-body,
+    .confirm-actions {
+      padding: 1rem 1.25rem;
     }
 
     .confirm-head {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-      background: rgba(225, 29, 72, 0.14);
-    }
-
-    .confirm-body {
-      padding: 1rem 1.25rem;
-      color: #e2e8f0;
-      line-height: 1.6;
-      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(225, 29, 72, 0.12);
     }
 
     .confirm-actions {
       display: flex;
       justify-content: flex-end;
       gap: 0.5rem;
-      padding: 1rem 1.25rem;
-      border-top: 1px solid rgba(148, 163, 184, 0.25);
-      background: rgba(15, 23, 42, 0.62);
+      border-top: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(15, 23, 42, 0.7);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .reveal {
+      animation: revealUp 420ms ease both;
     }
 
-    @keyframes popIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px) scale(0.98);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    .table-row {
-      transition: 180ms ease;
-    }
-
-    .table-row:hover {
-      background: rgba(30, 41, 59, 0.35);
-    }
-
-    .custom-scroll {
-      scrollbar-width: thin;
-      scrollbar-color: #6366f1 rgba(15, 23, 42, 0.35);
-    }
-
-    .custom-scroll::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    .custom-scroll::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.35);
-      border-radius: 999px;
-    }
-
-    .custom-scroll::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 999px;
-    }
-
-    .mobile-tab {
-      transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
-    }
-
-    .mobile-tab:hover {
-      transform: translateY(-1px);
-    }
-
-    .mobile-tab.active {
-      color: #ffffff;
-      background: rgba(99, 102, 241, 0.18);
-      box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.28);
-    }
-
-    .nav-link-disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-    }
-
-    .nav-link-disabled:hover {
-      transform: none;
-      background: transparent;
-      border-color: transparent;
-    }
-
-    /* Utility overrides for consistent dark theme across all teacher pages. */
-    .bg-white,
-    .bg-slate-50,
-    .bg-slate-100,
-    .bg-zinc-100,
-    .bg-blue-50,
-    .bg-emerald-50,
-    .bg-rose-50,
-    .bg-rose-50\/50 {
-      background: rgba(15, 23, 42, 0.62) !important;
-      color: var(--text) !important;
-    }
-
-    .border-slate-100,
-    .border-slate-200,
-    .border-slate-300,
-    .border-zinc-200,
-    .border-zinc-300,
-    .border-emerald-200,
-    .border-rose-200,
-    .border-rose-100 {
-      border-color: rgba(148, 163, 184, 0.32) !important;
-    }
-
-    .text-slate-800,
-    .text-slate-700,
-    .text-slate-600,
-    .text-zinc-900,
-    .text-zinc-800,
-    .text-zinc-700 {
-      color: #e2e8f0 !important;
-    }
-
-    .text-slate-500,
-    .text-zinc-600,
-    .text-zinc-500 {
-      color: #94a3b8 !important;
-    }
-
-    .placeholder\:text-slate-400::placeholder {
-      color: #94a3b8 !important;
-    }
-
-    .text-emerald-700 {
-      color: #6ee7b7 !important;
-    }
-
-    .text-rose-700 {
-      color: #fda4af !important;
-    }
-
-    .text-blue-600 {
-      color: #93c5fd !important;
-    }
-
-    .focus\:ring-blue-100:focus {
-      --tw-ring-color: rgba(99, 102, 241, 0.35) !important;
-    }
-
-    .focus\:border-blue-400:focus {
-      border-color: rgba(129, 140, 248, 0.9) !important;
-    }
-
-    .prose,
-    .prose p,
-    .prose li,
-    .prose strong {
-      color: #cbd5e1 !important;
-    }
-
-    input.bg-white,
-    textarea.bg-white,
-    select.bg-white {
-      background: rgba(2, 6, 23, 0.5) !important;
-    }
-
-    .ambient-orb {
-      position: absolute;
-      border-radius: 999px;
-      filter: blur(35px);
-      pointer-events: none;
-      animation: floatDrift 18s ease-in-out infinite;
-      opacity: 0.55;
-    }
-
-    .ambient-orb.orb-1 {
-      width: 250px;
-      height: 250px;
-      background: rgba(79, 70, 229, 0.3); /* indigo */
-      top: -80px;
-      right: -60px;
-    }
-
-    .ambient-orb.orb-2 {
-      width: 300px;
-      height: 300px;
-      background: rgba(120, 119, 198, 0.25);
-      bottom: -72px;
-      left: -56px;
-      animation-delay: -4s;
-    }
+    .delay-1 { animation-delay: 70ms; }
+    .delay-2 { animation-delay: 140ms; }
+    .delay-3 { animation-delay: 210ms; }
+    .delay-4 { animation-delay: 280ms; }
 
     @keyframes revealUp {
       from {
         opacity: 0;
-        transform: translateY(14px);
+        transform: translateY(12px);
       }
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
-
-    @keyframes floatDrift {
-      0%, 100% {
-        transform: translateY(0) translateX(0);
-      }
-      50% {
-        transform: translateY(20px) translateX(15px);
-      }
-    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen overflow-x-hidden">
-  <div class="min-h-screen flex flex-col">
-    <aside class="shrink-0 bg-black/30 backdrop-blur-lg text-slate-100 px-4 py-4 relative overflow-hidden border-b border-slate-700/70 sm:px-5">
-      <div class="ambient-orb orb-2"></div>
-      <div class="ambient-orb orb-1"></div>
-      <div class="relative">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div class="reveal">
-            <div class="flex items-center gap-3">
-              <img src="{% static 'image/image.png' %}" alt="Kodehax Academy logo" class="h-10 w-10 rounded-xl object-cover">
-              <div>
-                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Kodehax Academy</p>
-                <h1 class="mt-1 text-xl font-black text-white sm:text-2xl">Teacher Hub</h1>
-              </div>
-            </div>
-          </div>
-          <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
-            <button
-              type="button"
-              class="inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-100 md:hidden"
-              data-mobile-nav-toggle="teacher-nav"
-              aria-controls="teacher-nav"
-              aria-expanded="false"
-            >
-              Menu
-            </button>
-            <a href="{% url 'logout' %}" class="rounded-xl bg-rose-600/90 px-4 py-2 text-sm font-semibold hover:bg-rose-500 transition reveal delay-1">
-              Logout
-            </a>
+{% with current_path=request.path first_class=request.user.teacher_classes.first %}
+<div class="min-h-screen flex flex-col lg:flex-row">
+  <aside class="hidden lg:block w-64 shrink-0 border-r border-slate-800/90 bg-slate-950/85 backdrop-blur-xl">
+    <div class="flex h-screen flex-col px-5 py-6">
+      <div class="reveal">
+        <div class="flex items-center gap-3">
+          <img src="{% static 'image/image.png' %}" alt="Kodehax Academy logo" class="h-11 w-11 rounded-2xl object-cover">
+          <div>
+            <p class="text-[11px] uppercase tracking-[0.22em] text-slate-500">Kodehax Academy</p>
+            <h1 class="mt-1 text-lg font-black text-white">Teacher Hub</h1>
           </div>
         </div>
-
-        <nav id="teacher-nav" class="mt-4 hidden flex-col gap-2 text-sm custom-scroll md:flex md:flex-row md:items-center md:overflow-x-auto md:pb-1">
-          <a href="{% url 'teacher_dashboard' %}" class="nav-link text-slate-300 {% if '/teacher/dashboard/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-1">
-            Dashboard
-          </a>
-          <a href="{% url 'create_class' %}" class="nav-link text-slate-300 {% if '/teacher/class/create/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-2">
-            Create Classroom
-          </a>
-          {% if classroom %}
-          <a href="{% url 'assignment_list' classroom.id %}" class="nav-link text-slate-300 {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
-            Assignments
-          </a>
-          {% elif assignment %}
-          <a href="{% url 'assignment_list' assignment.classroom.id %}" class="nav-link text-slate-300 {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
-            Assignments
-          </a>
-          {% else %}
-          {% with first_class=request.user.teacher_classes.first %}
-          {% if first_class %}
-          <a href="{% url 'assignments_page' class_id=first_class.id %}" class="nav-link text-slate-300 {% if '/assignments/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
-            Assignments
-          </a>
-          {% else %}
-          <span
-            class="nav-link nav-link-disabled text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3"
-            title="Assignments are available only after you create a class."
-            aria-disabled="true"
-          >
-            Assignments
-          </span>
-          {% endif %}
-          {% endwith %}
-          {% endif %}
-          <a href="{% url 'ai_tools' %}" class="nav-link text-slate-300 {% if '/teacher/ai-tools/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-3">
-            AI Tools
-          </a>
-          {% if classroom %}
-          <a href="{% url 'performance_list' classroom.id %}" class="nav-link text-slate-300 {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-            Performance
-          </a>
-          {% elif assignment %}
-          <a href="{% url 'performance_list' assignment.classroom.id %}" class="nav-link text-slate-300 {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-            Performance
-          </a>
-          {% else %}
-          {% with first_class=request.user.teacher_classes.first %}
-          {% if first_class %}
-          <a href="{% url 'performance_list' first_class.id %}" class="nav-link text-slate-300 {% if '/performance/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-            Performance
-          </a>
-          {% else %}
-          <a href="#" class="nav-link text-slate-300 inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-            Performance
-          </a>
-          {% endif %}
-          {% endwith %}
-          {% endif %}
-          <a href="{% url 'teacher_profile' %}" class="nav-link text-slate-300 {% if '/teacher/profile/' in request.path %}active{% endif %} inline-flex whitespace-nowrap rounded-xl px-4 py-2.5 font-medium reveal delay-4">
-            Profile
-          </a>
-        </nav>
-        <div class="mt-3 rounded-2xl border border-slate-800/80 bg-slate-950/35 px-4 py-2.5 reveal delay-4">
-          {% module_breadcrumbs "teacher" %}
+        <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/55 p-4">
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Logged in as</p>
+          <p class="mt-2 truncate text-sm font-semibold text-slate-100">{{ request.user.username }}</p>
+          <p class="mt-1 text-xs text-slate-400">Manage classrooms, submissions, and analytics.</p>
         </div>
       </div>
-    </aside>
 
-    <main class="flex-1 overflow-hidden flex flex-col">
-      <header class="min-h-20 bg-transparent flex flex-col items-start justify-center gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <div class="reveal">
-          <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Teacher Workspace</p>
-          <h2 class="text-xl font-bold text-white">{% block page_title %}Teacher Dashboard{% endblock %}</h2>
-        </div>
-        <div class="flex w-full items-center gap-3 reveal delay-1 sm:w-auto sm:justify-end">
-          <div class="text-right">
-            <p class="text-xs text-slate-400">Logged in as</p>
-            <p class="font-semibold text-slate-200">{{ request.user.username }}</p>
-          </div>
-          <a href="{% url 'teacher_profile' %}" class="block h-11 w-11 rounded-full overflow-hidden shadow-md border-2 border-slate-700 hover:scale-105 transition" title="Open Profile">
-            {% if nav_teacher_profile and nav_teacher_profile.profile_picture %}
-            <img src="{{ nav_teacher_profile.profile_picture.url }}" alt="Teacher profile" class="h-full w-full object-cover">
-            {% else %}
-            <div class="h-full w-full rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center text-white text-sm font-bold">
-              {{ request.user.username|first|upper }}
-            </div>
-            {% endif %}
-          </a>
-        </div>
-      </header>
-
-      <div class="flex-1 overflow-x-hidden overflow-y-auto custom-scroll p-3 pb-28 sm:p-6 sm:pb-8">
-        {% if messages %}
-        <div class="mb-4 space-y-2">
-          {% for message in messages %}
-          <div class="rounded-lg border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm text-slate-100">
-            {{ message }}
-          </div>
-          {% endfor %}
-        </div>
+      <nav class="mt-6 space-y-2 reveal delay-1">
+        <a href="{% url 'teacher_dashboard' %}" class="nav-link {% if '/teacher/dashboard/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Dashboard
+        </a>
+        {% if classroom %}
+        <a href="{% url 'assignment_list' classroom.id %}" class="nav-link {% if '/assignments/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Challenges
+        </a>
+        {% elif assignment %}
+        <a href="{% url 'assignment_list' assignment.classroom.id %}" class="nav-link {% if '/assignments/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Challenges
+        </a>
+        {% elif first_class %}
+        <a href="{% url 'assignments_page' class_id=first_class.id %}" class="nav-link {% if '/assignments/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Challenges
+        </a>
+        {% else %}
+        <span class="nav-link nav-link-disabled text-slate-500 flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">Challenges</span>
         {% endif %}
-        {% block content %}{% endblock %}
+
+        {% if classroom %}
+        <a href="{% url 'class_detail' classroom.id %}" class="nav-link {% if '/teacher/classes/' in current_path and '/performance/' not in current_path and '/assignments/' not in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Students
+        </a>
+        {% elif assignment %}
+        <a href="{% url 'class_detail' assignment.classroom.id %}" class="nav-link {% if '/teacher/classes/' in current_path and '/performance/' not in current_path and '/assignments/' not in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Students
+        </a>
+        {% elif first_class %}
+        <a href="{% url 'class_detail' first_class.id %}" class="nav-link {% if '/teacher/classes/' in current_path and '/performance/' not in current_path and '/assignments/' not in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Students
+        </a>
+        {% else %}
+        <span class="nav-link nav-link-disabled text-slate-500 flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">Students</span>
+        {% endif %}
+
+        {% if classroom %}
+        <a href="{% url 'performance_list' classroom.id %}" class="nav-link {% if '/performance/' in current_path or '/teacher/ai-tools/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Analytics
+        </a>
+        {% elif assignment %}
+        <a href="{% url 'performance_list' assignment.classroom.id %}" class="nav-link {% if '/performance/' in current_path or '/teacher/ai-tools/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Analytics
+        </a>
+        {% elif first_class %}
+        <a href="{% url 'performance_list' first_class.id %}" class="nav-link {% if '/performance/' in current_path or '/teacher/ai-tools/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Analytics
+        </a>
+        {% else %}
+        <a href="{% url 'ai_tools' %}" class="nav-link {% if '/teacher/ai-tools/' in current_path %}active{% else %}text-slate-300{% endif %} flex min-h-11 items-center rounded-2xl px-4 text-sm font-semibold">
+          Analytics
+        </a>
+        {% endif %}
+      </nav>
+
+      <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/45 p-4 reveal delay-2">
+        <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Quick Access</p>
+        <div class="mt-3 space-y-2 text-sm">
+          <a href="{% url 'create_class' %}" class="block rounded-xl px-3 py-2 text-slate-300 transition hover:bg-slate-900 hover:text-white">Create Class</a>
+          <a href="{% url 'teacher_profile' %}" class="block rounded-xl px-3 py-2 text-slate-300 transition hover:bg-slate-900 hover:text-white">Profile</a>
+          <a href="{% url 'ai_tools' %}" class="block rounded-xl px-3 py-2 text-slate-300 transition hover:bg-slate-900 hover:text-white">AI Tools</a>
+        </div>
+      </div>
+
+      <div class="mt-auto pt-6">
+        <a href="{% url 'logout' %}" class="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-rose-600/90 px-4 text-sm font-semibold text-white transition hover:bg-rose-500">
+          Logout
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="flex min-h-screen flex-1 flex-col">
+    <header class="border-b border-slate-800/90 bg-slate-950/70 px-4 py-4 backdrop-blur-xl sm:px-6 lg:hidden">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img src="{% static 'image/image.png' %}" alt="Kodehax Academy logo" class="h-10 w-10 rounded-2xl object-cover">
+          <div>
+            <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500">Kodehax Academy</p>
+            <h2 class="text-base font-black text-white">Teacher Hub</h2>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-700 px-4 text-sm font-semibold text-slate-100"
+          data-mobile-nav-toggle="teacher-mobile-menu"
+          aria-controls="teacher-mobile-menu"
+          aria-expanded="false"
+        >
+          Menu
+        </button>
+      </div>
+      <div id="teacher-mobile-menu" class="mt-4 hidden space-y-4 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+        <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Signed in as</p>
+          <p class="mt-2 text-sm font-semibold text-slate-100">{{ request.user.username }}</p>
+          <p class="mt-1 text-xs text-slate-400">Create classes and track student outcomes.</p>
+        </div>
+        <div class="grid grid-cols-1 gap-2 text-sm">
+          <a href="{% url 'create_class' %}" class="btn-muted inline-flex min-h-11 items-center justify-center px-4">Create Class</a>
+          <a href="{% url 'teacher_profile' %}" class="btn-muted inline-flex min-h-11 items-center justify-center px-4">Profile</a>
+          <a href="{% url 'ai_tools' %}" class="btn-muted inline-flex min-h-11 items-center justify-center px-4">AI Tools</a>
+          <a href="{% url 'logout' %}" class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-rose-600/90 px-4 font-semibold text-white">Logout</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto custom-scroll">
+      <div class="px-4 py-5 pb-28 sm:px-6 sm:py-6 sm:pb-28 lg:pb-8">
+        <div class="mx-auto max-w-7xl space-y-6">
+          <div class="hidden rounded-2xl border border-slate-800 bg-slate-900/45 px-4 py-3 text-xs text-slate-400 lg:block">
+            {% module_breadcrumbs "teacher" %}
+          </div>
+          <section class="surface-card reveal p-5 sm:p-6">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p class="hidden text-xs uppercase tracking-[0.18em] text-slate-500 lg:block">Teacher Workspace</p>
+                <h1 class="text-xl font-black tracking-tight text-white md:text-2xl lg:text-3xl">{% block page_title %}Teacher Dashboard{% endblock %}</h1>
+                <p class="mt-2 text-sm text-slate-400 md:text-base">{% block page_subtitle %}Manage classrooms, challenge flow, student participation, and teaching analytics from a single responsive workspace.{% endblock %}</p>
+              </div>
+              <div class="hidden items-center gap-3 lg:flex">
+                <a href="{% url 'create_class' %}" class="btn-muted inline-flex h-11 items-center justify-center px-4 text-sm">Create Class</a>
+                <a href="{% url 'teacher_profile' %}" class="btn-primary inline-flex h-11 items-center justify-center px-4 text-sm">Open Profile</a>
+              </div>
+            </div>
+          </section>
+
+          {% if messages %}
+          <div class="space-y-2">
+            {% for message in messages %}
+            <div class="rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm text-slate-100">
+              {{ message }}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% block content %}{% endblock %}
+        </div>
       </div>
     </main>
   </div>
-  <nav class="fixed inset-x-3 bottom-3 z-40 rounded-[1.35rem] border border-slate-700/80 bg-slate-950/92 p-2 shadow-[0_20px_45px_rgba(2,6,23,0.45)] backdrop-blur md:hidden">
-    <div class="grid grid-cols-4 gap-1 text-[11px]">
-      <a href="{% url 'teacher_dashboard' %}" class="mobile-tab {% if '/teacher/dashboard/' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10.5V20h14v-9.5"/></svg>
-        <span>Dashboard</span>
-      </a>
-      {% if classroom %}
-      <a href="{% url 'assignment_list' classroom.id %}" class="mobile-tab {% if '/assignments/' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      {% elif assignment %}
-      <a href="{% url 'assignment_list' assignment.classroom.id %}" class="mobile-tab {% if '/assignments/' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      {% else %}
-      {% with first_class=request.user.teacher_classes.first %}
-      {% if first_class %}
-      <a href="{% url 'assignments_page' class_id=first_class.id %}" class="mobile-tab {% if '/assignments/' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      {% else %}
-      <span class="mobile-tab flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-600">
-      {% endif %}
-      {% endwith %}
-      {% endif %}
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
-        <span>Challenges</span>
-      {% if not classroom and not assignment %}
-      {% with first_class=request.user.teacher_classes.first %}
-      {% if first_class %}
-      </a>
-      {% else %}
-      </span>
-      {% endif %}
-      {% endwith %}
-      {% else %}
-      </a>
-      {% endif %}
-      {% if classroom %}
-      <a href="{% url 'performance_list' classroom.id %}" class="mobile-tab {% if '/performance/' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      {% elif assignment %}
-      <a href="{% url 'performance_list' assignment.classroom.id %}" class="mobile-tab {% if '/performance/' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      {% else %}
-      {% with first_class=request.user.teacher_classes.first %}
-      {% if first_class %}
-      <a href="{% url 'performance_list' first_class.id %}" class="mobile-tab {% if '/performance/' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-      {% else %}
-      <span class="mobile-tab flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-600">
-      {% endif %}
-      {% endwith %}
-      {% endif %}
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="2.5"/><circle cx="16.5" cy="9.5" r="1.8"/><path d="M4 18a5 5 0 0 1 10 0"/><path d="M14 18a3.5 3.5 0 0 1 7 0"/></svg>
-        <span>Students</span>
-      {% if not classroom and not assignment %}
-      {% with first_class=request.user.teacher_classes.first %}
-      {% if first_class %}
-      </a>
-      {% else %}
-      </span>
-      {% endif %}
-      {% endwith %}
-      {% else %}
-      </a>
-      {% endif %}
-      <a href="{% url 'ai_tools' %}" class="mobile-tab {% if '/teacher/ai-tools/' in request.path %}active{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-slate-400">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v4"/><path d="M5.5 6.5 8 9"/><path d="M3 12h4"/><path d="m5.5 17.5 2.5-2.5"/><path d="M12 17v4"/><path d="m16 15 2.5 2.5"/><path d="M17 12h4"/><path d="m16 9 2.5-2.5"/><circle cx="12" cy="12" r="4"/></svg>
-        <span>Analytics</span>
-      </a>
+</div>
+
+<nav class="fixed inset-x-3 bottom-3 z-40 rounded-[1.35rem] border border-slate-700/80 bg-slate-950/92 p-2 shadow-[0_20px_45px_rgba(2,6,23,0.45)] backdrop-blur lg:hidden">
+  <div class="grid grid-cols-4 gap-1 text-[11px]">
+    <a href="{% url 'teacher_dashboard' %}" class="mobile-tab {% if '/teacher/dashboard/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10.5V20h14v-9.5"/></svg>
+      <span>Dashboard</span>
+    </a>
+    {% if classroom %}
+    <a href="{% url 'assignment_list' classroom.id %}" class="mobile-tab {% if '/assignments/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% elif assignment %}
+    <a href="{% url 'assignment_list' assignment.classroom.id %}" class="mobile-tab {% if '/assignments/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% elif first_class %}
+    <a href="{% url 'assignments_page' class_id=first_class.id %}" class="mobile-tab {% if '/assignments/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% else %}
+    <span class="mobile-tab text-slate-600 flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% endif %}
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></svg>
+      <span>Challenges</span>
+    {% if classroom or assignment or first_class %}
+    </a>
+    {% else %}
+    </span>
+    {% endif %}
+
+    {% if classroom %}
+    <a href="{% url 'class_detail' classroom.id %}" class="mobile-tab {% if '/teacher/classes/' in current_path and '/performance/' not in current_path and '/assignments/' not in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% elif assignment %}
+    <a href="{% url 'class_detail' assignment.classroom.id %}" class="mobile-tab {% if '/teacher/classes/' in current_path and '/performance/' not in current_path and '/assignments/' not in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% elif first_class %}
+    <a href="{% url 'class_detail' first_class.id %}" class="mobile-tab {% if '/teacher/classes/' in current_path and '/performance/' not in current_path and '/assignments/' not in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% else %}
+    <span class="mobile-tab text-slate-600 flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% endif %}
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="2.5"/><circle cx="16.5" cy="9.5" r="1.8"/><path d="M4 18a5 5 0 0 1 10 0"/><path d="M14 18a3.5 3.5 0 0 1 7 0"/></svg>
+      <span>Students</span>
+    {% if classroom or assignment or first_class %}
+    </a>
+    {% else %}
+    </span>
+    {% endif %}
+
+    {% if classroom %}
+    <a href="{% url 'performance_list' classroom.id %}" class="mobile-tab {% if '/performance/' in current_path or '/teacher/ai-tools/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% elif assignment %}
+    <a href="{% url 'performance_list' assignment.classroom.id %}" class="mobile-tab {% if '/performance/' in current_path or '/teacher/ai-tools/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% elif first_class %}
+    <a href="{% url 'performance_list' first_class.id %}" class="mobile-tab {% if '/performance/' in current_path or '/teacher/ai-tools/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% else %}
+    <a href="{% url 'ai_tools' %}" class="mobile-tab {% if '/teacher/ai-tools/' in current_path %}active{% else %}text-slate-400{% endif %} flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2">
+    {% endif %}
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v4"/><path d="M5.5 6.5 8 9"/><path d="M3 12h4"/><path d="m5.5 17.5 2.5-2.5"/><path d="M12 17v4"/><path d="m16 15 2.5 2.5"/><path d="M17 12h4"/><path d="m16 9 2.5-2.5"/><circle cx="12" cy="12" r="4"/></svg>
+      <span>Analytics</span>
+    </a>
+  </div>
+</nav>
+
+<div id="confirmOverlay" class="confirm-overlay" aria-hidden="true">
+  <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+    <div class="confirm-head">
+      <h3 id="confirmTitle" class="text-lg font-black text-rose-200">Confirm Action</h3>
     </div>
-  </nav>
-  <div id="confirmOverlay" class="confirm-overlay" aria-hidden="true">
-    <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
-      <div class="confirm-head">
-        <h3 id="confirmTitle" class="text-lg font-black text-rose-200">Confirm Action</h3>
-      </div>
-      <div class="confirm-body">
-        <p id="confirmMessage">Are you sure?</p>
-      </div>
-      <div class="confirm-actions">
-        <button type="button" id="confirmCancelBtn" class="btn-muted px-4 py-2 text-sm">Cancel</button>
-        <button type="button" id="confirmOkBtn" class="btn-danger px-4 py-2 text-sm">Yes, Continue</button>
-      </div>
+    <div class="confirm-body">
+      <p id="confirmMessage" class="text-sm text-slate-200">Are you sure?</p>
+    </div>
+    <div class="confirm-actions">
+      <button type="button" id="confirmCancelBtn" class="btn-muted px-4 py-2 text-sm">Cancel</button>
+      <button type="button" id="confirmOkBtn" class="btn-danger px-4 py-2 text-sm">Yes, Continue</button>
     </div>
   </div>
-  <script>
-    (() => {
-      const navToggle = document.querySelector("[data-mobile-nav-toggle='teacher-nav']");
-      const mobileNav = document.getElementById("teacher-nav");
-      const overlay = document.getElementById("confirmOverlay");
-      const titleEl = document.getElementById("confirmTitle");
-      const messageEl = document.getElementById("confirmMessage");
-      const cancelBtn = document.getElementById("confirmCancelBtn");
-      const okBtn = document.getElementById("confirmOkBtn");
-      let pendingForm = null;
+</div>
+{% endwith %}
 
-      if (navToggle && mobileNav) {
-        navToggle.addEventListener("click", () => {
-          const isOpen = !mobileNav.classList.contains("hidden");
-          mobileNav.classList.toggle("hidden", isOpen);
-          navToggle.setAttribute("aria-expanded", String(!isOpen));
-        });
+<script>
+  (() => {
+    const navToggle = document.querySelector("[data-mobile-nav-toggle='teacher-mobile-menu']");
+    const mobileMenu = document.getElementById("teacher-mobile-menu");
+    const overlay = document.getElementById("confirmOverlay");
+    const titleEl = document.getElementById("confirmTitle");
+    const messageEl = document.getElementById("confirmMessage");
+    const cancelBtn = document.getElementById("confirmCancelBtn");
+    const okBtn = document.getElementById("confirmOkBtn");
+    let pendingForm = null;
+
+    if (navToggle && mobileMenu) {
+      navToggle.addEventListener("click", () => {
+        const isOpen = !mobileMenu.classList.contains("hidden");
+        mobileMenu.classList.toggle("hidden", isOpen);
+        navToggle.setAttribute("aria-expanded", String(!isOpen));
+      });
+    }
+
+    const closeModal = () => {
+      overlay.classList.remove("open");
+      overlay.setAttribute("aria-hidden", "true");
+      pendingForm = null;
+    };
+
+    const openModal = (form) => {
+      pendingForm = form;
+      titleEl.textContent = form.dataset.confirmTitle || "Confirm Action";
+      messageEl.textContent = form.dataset.confirmMessage || "Are you sure?";
+      overlay.classList.add("open");
+      overlay.setAttribute("aria-hidden", "false");
+    };
+
+    document.addEventListener("submit", (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      if (!form.matches("form[data-confirm='true']")) return;
+      if (form.dataset.confirmed === "true") {
+        form.dataset.confirmed = "false";
+        return;
       }
+      event.preventDefault();
+      openModal(form);
+    });
 
-      const closeModal = () => {
-        overlay.classList.remove("open");
-        overlay.setAttribute("aria-hidden", "true");
-        pendingForm = null;
-      };
+    cancelBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) closeModal();
+    });
 
-      const openModal = (form) => {
-        pendingForm = form;
-        titleEl.textContent = form.dataset.confirmTitle || "Confirm Action";
-        messageEl.textContent = form.dataset.confirmMessage || "Are you sure?";
-        overlay.classList.add("open");
-        overlay.setAttribute("aria-hidden", "false");
-      };
+    okBtn.addEventListener("click", () => {
+      if (!pendingForm) return;
+      pendingForm.dataset.confirmed = "true";
+      pendingForm.submit();
+    });
 
-      document.addEventListener("submit", (event) => {
-        const form = event.target;
-        if (!(form instanceof HTMLFormElement)) return;
-        if (!form.matches("form[data-confirm='true']")) return;
-        if (form.dataset.confirmed === "true") {
-          form.dataset.confirmed = "false";
-          return;
-        }
-        event.preventDefault();
-        openModal(form);
-      });
-
-      cancelBtn.addEventListener("click", closeModal);
-      overlay.addEventListener("click", (event) => {
-        if (event.target === overlay) closeModal();
-      });
-
-      okBtn.addEventListener("click", () => {
-        if (!pendingForm) return;
-        pendingForm.dataset.confirmed = "true";
-        pendingForm.submit();
-      });
-
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && overlay.classList.contains("open")) {
-          closeModal();
-        }
-      });
-    })();
-  </script>
-  {% block extra_scripts %}{% endblock %}
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && overlay.classList.contains("open")) {
+        closeModal();
+      }
+    });
+  })();
+</script>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>
-

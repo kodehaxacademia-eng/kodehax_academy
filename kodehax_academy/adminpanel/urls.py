@@ -63,4 +63,5 @@ urlpatterns = [
         skill_assessment_views.adminpanel_skill_reset,
         name="adminpanel_skill_reset",
     ),
+    path("settings/", views.settings_view, name="adminpanel_settings"),
 ]

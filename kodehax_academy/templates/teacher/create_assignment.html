@@ -2,6 +2,7 @@
 
 {% block title %}Create Assignment{% endblock %}
 {% block page_title %}New Assignment{% endblock %}
+{% block page_subtitle %}Build assignments in a responsive form layout with clear grouping for instructions, deadlines, and attempt rules.{% endblock %}
 
 {% block content %}
 <div class="mx-auto max-w-3xl">
@@ -22,30 +23,32 @@
     <form method="POST" class="space-y-6">
       {% csrf_token %}
 
-      <div class="reveal delay-1">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="reveal delay-1 md:col-span-2">
         <label class="block text-sm font-semibold text-slate-200 mb-2">Assignment Title</label>
         <input type="text" name="title" required placeholder="e.g. Introduction to Python"
-               class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
+               class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
       </div>
 
-      <div class="reveal delay-2">
+      <div class="reveal delay-2 md:col-span-2">
         <label class="block text-sm font-semibold text-slate-200 mb-2">Instructions / Description</label>
         <textarea name="description" rows="5" placeholder="Describe the requirements..."
-                  class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition"></textarea>
+                  class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition"></textarea>
       </div>
 
       <div class="reveal delay-3">
         <label class="block text-sm font-semibold text-slate-200 mb-2">Due Date & Time</label>
         <input type="datetime-local" name="due_date" required
-               class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
+               class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
       </div>
 
       <div class="reveal delay-3">
         <label class="block text-sm font-semibold text-slate-200 mb-2">Attempt Policy</label>
-        <select name="attempt_policy" class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
+        <select name="attempt_policy" class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
           <option value="once" {% if selected_attempt_policy == "once" %}selected{% endif %}>Once only</option>
           <option value="multiple" {% if selected_attempt_policy == "multiple" %}selected{% endif %}>Multiple attempts</option>
         </select>
+      </div>
       </div>
 
       <div class="flex flex-col gap-3 pt-4 reveal delay-4 sm:flex-row sm:items-center sm:justify-between">

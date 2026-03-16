@@ -103,6 +103,22 @@ def _workspace_nav_items(challenge_set, current_challenge):
     ]
 
 
+def _remaining_workspace_challenges(challenge_set, current_challenge):
+    ordered = list(challenge_set.challenges.order_by("level", "question_number", "id"))
+    remaining = 0
+    current_seen = False
+
+    for item in ordered:
+        if item.id == current_challenge.id:
+            current_seen = True
+        if not current_seen:
+            continue
+        if item.status != DailyChallenge.STATUS_SOLVED:
+            remaining += 1
+
+    return remaining
+
+
 @login_required
 def today_challenges(request):
     redirect_response = _ensure_student(request)
@@ -237,10 +253,7 @@ def submit_solution(request, challenge_id):
                 student=request.user,
                 date=challenge.challenge_set.date,
             ).first(),
-            "remaining_challenges": max(
-                0,
-                challenge.challenge_set.challenges.count() - challenge.challenge_set.solved_count,
-            ),
+            "remaining_challenges": _remaining_workspace_challenges(challenge.challenge_set, challenge),
         },
     )
 

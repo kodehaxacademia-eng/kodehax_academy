@@ -1,0 +1,9 @@
+Hi {{ user.username }},
+
+Your login verification code is: {{ otp }}
+
+This code will expire in {{ expires_minutes }} minutes.
+
+If you did not attempt to log in, please ignore this message.
+
+{{ site_name }}

@@ -81,6 +81,7 @@ test_cases = payload["test_cases"]
 
 blocked_calls = {"eval", "exec", "open", "__import__", "compile", "input", "globals", "locals", "vars"}
 blocked_modules = {"os", "sys", "subprocess", "socket", "pathlib", "shutil"}
+allowed_modules = {"math", "collections", "itertools", "functools", "heapq", "bisect", "string"}
 
 def serialize_error(exc, category):
     return {
@@ -95,6 +96,12 @@ captured_stdout = io.StringIO()
 def safe_print(*args, **kwargs):
     kwargs.setdefault("file", captured_stdout)
     return builtins.print(*args, **kwargs)
+
+def safe_import(name, globals=None, locals=None, fromlist=(), level=0):
+    root_name = name.split(".")[0]
+    if root_name in blocked_modules or root_name not in allowed_modules:
+        raise ImportError(f"Import of '{root_name}' is not allowed in daily challenges.")
+    return builtins.__import__(name, globals, locals, fromlist, level)
 
 allowed_builtins = {
     "abs": abs,
@@ -118,6 +125,7 @@ allowed_builtins = {
     "sum": sum,
     "tuple": tuple,
     "zip": zip,
+    "__import__": safe_import,
 }
 
 namespace = {"__builtins__": allowed_builtins}
@@ -131,7 +139,7 @@ try:
             else:
                 if node.module:
                     names = [node.module.split(".")[0]]
-            if any(name in blocked_modules for name in names):
+            if any(name in blocked_modules or name not in allowed_modules for name in names):
                 raise ValueError("Restricted import detected.")
         if isinstance(node, ast.Call):
             func = node.func

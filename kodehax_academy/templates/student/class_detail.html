@@ -5,6 +5,7 @@
 {% block header_subtitle %}See class context, current assignments, and the next action for each task in a compact student workflow.{% endblock %}
 
 {% block content %}
+{% load assignment_tags %}
 <section class="space-y-5 reveal">
   <div class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
     <h2 class="text-xl font-bold text-white">{{ classroom.name }}</h2>
@@ -28,7 +29,7 @@
       {% if row.assignment.description %}
       <div class="mt-4 rounded-xl border border-slate-700 bg-slate-950/40 p-4">
         <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Questions / Instructions</p>
-        <div class="whitespace-pre-wrap text-sm text-slate-200">{{ row.assignment.description }}</div>
+        <div class="whitespace-pre-wrap text-sm text-slate-200">{{ row.assignment.description|assignment_summary:row.assignment.assignment_type }}</div>
       </div>
       {% endif %}
 

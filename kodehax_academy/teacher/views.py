@@ -17,7 +17,7 @@ from django.utils import timezone
 from django.db.models import Count
 from datetime import timedelta
 import re
-from .services.ai_tools import generate_quiz, generate_notes
+from .services.ai_tools import generate_quiz, generate_notes, generate_coding_assignment
 from .services.evaluation import (
     evaluate_quiz_for_assignment,
     grade_code_submission_ai,
@@ -424,6 +424,8 @@ def assignment_detail(request, id):
         question__assignment=assignment
     ).values("student_id").distinct().count()
 
+    is_legacy_backfill = bool(quiz_questions) and all(q.correct_answer == 'A' for q in quiz_questions)
+
     return render(request, "teacher/assignment_detail.html", {
         "assignment": assignment,
         "file_submissions": file_submissions,
@@ -431,6 +433,7 @@ def assignment_detail(request, id):
         "quiz_questions": quiz_questions,
         "quiz_results": quiz_results,
         "quiz_attempt_count": quiz_attempt_count,
+        "is_legacy_backfill": is_legacy_backfill,
     })
 
 
@@ -498,9 +501,13 @@ def grade_code_submission(request, submission_id):
                 messages.error(request, "Invalid score value.")
         return redirect("assignment_detail", id=submission.assignment.id)
 
+    delimiter = "\n\n# --- PROBLEM SEPARATOR ---\n\n"
+    code_snippets = submission.code.split(delimiter) if submission.code else []
+
     return render(request, "teacher/grade_code_submission.html", {
         "submission": submission,
         "assignment": submission.assignment,
+        "code_snippets": code_snippets,
     })
 
 
@@ -709,7 +716,7 @@ def ai_tools(request):
 
             class_id = request.POST.get("class_id")
             assignment_title = request.POST.get("assignment_title", "").strip()
-            assignment_instructions = request.POST.get("assignment_instructions", "").strip()
+            assignment_type = request.POST.get("assignment_type", "quiz")
             due_date = request.POST.get("due_date", "").strip()
             quiz_content = request.POST.get("quiz_content", "")
             attempt_policy = _parse_attempt_policy(request.POST.get("attempt_policy"))
@@ -737,30 +744,38 @@ def ai_tools(request):
                     due_date_obj = timezone.now() + timedelta(days=7)
 
                 if not upload_error:
-                    title = assignment_title or f"AI Quiz - {classroom.name}"
-                    default_instruction = "Answer all questions by selecting one option."
+                    title = assignment_title or f"AI Assignment - {classroom.name}"
+                    
+                    generated_description = ""
+                    if assignment_type in [Assignment.ASSIGNMENT_TYPE_FILE, Assignment.ASSIGNMENT_TYPE_CODE]:
+                        generated_description = quiz_content
+                    else:
+                        generated_description = "Answer all questions by selecting one option."
 
                     assignment = Assignment.objects.create(
                         classroom=classroom,
                         title=title,
-                        description=assignment_instructions or default_instruction,
+                        description=generated_description,
                         due_date=due_date_obj,
-                        assignment_type=Assignment.ASSIGNMENT_TYPE_QUIZ,
+                        assignment_type=assignment_type,
                         attempt_policy=attempt_policy,
                     )
 
-                    parsed_questions = _parse_quiz_questions_from_text(quiz_content)
-                    for q in parsed_questions:
-                        QuizQuestion.objects.create(
-                            assignment=assignment,
-                            question=q["question"],
-                            option_a=q["A"],
-                            option_b=q["B"],
-                            option_c=q["C"],
-                            option_d=q["D"],
-                            correct_answer=q["correct_answer"],
-                        )
-                    upload_success = f"Quiz uploaded to {classroom.name} as '{title}'."
+                    if assignment_type == "quiz":
+                        parsed_questions = _parse_quiz_questions_from_text(quiz_content)
+                        for q in parsed_questions:
+                            QuizQuestion.objects.create(
+                                assignment=assignment,
+                                question=q["question"],
+                                option_a=q["A"],
+                                option_b=q["B"],
+                                option_c=q["C"],
+                                option_d=q["D"],
+                                correct_answer=q["correct_answer"],
+                            )
+                        upload_success = f"Quiz uploaded to {classroom.name} as '{title}'."
+                    else:
+                        upload_success = f"Assignment uploaded to {classroom.name} as '{title}'."
 
                 result = quiz_content
                 tool_used = "quiz"
@@ -773,6 +788,8 @@ def ai_tools(request):
                 result = generate_quiz(topic)
             elif tool_used == "notes" and topic:
                 result = generate_notes(topic)
+            elif tool_used == "coding" and topic:
+                result = generate_coding_assignment(topic)
 
     return render(request, "teacher/ai_tools.html", {
         "result": result,

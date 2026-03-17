@@ -29,24 +29,55 @@
       <p class="text-xs uppercase tracking-[0.16em] text-slate-500">Question {{ forloop.counter }}</p>
       <p class="mt-2 font-semibold text-slate-100">{{ question.question }}</p>
       <div class="mt-4 space-y-4 text-sm text-slate-300">
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 px-3 py-3 hover:border-teal-400/70 hover:bg-slate-900">
-          <input type="radio" name="question_{{ question.id }}" value="A" {% if can_submit %}required{% else %}disabled{% endif %} {% if selected == "A" %}checked{% endif %} class="h-4 w-4 accent-teal-500">
-          <span class="font-semibold text-slate-400">A.</span>
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-3 transition-colors
+          {% if not can_submit %}
+            {% if selected == 'A' %} border-teal-500/50 bg-teal-950/30 text-teal-200
+            {% else %} border-slate-700/50 opacity-60 {% endif %}
+          {% else %}
+            border-slate-700 hover:border-teal-400/70 hover:bg-slate-900
+          {% endif %}
+        ">
+          <input type="radio" name="question_{{ question.id }}" value="A" {% if can_submit %}required{% else %}disabled{% endif %} {% if selected == "A" %}checked{% endif %} class="h-4 w-4 accent-teal-500 mt-0.5">
+          <span class="font-semibold {% if not can_submit and selected == 'A' %}text-teal-400{% else %}text-slate-400{% endif %}">A.</span>
           <span class="min-w-0">{{ question.option_a }}</span>
         </label>
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 px-3 py-3 hover:border-teal-400/70 hover:bg-slate-900">
-          <input type="radio" name="question_{{ question.id }}" value="B" {% if not can_submit %}disabled{% endif %} {% if selected == "B" %}checked{% endif %} class="h-4 w-4 accent-teal-500">
-          <span class="font-semibold text-slate-400">B.</span>
+
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-3 transition-colors
+          {% if not can_submit %}
+            {% if selected == 'B' %} border-teal-500/50 bg-teal-950/30 text-teal-200
+            {% else %} border-slate-700/50 opacity-60 {% endif %}
+          {% else %}
+            border-slate-700 hover:border-teal-400/70 hover:bg-slate-900
+          {% endif %}
+        ">
+          <input type="radio" name="question_{{ question.id }}" value="B" {% if not can_submit %}disabled{% endif %} {% if selected == "B" %}checked{% endif %} class="h-4 w-4 accent-teal-500 mt-0.5">
+          <span class="font-semibold {% if not can_submit and selected == 'B' %}text-teal-400{% else %}text-slate-400{% endif %}">B.</span>
           <span class="min-w-0">{{ question.option_b }}</span>
         </label>
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 px-3 py-3 hover:border-teal-400/70 hover:bg-slate-900">
-          <input type="radio" name="question_{{ question.id }}" value="C" {% if not can_submit %}disabled{% endif %} {% if selected == "C" %}checked{% endif %} class="h-4 w-4 accent-teal-500">
-          <span class="font-semibold text-slate-400">C.</span>
+
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-3 transition-colors
+          {% if not can_submit %}
+            {% if selected == 'C' %} border-teal-500/50 bg-teal-950/30 text-teal-200
+            {% else %} border-slate-700/50 opacity-60 {% endif %}
+          {% else %}
+            border-slate-700 hover:border-teal-400/70 hover:bg-slate-900
+          {% endif %}
+        ">
+          <input type="radio" name="question_{{ question.id }}" value="C" {% if not can_submit %}disabled{% endif %} {% if selected == "C" %}checked{% endif %} class="h-4 w-4 accent-teal-500 mt-0.5">
+          <span class="font-semibold {% if not can_submit and selected == 'C' %}text-teal-400{% else %}text-slate-400{% endif %}">C.</span>
           <span class="min-w-0">{{ question.option_c }}</span>
         </label>
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 px-3 py-3 hover:border-teal-400/70 hover:bg-slate-900">
-          <input type="radio" name="question_{{ question.id }}" value="D" {% if not can_submit %}disabled{% endif %} {% if selected == "D" %}checked{% endif %} class="h-4 w-4 accent-teal-500">
-          <span class="font-semibold text-slate-400">D.</span>
+
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-3 transition-colors
+          {% if not can_submit %}
+            {% if selected == 'D' %} border-teal-500/50 bg-teal-950/30 text-teal-200
+            {% else %} border-slate-700/50 opacity-60 {% endif %}
+          {% else %}
+            border-slate-700 hover:border-teal-400/70 hover:bg-slate-900
+          {% endif %}
+        ">
+          <input type="radio" name="question_{{ question.id }}" value="D" {% if not can_submit %}disabled{% endif %} {% if selected == "D" %}checked{% endif %} class="h-4 w-4 accent-teal-500 mt-0.5">
+          <span class="font-semibold {% if not can_submit and selected == 'D' %}text-teal-400{% else %}text-slate-400{% endif %}">D.</span>
           <span class="min-w-0">{{ question.option_d }}</span>
         </label>
       </div>

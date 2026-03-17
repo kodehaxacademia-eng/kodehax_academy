@@ -9,6 +9,8 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
+from django.utils import timezone
+from datetime import timedelta
 
 from .forms import (
     ForgotPasswordForm,
@@ -184,6 +186,13 @@ def _login_user(request, role, template_name):
             login(request, authenticated_user)
             return redirect("adminpanel_dashboard")
 
+        if authenticated_user.last_otp_verified_at:
+            time_since_last_otp = timezone.now() - authenticated_user.last_otp_verified_at
+            if time_since_last_otp < timedelta(hours=24):
+                _clear_login_otp_state(request)
+                login(request, authenticated_user)
+                return redirect(_dashboard_redirect_for_role(authenticated_user.role))
+
         try:
             _send_login_otp(request, authenticated_user, role, authenticated_user.backend)
         except (OSError, BadHeaderError, Exception):
@@ -245,6 +254,8 @@ def verify_login_otp(request):
             return redirect(_login_redirect_for_role(role))
 
         _clear_login_otp_state(request)
+        user.last_otp_verified_at = timezone.now()
+        user.save(update_fields=["last_otp_verified_at"])
         login(request, user, backend=backend)
         messages.success(request, "Login successful.")
         return redirect(_dashboard_redirect_for_role(user.role))

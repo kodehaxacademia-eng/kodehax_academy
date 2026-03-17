@@ -534,20 +534,49 @@ def submit_code_assignment(request, assignment_id):
     ).first()
     can_submit = assignment.allows_multiple_attempts or not existing_submission
 
+    # --- PARSING LOGIC FOR MULTIPLE PROBLEMS ---
+    # Split the assignment description by "### Problem " headers.
+    description_text = assignment.description or ""
+    parts = re.split(r"(?im)^###\s*Problem\s+.*?(?:\r?\n|$)", description_text)
+    
+    problems = []
+    # Re-extract headers to recombine with text for rendering
+    headers = re.findall(r"(?im)^###\s*Problem\s+.*?(?:\r?\n|$)", description_text)
+    
+    if len(parts) > 1:
+        # If the first part is empty or just preamble, handle it
+        preamble = parts[0].strip()
+        for i in range(len(headers)):
+            content = headers[i] + parts[i+1]
+            problems.append(content.strip())
+        if preamble and not problems:
+            problems.append(preamble)
+    else:
+        problems.append(description_text)
+        
+    delimiter = "\n\n# --- PROBLEM SEPARATOR ---\n\n"
+    
     if request.method == "POST":
         if not can_submit:
             messages.error(request, "This coding assignment allows only one attempt.")
             return redirect("submit_code_assignment", assignment_id=assignment.id)
 
-        code = request.POST.get("code", "").rstrip()
         language = request.POST.get("language", "python").strip() or "python"
+        
+        # Combine all code editors
+        code_snippets = []
+        for i in range(len(problems)):
+            snippet = request.POST.get(f"code_{i}", "").rstrip()
+            code_snippets.append(snippet)
+            
+        combined_code = delimiter.join(code_snippets).strip()
 
-        if not code:
+        if not combined_code:
             messages.error(request, "Code cannot be empty.")
             return redirect("submit_code_assignment", assignment_id=assignment.id)
 
         if existing_submission:
-            existing_submission.code = code
+            existing_submission.code = combined_code
             existing_submission.language = language
             existing_submission.save(update_fields=["code", "language"])
             sync_code_submission_record(existing_submission, evaluation_type="manual")
@@ -556,7 +585,7 @@ def submit_code_assignment(request, assignment_id):
             code_submission = CodeSubmission.objects.create(
                 assignment=assignment,
                 student=request.user,
-                code=code,
+                code=combined_code,
                 language=language,
             )
             sync_code_submission_record(code_submission, evaluation_type="manual")
@@ -564,10 +593,29 @@ def submit_code_assignment(request, assignment_id):
         messages.success(request, success_message)
         return redirect("view_assignments")
 
+    # Split existing code if it exists
+    existing_codes = []
+    if existing_submission and existing_submission.code:
+        existing_codes = existing_submission.code.split(delimiter)
+        
+    # Pad existing codes with empty strings if necessary
+    while len(existing_codes) < len(problems):
+        existing_codes.append("")
+        
+    problem_data = []
+    for i, prob_text in enumerate(problems):
+        problem_data.append({
+            "index": i,
+            "text": prob_text,
+            "code": existing_codes[i] if i < len(existing_codes) else ""
+        })
+
     return render(request, "student/assignment/submit_code.html", {
         "assignment": assignment,
         "existing_submission": existing_submission,
         "can_submit": can_submit,
+        "problem_data": problem_data,
+        "preamble": preamble if len(parts) > 1 and parts[0].strip() else None,
     })
 
 

@@ -5,15 +5,124 @@
 {% block header_subtitle %}Use a stacked problem-plus-editor layout on mobile and keep the submission action easy to reach without losing context.{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css">
+<style>
+  .ai-output-render { line-height: 1.6; color: #e2e8f0; }
+  .ai-output-render h1, .ai-output-render h2, .ai-output-render h3, .ai-output-render h4 { color: #f8fafc; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+  .ai-output-render p { margin: 0.5rem 0; }
+  .ai-output-render ul, .ai-output-render ol { margin: 0.5rem 0 0.5rem 1.25rem; }
+  .ai-output-render pre { background: rgba(2, 6, 23, 0.9); color: #e2e8f0; border-radius: 0.85rem; padding: 1rem; overflow-x: auto; margin: 1rem 0; border: 1px solid rgba(148, 163, 184, 0.3); }
+  .ai-output-render code { background: rgba(148, 163, 184, 0.2); color: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 0.4rem; font-size: 0.92em; }
+  .ai-output-render pre code { background: transparent; padding: 0; color: inherit; }
+  .ai-output-render blockquote { border-left: 4px solid #818cf8; padding-left: 0.85rem; color: #cbd5e1; margin: 0.9rem 0; }
+  
+  /* Code Editor Styles */
+  .challenge-code-shell {
+    --editor-border: rgba(71, 85, 105, 0.9);
+    --editor-muted: #94a3b8;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid var(--editor-border);
+    background: linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.94));
+    box-shadow: 0 24px 50px rgba(2, 6, 23, 0.38);
+    transition: all 0.2s ease;
+  }
+  .challenge-code-shell:focus-within {
+    border-color: rgba(34, 211, 238, 0.85);
+    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12), 0 24px 50px rgba(2, 6, 23, 0.38);
+  }
+  .editor-toolbar {
+    border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.82));
+  }
+  .editor-dot { width: 0.7rem; height: 0.7rem; border-radius: 999px; }
+  
+  .fallback-editor-stack {
+    position: relative;
+    min-height: 18rem;
+    display: grid;
+  }
+  .fallback-editor-stack > * { grid-area: 1 / 1; }
+  
+  .editor-textarea, .challenge-code-editor-root .cm-editor {
+    width: 100%;
+    min-height: 18rem;
+    font-family: "Cascadia Code", "Fira Code", monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    background: transparent;
+  }
+  .editor-textarea {
+    display: block;
+    resize: vertical;
+    border: 0;
+    color: transparent;
+    caret-color: #67e8f9;
+    text-shadow: 0 0 0 rgba(219, 234, 254, 0.02);
+    padding: 1rem;
+    outline: none;
+    white-space: pre;
+    overflow: auto;
+    position: relative;
+    z-index: 2;
+  }
+  .challenge-code-shell.cm-enhanced .editor-textarea { display: none; }
+  .challenge-code-editor-root { display: none; border: 0; }
+  .challenge-code-shell.cm-enhanced .challenge-code-editor-root { display: block; }
+  
+  .fallback-highlight {
+    margin: 0;
+    min-height: 18rem;
+    overflow: hidden;
+    padding: 1rem;
+    white-space: pre;
+    word-break: break-word;
+    color: #dbeafe;
+    pointer-events: none;
+    position: relative;
+    z-index: 1;
+    font-family: "Cascadia Code", "Fira Code", monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  
+  .fallback-highlight .token-keyword { color: #c084fc; }
+  .fallback-highlight .token-builtin { color: #67e8f9; }
+  .fallback-highlight .token-string { color: #86efac; }
+  .fallback-highlight .token-number { color: #f9a8d4; }
+  .fallback-highlight .token-comment { color: #64748b; font-style: italic; }
+  .fallback-highlight .token-function { color: #fbbf24; }
+  .fallback-highlight .token-operator { color: #fda4af; }
+  .fallback-highlight .token-constant { color: #fde68a; }
+  .fallback-highlight .token-bracket { color: #93c5fd; }
+  .fallback-highlight .token-plain { color: #dbeafe; }
+  .challenge-code-editor-root { display: none; border: 0; }
+  .challenge-code-shell.cm-enhanced .challenge-code-editor-root { display: block; }
+  
+  .challenge-code-editor-root .cm-scroller { overflow: auto; font-family: inherit; line-height: 1.6; }
+  .challenge-code-editor-root .cm-gutters {
+    border-right: 1px solid rgba(51, 65, 85, 0.55);
+    background: rgba(15, 23, 42, 0.78);
+    color: var(--editor-muted);
+  }
+  .challenge-code-editor-root .cm-activeLine, .challenge-code-editor-root .cm-activeLineGutter { background: rgba(34, 211, 238, 0.08); }
+  .challenge-code-editor-root .cm-focused { outline: none; }
+  .challenge-code-editor-root .cm-content, .challenge-code-editor-root .cm-line { caret-color: #67e8f9; }
+  .challenge-code-editor-root .cm-selectionBackground, .challenge-code-editor-root .cm-content ::selection { background: rgba(59, 130, 246, 0.28); }
+</style>
 <section class="space-y-5 reveal pb-28 md:pb-0">
   <div class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
     <h2 class="text-xl font-bold text-white sm:text-2xl">{{ assignment.title }}</h2>
     <p class="text-sm text-slate-400 mt-1">Class: {{ assignment.classroom.name }}</p>
     <p class="text-sm text-slate-400">Due: {{ assignment.due_date|date:"M d, Y H:i" }}</p>
+    
+    {% if preamble %}
     <div class="mt-4 rounded-lg border border-slate-700 bg-slate-950/40 p-4">
-      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Problem Statement</p>
-      <div class="whitespace-pre-wrap text-sm text-slate-200">{{ assignment.description }}</div>
+      <div class="text-sm text-slate-200 ai-output-render"></div>
+      <textarea class="hidden ai-output-raw">{{ preamble }}</textarea>
     </div>
+    {% endif %}
   </div>
 
   {% if existing_submission and not can_submit %}
@@ -33,13 +142,51 @@
         Python is preselected for this assignment. Keep your solution self-contained and ready for evaluation.
       </div>
     </div>
-    <div>
-      <label class="block mb-2 text-sm font-semibold text-slate-200">Code</label>
-      <textarea name="code" rows="16" {% if can_submit %}required{% else %}readonly{% endif %} class="w-full rounded-xl border border-slate-600 bg-slate-950/80 px-4 py-3 font-mono text-sm text-slate-200">{% if existing_submission %}{{ existing_submission.code }}{% endif %}</textarea>
+    
+    {% for problem in problem_data %}
+    <div class="problem-container group" data-index="{{ forloop.counter0 }}" {% if not forloop.first %}style="display: none;"{% endif %}>
+      <div class="mt-8 rounded-lg border border-slate-700 bg-slate-950/40 p-4">
+        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Problem Statement</p>
+        <div class="text-sm text-slate-200 ai-output-render"></div>
+        <textarea class="hidden ai-output-raw">{{ problem.text }}</textarea>
+      </div>
+      <div class="mt-4">
+        <label class="block mb-2 text-sm font-semibold text-slate-200 flex items-center justify-between">
+          <span>Solution {{ forloop.counter }}</span>
+        </label>
+        <div class="challenge-code-shell">
+          <div class="editor-toolbar flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div class="flex items-center gap-2">
+              <span class="editor-dot bg-rose-400"></span>
+              <span class="editor-dot bg-amber-400"></span>
+              <span class="editor-dot bg-emerald-400"></span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+              <span class="rounded-full border border-slate-700/80 bg-slate-900/70 px-3 py-1 font-medium uppercase tracking-[0.16em] text-slate-300">{% if existing_submission %}{{ existing_submission.language }}{% else %}python{% endif %}</span>
+            </div>
+          </div>
+          <div class="fallback-editor-stack">
+            <pre class="challenge-code-editor fallback-highlight" aria-hidden="true"></pre>
+            <textarea name="code_{{ problem.index }}" spellcheck="false" class="editor-textarea" {% if not can_submit %}readonly{% endif %}>{% if problem.code %}{{ problem.code }}{% endif %}</textarea>
+            <div class="challenge-code-editor-root" aria-label="Code editor"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    {% if can_submit %}
-    <button type="submit" class="btn-primary hidden w-full items-center justify-center px-5 py-2.5 sm:w-auto md:inline-flex">Submit Code</button>
-    {% endif %}
+    {% endfor %}
+    
+    <div class="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-slate-700 pt-6">
+      <div class="text-sm font-semibold text-slate-400">
+        Problem <span id="current-problem-indicator">1</span> of {{ problem_data|length }}
+      </div>
+      <div class="flex items-center gap-3">
+        <button type="button" id="btn-prev-problem" class="btn-muted hidden px-5 py-2.5 text-sm font-medium">Previous</button>
+        <button type="button" id="btn-next-problem" class="btn-primary px-5 py-2.5 text-sm font-medium {% if problem_data|length <= 1 %}hidden{% endif %}">Next</button>
+        {% if can_submit %}
+        <button type="submit" id="btn-submit-code" class="btn-primary px-5 py-2.5 text-sm font-medium {% if problem_data|length > 1 %}hidden{% endif %}">Submit Code</button>
+        {% endif %}
+      </div>
+    </div>
   </form>
   {% if can_submit %}
   <div class="fixed inset-x-3 bottom-24 z-30 rounded-[1.25rem] border border-slate-700/80 bg-slate-950/92 p-3 shadow-[0_18px_40px_rgba(2,6,23,0.45)] backdrop-blur md:hidden">
@@ -47,4 +194,301 @@
   </div>
   {% endif %}
 </section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+  (function () {
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      highlight: function (code, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+          return hljs.highlight(code, { language: lang }).value;
+        }
+        return hljs.highlightAuto(code).value;
+      }
+    });
+
+    document.querySelectorAll(".ai-output-render").forEach(output => {
+      const raw = output.nextElementSibling;
+      if (!raw || !raw.classList.contains("ai-output-raw")) return;
+
+      const markdown = raw.value || "";
+      const parsed = marked.parse(markdown);
+      output.innerHTML = DOMPurify.sanitize(parsed);
+
+      output.querySelectorAll("pre code").forEach((block) => {
+        hljs.highlightElement(block);
+      });
+
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(output, {
+            throwOnError: false,
+            errorCallback: (msg, err) => {
+              console.warn('LaTeX rendering fallback triggered:', msg);
+            },
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "$", right: "$", display: false },
+              { left: "\\(", right: "\\)", display: false },
+              { left: "\\[", right: "\\]", display: true }
+            ]
+          });
+        } catch (e) {
+          console.error("Critical LaTeX rendering failure:", e);
+        }
+      }
+    });
+  })();
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const containers = document.querySelectorAll(".problem-container");
+    const btnPrev = document.getElementById("btn-prev-problem");
+    const btnNext = document.getElementById("btn-next-problem");
+    const btnSubmit = document.getElementById("btn-submit-code");
+    const indicator = document.getElementById("current-problem-indicator");
+    let currentIndex = 0;
+    const total = containers.length;
+
+    if (total <= 1) return;
+
+    const updateView = () => {
+        containers.forEach((c, idx) => {
+            c.style.display = (idx === currentIndex) ? "block" : "none";
+        });
+        if (indicator) indicator.textContent = currentIndex + 1;
+        
+        if (currentIndex === 0) {
+            if (btnPrev) btnPrev.classList.add("hidden");
+        } else {
+            if (btnPrev) btnPrev.classList.remove("hidden");
+        }
+
+        if (currentIndex === total - 1) {
+            if (btnNext) btnNext.classList.add("hidden");
+            if (btnSubmit) btnSubmit.classList.remove("hidden");
+        } else {
+            if (btnNext) btnNext.classList.remove("hidden");
+            if (btnSubmit) btnSubmit.classList.add("hidden");
+        }
+    };
+
+    if (btnPrev) {
+        btnPrev.addEventListener("click", () => {
+            if (currentIndex > 0) { currentIndex--; updateView(); }
+        });
+    }
+    
+    if (btnNext) {
+        btnNext.addEventListener("click", () => {
+            if (currentIndex < total - 1) { currentIndex++; updateView(); }
+        });
+    }
+});
+</script>
+
+<script type="module">
+  // Python syntax token parser for fallback text areas
+  const escapeHtml = (value) =>
+    value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+
+  const highlightPython = (source) => {
+    const keywords = new Set([
+      "and", "as", "assert", "async", "await", "break", "class", "continue", "def",
+      "del", "elif", "else", "except", "finally", "for", "from", "global", "if",
+      "import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise",
+      "return", "try", "while", "with", "yield", "match", "case",
+    ]);
+    const builtins = new Set([
+      "abs", "all", "any", "bool", "dict", "enumerate", "filter", "float", "int",
+      "len", "list", "map", "max", "min", "print", "range", "reversed", "set",
+      "sorted", "str", "sum", "tuple", "zip",
+    ]);
+    const constants = new Set(["True", "False", "None"]);
+    const tokenPattern = /(#.*$)|("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|\b([A-Za-z_][A-Za-z0-9_]*)\b|(\d+(?:\.\d+)?)|([+\-*/%=<>!&|^~:]+)|([()[\]{}.,])/gm;
+
+    let html = "";
+    let lastIndex = 0;
+    let functionNamePending = false;
+    for (const match of source.matchAll(tokenPattern)) {
+      const index = match.index ?? 0;
+      html += `<span class="token-plain">${escapeHtml(source.slice(lastIndex, index))}</span>`;
+
+      const [fullMatch, comment, stringToken, identifier, numberToken, operatorToken, bracketToken] = match;
+      let className = "token-plain";
+      if (comment) {
+        className = "token-comment";
+      } else if (stringToken) {
+        className = "token-string";
+      } else if (identifier) {
+        if (functionNamePending) {
+          className = "token-function";
+          functionNamePending = false;
+        } else if (keywords.has(identifier)) {
+          className = "token-keyword";
+          if (identifier === "def" || identifier === "class") {
+            functionNamePending = true;
+          }
+        } else if (builtins.has(identifier)) {
+          className = "token-builtin";
+        } else if (constants.has(identifier)) {
+          className = "token-constant";
+        }
+      } else if (numberToken) {
+        className = "token-number";
+      } else if (operatorToken) {
+        className = "token-operator";
+      } else if (bracketToken) {
+        className = "token-bracket";
+      }
+
+      html += `<span class="${className}">${escapeHtml(fullMatch)}</span>`;
+      lastIndex = index + fullMatch.length;
+    }
+
+    html += `<span class="token-plain">${escapeHtml(source.slice(lastIndex))}</span>`;
+    return html || '<span class="token-plain">\n</span>';
+  };
+
+  // Bind to all text areas
+  const textareas = document.querySelectorAll(".editor-textarea");
+  textareas.forEach(ta => {
+     const shell = ta.closest(".challenge-code-shell");
+     const fallback = shell ? shell.querySelector(".fallback-highlight") : null;
+     
+     const sync = () => {
+         if (!fallback || (shell && shell.classList.contains("cm-enhanced"))) return;
+         fallback.innerHTML = highlightPython(ta.value || "");
+         fallback.scrollTop = ta.scrollTop;
+         fallback.scrollLeft = ta.scrollLeft;
+     };
+     
+     ta.addEventListener("input", sync);
+     ta.addEventListener("scroll", sync);
+     
+     // Allow fallback indenting via tab if CodeMirror fails to load
+     ta.addEventListener('keydown', function(e) {
+       if (e.key === 'Tab') {
+         e.preventDefault();
+         const start = this.selectionStart;
+         const end = this.selectionEnd;
+         this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+         this.selectionStart = this.selectionEnd = start + 4;
+         sync();
+       } else if (e.key === 'Enter') {
+         e.preventDefault();
+         const start = this.selectionStart;
+         const val = this.value;
+         const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+         const line = val.substring(lineStart, start);
+         const match = line.match(/^(\s*)/);
+         let indent = match ? match[1] : "";
+         if (line.trim().endsWith(':')) {
+           indent += "    ";
+         }
+         const insert = '\n' + indent;
+         this.value = val.substring(0, start) + insert + val.substring(this.selectionEnd);
+         this.selectionStart = this.selectionEnd = start + insert.length;
+         sync();
+       }
+     });
+
+     sync();
+  });
+
+  // Multi-Editor CodeMirror Init
+  (async () => {
+    const shells = document.querySelectorAll(".challenge-code-shell");
+    if (!shells.length) return;
+
+    try {
+      const [
+        stateModule,
+        viewModule,
+        languageModule,
+        pythonModule,
+        commandsModule,
+        searchModule,
+      ] = await Promise.all([
+        import("https://esm.sh/@codemirror/state@6.4.1"),
+        import("https://esm.sh/@codemirror/view@6.36.1"),
+        import("https://esm.sh/@codemirror/language@6.10.8"),
+        import("https://esm.sh/@codemirror/lang-python@6.1.6"),
+        import("https://esm.sh/@codemirror/commands@6.8.1"),
+        import("https://esm.sh/@codemirror/search@6.5.10"),
+      ]);
+
+      const {EditorState} = stateModule;
+      const {EditorView, keymap, lineNumbers, highlightActiveLineGutter, drawSelection, highlightActiveLine} = viewModule;
+      const {defaultHighlightStyle, syntaxHighlighting, indentOnInput, bracketMatching, foldGutter} = languageModule;
+      const {python} = pythonModule;
+      const {defaultKeymap, history, historyKeymap, indentWithTab} = commandsModule;
+      const {searchKeymap, highlightSelectionMatches} = searchModule;
+
+      const vscodeTheme = EditorView.theme(
+        {
+          "&": { backgroundColor: "transparent", color: "#dbeafe" },
+          ".cm-content": { padding: "1rem 0", minHeight: "18rem" },
+          ".cm-line": { padding: "0 1rem" },
+          ".cm-cursor, .cm-dropCursor": { borderLeftColor: "#67e8f9" },
+          ".cm-tooltip": { backgroundColor: "#0f172a", border: "1px solid rgba(51, 65, 85, 0.9)" },
+        },
+        {dark: true}
+      );
+
+      shells.forEach((shell) => {
+        const textarea = shell.querySelector(".editor-textarea");
+        const editorRoot = shell.querySelector(".challenge-code-editor-root");
+        if (!textarea || !editorRoot) return;
+        if (textarea.hasAttribute("readonly")) return; // skip replacing if in readonly mode 
+
+        const state = EditorState.create({
+          doc: textarea.value,
+          extensions: [
+            lineNumbers(),
+            highlightActiveLineGutter(),
+            history(),
+            drawSelection(),
+            indentOnInput(),
+            bracketMatching(),
+            foldGutter(),
+            highlightActiveLine(),
+            highlightSelectionMatches(),
+            syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
+            keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, indentWithTab]),
+            python(),
+            vscodeTheme,
+            EditorView.lineWrapping,
+            EditorView.updateListener.of((update) => {
+              if (update.docChanged) {
+                textarea.value = update.state.doc.toString();
+              }
+            }),
+          ],
+        });
+
+        new EditorView({
+          state,
+          parent: editorRoot,
+        });
+
+        shell.classList.add("cm-enhanced");
+      });
+    } catch (e) {
+      console.warn("Code editor enhancement failed:", e);
+    }
+  })();
+</script>
 {% endblock %}

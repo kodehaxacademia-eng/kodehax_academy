@@ -161,12 +161,12 @@ USE_TZ = True
 DAILY_CHALLENGE_TIMEZONE = os.getenv("DAILY_CHALLENGE_TIMEZONE", "Asia/Kolkata")
 DAILY_CHALLENGE_PUBLISH_HOUR = int(os.getenv("DAILY_CHALLENGE_PUBLISH_HOUR", "10"))
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
 STATICFILES_DIRS = [
     BASE_DIR / "static"
 ]
 AUTH_USER_MODEL = 'users.User'
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
 MEDIA_URL = "/media/"

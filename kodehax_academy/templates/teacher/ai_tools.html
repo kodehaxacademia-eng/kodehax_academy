@@ -7,23 +7,23 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css">
 <style>
   .ai-output {
-    line-height: 1.8;
+    line-height: 1.6;
     color: #e2e8f0;
   }
 
   .ai-output h1, .ai-output h2, .ai-output h3, .ai-output h4 {
     color: #f8fafc;
-    font-weight: 800;
-    margin-top: 1rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
     margin-bottom: 0.5rem;
   }
 
   .ai-output p {
-    margin: 0.55rem 0;
+    margin: 0.5rem 0;
   }
 
   .ai-output ul, .ai-output ol {
-    margin: 0.75rem 0 0.75rem 1.25rem;
+    margin: 0.5rem 0 0.5rem 1.25rem;
   }
 
   .ai-output pre {
@@ -100,6 +100,7 @@
       <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <button type="submit" name="tool" value="quiz" class="btn-primary h-11 px-6">Generate Quiz</button>
         <button type="submit" name="tool" value="notes" class="btn-muted h-11 border-emerald-500/40 px-6 hover:bg-emerald-900/20">Generate Lecture Notes</button>
+        <button type="submit" name="tool" value="coding" class="btn-muted h-11 border-purple-500/40 px-6 hover:bg-purple-900/20">Generate Coding Task</button>
       </div>
     </form>
   </section>
@@ -129,10 +130,10 @@
       </div>
     </article>
 
-    {% if tool_used == "quiz" %}
+    {% if tool_used == "quiz" or tool_used == "coding" %}
     <aside class="xl:col-span-2 glass-card hover-lift p-4 sm:p-6 reveal delay-3">
-      <h4 class="text-lg font-bold text-white">Upload Quiz To Assignment</h4>
-      <p class="text-sm text-slate-300 mt-2">Creates an assignment from the generated quiz. Answer key is removed automatically.</p>
+      <h4 class="text-lg font-bold text-white">Upload AI Output To Assignment</h4>
+      <p class="text-sm text-slate-300 mt-2">Creates an assignment from the generated text. Quiz answers are mapped/removed automatically.</p>
 
       <form method="POST" class="mt-5 space-y-4">
         {% csrf_token %}
@@ -155,8 +156,12 @@
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-slate-200 mb-2">Instructions (optional)</label>
-          <textarea name="assignment_instructions" rows="2" placeholder="Example: Select one answer for each question." class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition"></textarea>
+          <label class="block text-sm font-semibold text-slate-200 mb-2">Assignment Type</label>
+          <select name="assignment_type" required class="w-full rounded-xl border border-slate-600 bg-slate-900/50 px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-400 transition">
+            <option value="quiz">Quiz (MCQ)</option>
+            <option value="file">File Upload</option>
+            <option value="code">Coding</option>
+          </select>
         </div>
 
         <div>
@@ -212,15 +217,22 @@
     });
 
     if (window.renderMathInElement) {
-      renderMathInElement(output, {
-        throwOnError: false,
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false },
-          { left: "\\(", right: "\\)", display: false },
-          { left: "\\[", right: "\\]", display: true }
-        ]
-      });
+      try {
+        renderMathInElement(output, {
+          throwOnError: false,
+          errorCallback: (msg, err) => {
+            console.warn('LaTeX rendering fallback triggered:', msg);
+          },
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ]
+        });
+      } catch (e) {
+        console.error("Critical LaTeX rendering failure:", e);
+      }
     }
   })();
 </script>

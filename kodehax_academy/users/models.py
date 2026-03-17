@@ -12,6 +12,7 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     is_email_verified = models.BooleanField(default=False)
+    last_otp_verified_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.username

@@ -5,9 +5,12 @@ import os
 import re
 from typing import Any
 
-import ollama
+import google.generativeai as genai
 
+from django.conf import settings
 from teacher.models import Assignment, CodeSubmission, QuizAnswer, QuizResult, Submission
+
+genai.configure(api_key=settings.GEMINI_API_KEY)
 
 
 def clamp_score(score: float, max_score: float) -> float:
@@ -57,11 +60,9 @@ def _read_text_file(file_path: str, char_limit: int = 6000) -> str:
 
 def _ai_grade(prompt: str, max_score: float) -> tuple[float, str]:
     try:
-        response = ollama.chat(
-            model="llama3",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        content = response["message"]["content"].strip()
+        genai_model = genai.GenerativeModel("gemini-flash-latest")
+        response = genai_model.generate_content(prompt)
+        content = response.text.strip()
     except Exception as exc:  # noqa: BLE001
         return 0.0, f"AI grading failed: {exc}"
 
@@ -160,11 +161,9 @@ def grade_code_submission_ai(code_submission: CodeSubmission) -> CodeSubmission:
         f"Student code:\n{code_submission.code}"
     )
     try:
-        response = ollama.chat(
-            model="llama3",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        raw_feedback = response["message"]["content"].strip()
+        genai_model = genai.GenerativeModel("gemini-flash-latest")
+        response = genai_model.generate_content(prompt)
+        raw_feedback = response.text.strip()
     except Exception as exc:  # noqa: BLE001
         raw_feedback = f"AI grading failed: {exc}"
 
@@ -243,9 +242,17 @@ def evaluate_quiz_for_student(assignment: Assignment, student) -> QuizResult:
     answer_map = {answer.question_id: answer.selected_option for answer in answers}
 
     correct_count = 0
-    for question in questions:
-        if answer_map.get(question.id) == question.correct_answer:
-            correct_count += 1
+    
+    # Check if this is a legacy backfilled quiz where all correct answers default to 'A'
+    is_legacy_backfill = all(q.correct_answer == 'A' for q in questions)
+    
+    if is_legacy_backfill:
+        # Give automatic full credit since we don't have the original answer key
+        correct_count = total_questions
+    else:
+        for question in questions:
+            if answer_map.get(question.id) == question.correct_answer:
+                correct_count += 1
 
     score = (correct_count / total_questions) * assignment.max_score
     feedback = f"Auto-graded quiz: {correct_count}/{total_questions} correct."

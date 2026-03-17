@@ -4,6 +4,19 @@
 {% block header %}Assignments{% endblock %}
 
 {% block content %}
+{% load assignment_tags %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css">
+<style>
+  .ai-output-render { line-height: 1.6; color: #e2e8f0; }
+  .ai-output-render h1, .ai-output-render h2, .ai-output-render h3, .ai-output-render h4 { color: #f8fafc; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+  .ai-output-render p { margin: 0.5rem 0; }
+  .ai-output-render ul, .ai-output-render ol { margin: 0.5rem 0 0.5rem 1.25rem; }
+  .ai-output-render pre { background: rgba(2, 6, 23, 0.9); color: #e2e8f0; border-radius: 0.85rem; padding: 1rem; overflow-x: auto; margin: 1rem 0; border: 1px solid rgba(148, 163, 184, 0.3); }
+  .ai-output-render code { background: rgba(148, 163, 184, 0.2); color: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 0.4rem; font-size: 0.92em; }
+  .ai-output-render pre code { background: transparent; padding: 0; color: inherit; }
+  .ai-output-render blockquote { border-left: 4px solid #818cf8; padding-left: 0.85rem; color: #cbd5e1; margin: 0.9rem 0; }
+</style>
 <section class="space-y-5 reveal">
   <div class="rounded-2xl border border-slate-700 bg-slate-900/45 p-5 sm:p-6">
     <h2 class="text-xl font-bold tracking-tight text-white">Available Assignments</h2>
@@ -26,7 +39,8 @@
       {% if row.assignment.description %}
       <div class="mt-4 rounded-xl border border-slate-700 bg-slate-950/40 p-4">
         <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Questions / Instructions</p>
-        <div class="whitespace-pre-wrap text-sm text-slate-200">{{ row.assignment.description }}</div>
+        <div class="text-sm text-slate-200 ai-output-render"></div>
+        <textarea class="hidden ai-output-raw">{{ row.assignment.description|assignment_summary:row.assignment.assignment_type }}</textarea>
       </div>
       {% endif %}
 
@@ -56,4 +70,58 @@
     {% endfor %}
   </div>
 </section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+  (function () {
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      highlight: function (code, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+          return hljs.highlight(code, { language: lang }).value;
+        }
+        return hljs.highlightAuto(code).value;
+      }
+    });
+
+    document.querySelectorAll(".ai-output-render").forEach(output => {
+      const raw = output.nextElementSibling;
+      if (!raw || !raw.classList.contains("ai-output-raw")) return;
+
+      const markdown = raw.value || "";
+      const parsed = marked.parse(markdown);
+      output.innerHTML = DOMPurify.sanitize(parsed);
+
+      output.querySelectorAll("pre code").forEach((block) => {
+        hljs.highlightElement(block);
+      });
+
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(output, {
+            throwOnError: false,
+            errorCallback: (msg, err) => {
+              console.warn('LaTeX rendering fallback triggered:', msg);
+            },
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "$", right: "$", display: false },
+              { left: "\\(", right: "\\)", display: false },
+              { left: "\\[", right: "\\]", display: true }
+            ]
+          });
+        } catch (e) {
+          console.error("Critical LaTeX rendering failure:", e);
+        }
+      }
+    });
+  })();
+</script>
 {% endblock %}

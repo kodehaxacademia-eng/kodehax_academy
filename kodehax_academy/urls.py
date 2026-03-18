@@ -30,9 +30,14 @@ from student.views import (
 
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({"status": "healthy"})
 
 
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
     path('admin/', admin.site.urls),
     path('admin-panel/', include('adminpanel.urls')),
     path("api/chat/start/", chat_start_api, name="api_chat_start"),

@@ -2,11 +2,36 @@
 {% load static %}
 
 {% block title %}AI Assistant{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css">
+{% endblock %}
+{% block workspace_sidebar %}
+<div class="mt-4 border-t border-slate-800 pt-4">
+    <div class="memory-indicator" id="memory-indicator">
+        Memory active: Last {{ memory_settings.duration_minutes }} minutes
+    </div>
+    <button type="button" class="new-chat-btn sidebar-new-chat" onclick="createNewChat()">New Chat</button>
+    <div id="chat-session-list" class="chat-session-list sidebar-session-list"></div>
+</div>
+{% endblock %}
 {% block header %}Student AI Assistant{% endblock %}
 {% block header_subtitle %}Switch between tutoring, Q&A, quiz practice, and summarization in a focused assistant workspace.{% endblock %}
 
 {% block content %}
-<div class="glass-card p-4 sm:p-6">
+<div class="chat-page-layout">
+<div class="glass-card chat-card p-4 sm:p-6">
+    <div class="chat-toolbar">
+        <div class="chat-session-meta">
+            <p class="chat-session-label">Current Session</p>
+            <h3 id="active-session-title" class="chat-session-title">New Chat</h3>
+        </div>
+        <div class="chat-session-actions">
+            <button type="button" class="session-action-btn" onclick="renameActiveSession()">Rename</button>
+            <button type="button" class="session-action-btn" onclick="clearActiveSession()">Clear Memory</button>
+            <button type="button" class="session-action-btn danger" onclick="deleteActiveSession()">Delete</button>
+        </div>
+    </div>
     <div class="mode-row">
         <button onclick="setMode('tutor')" id="btn-tutor" class="mode-btn active-mode">AI Tutor</button>
         <button onclick="setMode('course_qa')" id="btn-course_qa" class="mode-btn">Course Q&A</button>
@@ -18,10 +43,15 @@
         <div class="placeholder" id="placeholder">Ask me anything about your course.</div>
     </div>
 
+    <div id="image-preview-row" class="image-preview-row hidden"></div>
+
     <div class="chat-input-row">
+        <input id="image-input" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" class="hidden" />
+        <button type="button" class="upload-btn" onclick="document.getElementById('image-input').click()" title="Upload image">Attach</button>
         <input id="user-input" type="text" placeholder="Type your question and press Enter..." onkeydown="if(event.key==='Enter') sendMessage()" />
         <button onclick="sendMessage()" id="send-btn" class="send-btn">Send</button>
     </div>
+</div>
 </div>
 
 <style>
@@ -43,6 +73,136 @@
     gap: 0.5rem;
     flex-wrap: wrap;
     margin-bottom: 0.85rem;
+  }
+
+  .chat-page-layout {
+    min-height: calc(100vh - 18rem);
+  }
+
+  .chat-session-label {
+    margin: 0;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--chat-muted);
+  }
+
+  .chat-session-title {
+    margin: 0.2rem 0 0;
+    color: #f8fafc;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .new-chat-btn,
+  .session-action-btn {
+    border: 1px solid var(--chat-border);
+    background: rgba(15, 23, 42, 0.85);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 0.46rem 0.8rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    transition: 180ms ease;
+  }
+
+  .new-chat-btn:hover,
+  .session-action-btn:hover {
+    border-color: var(--chat-accent);
+    color: #fff;
+  }
+
+  .session-action-btn.danger:hover {
+    border-color: rgba(251, 113, 133, 0.75);
+    color: #ffe4e6;
+  }
+
+  .memory-indicator {
+    margin-bottom: 0.85rem;
+    border: 1px solid rgba(45, 212, 191, 0.18);
+    background: rgba(20, 184, 166, 0.08);
+    color: #bffcf1;
+    border-radius: 12px;
+    padding: 0.7rem 0.8rem;
+    font-size: 0.78rem;
+  }
+
+  .chat-session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+  }
+
+  .sidebar-session-list {
+    max-height: 24rem;
+  }
+
+  .sidebar-new-chat {
+    width: 100%;
+    margin-bottom: 0.75rem;
+  }
+
+  .session-item {
+    text-align: left;
+    width: 100%;
+    border: 1px solid var(--chat-border);
+    background: rgba(15, 23, 42, 0.58);
+    border-radius: 14px;
+    padding: 0.8rem;
+    transition: 180ms ease;
+  }
+
+  .session-item:hover {
+    border-color: rgba(45, 212, 191, 0.4);
+    background: rgba(15, 23, 42, 0.82);
+  }
+
+  .session-item.active {
+    border-color: rgba(45, 212, 191, 0.55);
+    background: rgba(20, 184, 166, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.15);
+  }
+
+  .session-item-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0;
+  }
+
+  .session-item-preview {
+    margin-top: 0.28rem;
+    font-size: 0.76rem;
+    color: var(--chat-muted);
+    line-height: 1.45;
+  }
+
+  .session-item-time {
+    margin-top: 0.45rem;
+    font-size: 0.7rem;
+    color: #7dd3fc;
+  }
+
+  .chat-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .chat-session-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .chat-card {
+    display: flex;
+    flex-direction: column;
+    min-height: clamp(32rem, 72vh, 56rem);
   }
 
   .mode-btn {
@@ -69,7 +229,8 @@
   }
 
   .chat-shell {
-    height: 52vh;
+    flex: 1;
+    min-height: 24rem;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -178,57 +339,212 @@
     border-radius: 0 8px 8px 0;
   }
 
+  .assistant-content .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.25rem 0.1rem;
+  }
+
+  .structured-wrap {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .structured-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  .structured-title {
+    margin: 0;
+    font-size: 1rem;
+    color: #f8fafc;
+  }
+
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.9);
+    color: #cbd5e1;
+    font-size: 0.72rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    text-transform: capitalize;
+  }
+
+  .section-card {
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.72);
+    border-radius: 12px;
+    padding: 0.78rem 0.85rem;
+  }
+
+  .section-card h4 {
+    margin: 0 0 0.45rem;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .quiz-grid {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .quiz-card {
+    border: 1px solid #263244;
+    border-radius: 12px;
+    background: rgba(2, 6, 23, 0.86);
+    padding: 0.75rem;
+  }
+
+  .quiz-level {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--chat-accent);
+  }
+
+  .quiz-question {
+    margin: 0 0 0.45rem;
+    color: #f8fafc;
+    font-weight: 600;
+  }
+
+  .quiz-options {
+    margin: 0.35rem 0 0;
+    padding-left: 1rem;
+    color: #d5d7df;
+  }
+
+  .follow-up-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .follow-up-btn {
+    border: 1px solid var(--border);
+    background: rgba(20, 184, 166, 0.12);
+    color: #dffcf7;
+    border-radius: 999px;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: 180ms ease;
+  }
+
+  .follow-up-btn:hover {
+    background: rgba(20, 184, 166, 0.2);
+    border-color: rgba(20, 184, 166, 0.6);
+  }
+
   .inline-code {
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    color: #dbeafe;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(71, 85, 105, 0.7);
+    color: #c4b5fd;
     border-radius: 6px;
     font-size: 0.82em;
-    padding: 0.08rem 0.3rem;
-    font-family: Consolas, "Courier New", monospace;
+    padding: 0.08rem 0.34rem;
+    font-family: "Cascadia Code", Consolas, "Courier New", monospace;
   }
 
   .code-card {
-    margin: 0.5rem 0;
-    border: 1px solid var(--border);
-    border-radius: 11px;
+    margin: 0.65rem 0;
+    border: 1px solid rgba(71, 85, 105, 0.55);
+    border-radius: 14px;
     overflow: hidden;
-    background: var(--chat-code-bg);
+    background:
+      radial-gradient(circle at top right, rgba(34, 211, 238, 0.08), transparent 30%),
+      linear-gradient(180deg, #0b1020, #060b16);
+    box-shadow: 0 18px 35px rgba(2, 6, 23, 0.42);
   }
 
   .code-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.43rem 0.65rem;
-    background: var(--chat-code-header);
-    color: var(--muted);
-    font-size: 0.75rem;
-    font-weight: 600;
+    padding: 0.52rem 0.75rem;
+    background: rgba(15, 23, 42, 0.92);
+    color: #cbd5e1;
+    font-size: 0.74rem;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.45);
+  }
+
+  .code-header-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .code-dot-group {
+    display: inline-flex;
+    gap: 0.28rem;
+  }
+
+  .code-dot {
+    width: 0.58rem;
+    height: 0.58rem;
+    border-radius: 999px;
+    opacity: 0.95;
+  }
+
+  .code-dot.red { background: #fb7185; }
+  .code-dot.amber { background: #fbbf24; }
+  .code-dot.green { background: #34d399; }
+
+  .code-language {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.68rem;
   }
 
   .copy-btn {
-    background: #111827;
-    border: 1px solid #273449;
-    color: var(--muted);
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(71, 85, 105, 0.55);
+    color: #cbd5e1;
     font-size: 0.68rem;
-    border-radius: 6px;
-    padding: 0.14rem 0.4rem;
+    border-radius: 999px;
+    padding: 0.18rem 0.55rem;
     cursor: pointer;
+    transition: 160ms ease;
   }
 
   .copy-btn:hover {
-    background: #1e293b;
+    background: rgba(51, 65, 85, 0.95);
+    border-color: rgba(45, 212, 191, 0.55);
   }
 
   .code-card pre {
     margin: 0;
-    padding: 0.78rem 0.85rem;
+    padding: 0.95rem 1rem;
     overflow-x: auto;
-    color: #e0e7ff; /* indigo-100 */
-    font-size: 0.83rem;
-    line-height: 1.45;
-    font-family: Consolas, "Courier New", monospace;
+    background: transparent;
+    color: #e5eefb;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+    tab-size: 2;
+  }
+
+  .code-card pre code {
+    display: block;
+    background: transparent !important;
+    padding: 0 !important;
+    color: inherit;
+    font-family: inherit;
+  }
+
+  .code-card .hljs {
+    background: transparent;
   }
 
   .typing-indicator {
@@ -262,6 +578,100 @@
   .chat-input-row {
     display: flex;
     gap: 0.55rem;
+  }
+
+  .image-preview-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .image-preview-row.hidden {
+    display: none;
+  }
+
+  .image-preview-card {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    width: 100%;
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.72);
+    border-radius: 14px;
+    padding: 0.75rem;
+  }
+
+  .image-preview-thumb {
+    width: 4rem;
+    height: 4rem;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    background: #020617;
+  }
+
+  .image-preview-copy {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .image-preview-title {
+    margin: 0;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  .image-preview-meta {
+    margin-top: 0.18rem;
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+
+  .preview-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .preview-btn,
+  .upload-btn {
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.72);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 0.58rem 0.82rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    transition: 180ms ease;
+  }
+
+  .preview-btn:hover,
+  .upload-btn:hover {
+    border-color: var(--accent);
+    color: #f8fafc;
+  }
+
+  .image-bubble-card {
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(2, 6, 23, 0.3);
+  }
+
+  .image-bubble-card img {
+    display: block;
+    width: 100%;
+    max-width: 18rem;
+    max-height: 18rem;
+    object-fit: cover;
+  }
+
+  .image-bubble-label {
+    padding: 0.55rem 0.7rem;
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.84);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .chat-input-row input {
@@ -331,18 +741,32 @@
   }
 
   @media (max-width: 767px) {
+    .chat-page-layout {
+      min-height: auto;
+    }
+
+    .chat-card {
+      min-height: calc(100vh - 15rem);
+    }
+
+    .chat-toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
     .chat-input-row {
       flex-direction: column;
     }
 
     .chat-input-row input,
-    .send-btn {
+    .send-btn,
+    .upload-btn {
       min-height: 2.75rem;
       width: 100%;
     }
 
     .chat-shell {
-      height: 56vh;
+      min-height: 20rem;
       padding-bottom: 1rem;
     }
 
@@ -351,33 +775,240 @@
       flex: 1 1 calc(50% - 0.5rem);
       text-align: center;
     }
+
+    .image-preview-card {
+      align-items: flex-start;
+      flex-direction: column;
+    }
   }
 </style>
 
 {% endblock %}
 
 {% block extra_scripts %}
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
 <script>
   let chatHistory = [];
   let currentMode = "tutor";
   let copyButtonCounter = 0;
+  let pendingImageFile = null;
+  let pendingImageUrl = "";
+  let activeSessionId = null;
+  let sessionsCache = [];
+  const latexPattern = /(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/;
+  const modeCopy = {
+    tutor: {
+      placeholder: "Ask for help understanding a concept...",
+      intro: "Ask me anything about your course."
+    },
+    course_qa: {
+      placeholder: "Ask a course-related question...",
+      intro: "Ask a question strictly about your course or lesson."
+    },
+    quiz: {
+      placeholder: "Enter a topic to generate a quiz...",
+      intro: "Give me a topic and I will generate quiz practice."
+    },
+    summarize: {
+      placeholder: "Paste a topic or content to summarize...",
+      intro: "Paste lesson content or a topic to get a summary."
+    }
+  };
 
   function setMode(mode) {
     currentMode = mode;
-    chatHistory = [];
-    document.getElementById("chat-box").innerHTML =
-      '<div class="placeholder" id="placeholder">Ask me anything about your course.</div>';
+    const config = modeCopy[mode] || modeCopy.tutor;
+    document.getElementById("user-input").placeholder = config.placeholder;
 
     document.querySelectorAll(".mode-btn").forEach(btn => btn.classList.remove("active-mode"));
     document.getElementById("btn-" + mode).classList.add("active-mode");
+    if (!activeSessionId && !document.querySelector("#chat-box .chat-bubble")) {
+      document.getElementById("chat-box").innerHTML =
+        `<div class="placeholder" id="placeholder">${config.intro}</div>`;
+    }
   }
 
   function nowTime() {
     return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
+  function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : "";
+  }
+
+  function formatTimestamp(isoValue) {
+    if (!isoValue) return "";
+    const date = new Date(isoValue);
+    return date.toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  function setMemoryIndicator(memory) {
+    const indicator = document.getElementById("memory-indicator");
+    if (!indicator) return;
+    if (!memory || memory.enabled === false) {
+      indicator.textContent = "Memory disabled";
+      return;
+    }
+    indicator.textContent = `Memory active: Last ${memory.duration_minutes} minutes | Max ${memory.max_messages_per_session} messages`;
+  }
+
+  function updateActiveSessionTitle(session) {
+    const titleEl = document.getElementById("active-session-title");
+    titleEl.textContent = session && session.title ? session.title : "New Chat";
+  }
+
+  function clearChatWindow(introText = null) {
+    const config = modeCopy[currentMode] || modeCopy.tutor;
+    document.getElementById("chat-box").innerHTML =
+      `<div class="placeholder" id="placeholder">${introText || config.intro}</div>`;
+    chatHistory = [];
+  }
+
+  function renderSessionList() {
+    const list = document.getElementById("chat-session-list");
+    if (!list) return;
+    if (!sessionsCache.length) {
+      list.innerHTML = `<div class="placeholder" style="margin-top:0.5rem;">No active chats yet.</div>`;
+      return;
+    }
+
+    list.innerHTML = sessionsCache.map(session => `
+      <button type="button" class="session-item ${session.id === activeSessionId ? "active" : ""}" onclick="loadSession(${session.id})">
+        <p class="session-item-title">${escapeHtml(session.title || "New Chat")}</p>
+        <p class="session-item-preview">${escapeHtml(session.last_message_preview || "No messages yet")}</p>
+        <p class="session-item-time">${escapeHtml(formatTimestamp(session.updated_at))}</p>
+      </button>
+    `).join("");
+  }
+
+  async function fetchSessions(selectFirst = false) {
+    const response = await fetch("/student/api/chat/sessions/");
+    const data = await response.json();
+    sessionsCache = Array.isArray(data.sessions) ? data.sessions : [];
+    setMemoryIndicator(data.memory || null);
+    renderSessionList();
+    if (selectFirst && sessionsCache.length) {
+      await loadSession(sessionsCache[0].id);
+    }
+  }
+
+  async function createNewChat(focusInput = true) {
+    const response = await fetch("/student/api/chat/start/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken()
+      },
+      body: JSON.stringify({})
+    });
+    const data = await response.json();
+    activeSessionId = data.session.id;
+    updateActiveSessionTitle(data.session);
+    setMemoryIndicator(data.memory || null);
+    clearChatWindow();
+    await fetchSessions();
+    renderSessionList();
+    if (focusInput) {
+      document.getElementById("user-input").focus();
+    }
+    return data.session;
+  }
+
+  async function loadSession(sessionId) {
+    const response = await fetch(`/student/api/chat/${sessionId}/`);
+    const data = await response.json();
+    if (!response.ok) {
+      appendMessage("assistant", "Error: Could not load that chat session.");
+      return;
+    }
+
+    activeSessionId = sessionId;
+    updateActiveSessionTitle(data.session);
+    setMemoryIndicator(data.memory || null);
+    renderSessionList();
+    const chatBox = document.getElementById("chat-box");
+    chatBox.innerHTML = "";
+    chatHistory = [];
+
+    const messages = Array.isArray(data.messages) ? data.messages : [];
+    if (!messages.length) {
+      clearChatWindow("No valid memory in this chat. Start a fresh message.");
+      return;
+    }
+
+    messages.forEach((message) => {
+      const repaired = message.role === "assistant" ? deriveStructuredFromContent(message.content) : null;
+      appendMessage(
+        message.role,
+        message.content,
+        Boolean(message.content && message.content.includes("```")),
+        repaired,
+        formatTimestamp(message.created_at)
+      );
+      chatHistory.push({ role: message.role, content: message.content });
+    });
+  }
+
+  async function renameActiveSession() {
+    if (!activeSessionId) return;
+    const current = sessionsCache.find(item => item.id === activeSessionId);
+    const title = window.prompt("Rename chat", current?.title || "");
+    if (!title) return;
+    const response = await fetch(`/student/api/chat/${activeSessionId}/rename/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken()
+      },
+      body: JSON.stringify({ title })
+    });
+    const data = await response.json();
+    if (response.ok && data.session) {
+      updateActiveSessionTitle(data.session);
+      await fetchSessions();
+    }
+  }
+
+  async function clearActiveSession() {
+    if (!activeSessionId) return;
+    if (!window.confirm("Clear all messages from this chat?")) return;
+    const response = await fetch(`/student/api/chat/${activeSessionId}/clear/`, {
+      method: "POST",
+      headers: { "X-CSRFToken": getCsrfToken() }
+    });
+    if (response.ok) {
+      clearChatWindow("Memory cleared. Start a new message.");
+      await fetchSessions();
+      const current = sessionsCache.find(item => item.id === activeSessionId);
+      updateActiveSessionTitle(current || null);
+    }
+  }
+
+  async function deleteActiveSession() {
+    if (!activeSessionId) return;
+    if (!window.confirm("Delete this chat session?")) return;
+    const response = await fetch(`/student/api/chat/${activeSessionId}/`, {
+      method: "DELETE",
+      headers: { "X-CSRFToken": getCsrfToken() }
+    });
+    if (response.ok) {
+      activeSessionId = null;
+      updateActiveSessionTitle(null);
+      clearChatWindow("Session deleted. Start a new chat.");
+      await fetchSessions();
+    }
+  }
+
   function escapeHtml(text) {
-    return text
+    return String(text || "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
@@ -391,6 +1022,117 @@
     html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     html = html.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
     return html;
+  }
+
+  function safeJsonParse(text) {
+    if (!text || typeof text !== "string") return null;
+    const raw = text.trim();
+    const candidates = [raw];
+    const firstBrace = raw.indexOf("{");
+    const lastBrace = raw.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      candidates.push(raw.slice(firstBrace, lastBrace + 1));
+    }
+
+    for (const candidate of candidates) {
+      try {
+        const parsed = JSON.parse(candidate);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch (err) {
+      }
+    }
+    return null;
+  }
+
+  function extractJsonStringValue(text, key) {
+    const pattern = new RegExp(`"${key}"\\s*:\\s*"([\\s\\S]*?)"(?=\\s*,\\s*"|\\s*})`);
+    const match = text.match(pattern);
+    if (!match) return "";
+    return match[1]
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, "\\")
+      .replace(/\\n/g, "\n")
+      .replace(/\\t/g, "\t");
+  }
+
+  function extractJsonArray(text, key) {
+    const pattern = new RegExp(`"${key}"\\s*:\\s*\\[([\\s\\S]*?)\\](?=\\s*,\\s*"|\\s*})`);
+    const match = text.match(pattern);
+    if (!match) return [];
+    const items = [];
+    const itemPattern = /"((?:\\.|[^"])*)"/g;
+    let itemMatch;
+    while ((itemMatch = itemPattern.exec(match[1])) !== null) {
+      items.push(
+        itemMatch[1]
+          .replace(/\\"/g, '"')
+          .replace(/\\\\/g, "\\")
+          .replace(/\\n/g, "\n")
+          .replace(/\\t/g, "\t")
+      );
+    }
+    return items;
+  }
+
+  function normalizeStructured(data) {
+    if (!data || typeof data !== "object") return null;
+    return {
+      type: String(data.type || "explanation"),
+      title: String(data.title || "Assistant Response"),
+      content: String(data.content || ""),
+      examples: Array.isArray(data.examples) ? data.examples : [],
+      quiz: Array.isArray(data.quiz) ? data.quiz : [],
+      follow_up: Array.isArray(data.follow_up) ? data.follow_up : [],
+      difficulty: String(data.difficulty || "medium"),
+      tags: Array.isArray(data.tags) ? data.tags : []
+    };
+  }
+
+  function deriveStructuredFromContent(content) {
+    if (!content || typeof content !== "string") return null;
+
+    const parsed = safeJsonParse(content);
+    if (parsed && ("content" in parsed || "title" in parsed || "quiz" in parsed)) {
+      return normalizeStructured(parsed);
+    }
+
+    if (content.includes('"type"') && content.includes('"content"')) {
+      return {
+        type: extractJsonStringValue(content, "type") || "explanation",
+        title: extractJsonStringValue(content, "title") || "Assistant Response",
+        content: extractJsonStringValue(content, "content"),
+        examples: extractJsonArray(content, "examples"),
+        quiz: [],
+        follow_up: extractJsonArray(content, "follow_up"),
+        difficulty: extractJsonStringValue(content, "difficulty") || "medium",
+        tags: extractJsonArray(content, "tags")
+      };
+    }
+
+    if (content.startsWith("## ")) {
+      const lines = content.split("\n");
+      const remainder = lines.slice(1).join("\n").trim();
+      const embedded = safeJsonParse(remainder);
+      if (embedded && ("content" in embedded || "title" in embedded || "quiz" in embedded)) {
+        return normalizeStructured(embedded);
+      }
+      if (remainder.includes('"type"') && remainder.includes('"content"')) {
+        return {
+          type: extractJsonStringValue(remainder, "type") || "explanation",
+          title: extractJsonStringValue(remainder, "title") || lines[0].replace(/^##\s+/, "").trim() || "Assistant Response",
+          content: extractJsonStringValue(remainder, "content"),
+          examples: extractJsonArray(remainder, "examples"),
+          quiz: [],
+          follow_up: extractJsonArray(remainder, "follow_up"),
+          difficulty: extractJsonStringValue(remainder, "difficulty") || "medium",
+          tags: extractJsonArray(remainder, "tags")
+        };
+      }
+    }
+
+    return null;
   }
 
   function renderRichText(text) {
@@ -501,16 +1243,24 @@
       }
 
       const language = match[1] ? escapeHtml(match[1]) : "code";
+      const highlightLanguage = match[1] ? escapeHtml(match[1].toLowerCase()) : "";
       const code = match[2];
       const codeId = `copy-code-${copyButtonCounter++}`;
 
       output += `
         <div class="code-card">
           <div class="code-card-header">
-            <span>${language}</span>
+            <span class="code-header-left">
+              <span class="code-dot-group">
+                <span class="code-dot red"></span>
+                <span class="code-dot amber"></span>
+                <span class="code-dot green"></span>
+              </span>
+              <span class="code-language">${language}</span>
+            </span>
             <button class="copy-btn" onclick="copyCode('${codeId}', this)">Copy</button>
           </div>
-          <pre id="${codeId}"><code>${escapeHtml(code)}</code></pre>
+          <pre id="${codeId}"><code class="${highlightLanguage ? `language-${highlightLanguage}` : ""}">${escapeHtml(code)}</code></pre>
         </div>
       `;
 
@@ -525,28 +1275,169 @@
     return output || `<div class="assistant-content"><p>${escapeHtml(content)}</p></div>`;
   }
 
-  function appendMessage(role, content, hasCode = false) {
+  function renderLatexWithin(container) {
+    if (!container || !window.renderMathInElement) return;
+    if (!latexPattern.test(container.textContent || "")) return;
+
+    try {
+      renderMathInElement(container, {
+        throwOnError: false,
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true }
+        ]
+      });
+    } catch (err) {
+      console.warn("LaTeX rendering skipped:", err);
+    }
+  }
+
+  function highlightCodeWithin(container) {
+    if (!container || !window.hljs) return;
+    container.querySelectorAll("pre code").forEach((block) => {
+      try {
+        window.hljs.highlightElement(block);
+      } catch (err) {
+        console.warn("Code highlight skipped:", err);
+      }
+    });
+  }
+
+  function renderStructuredResponse(data, fallbackContent, hasCode) {
+    if (!data || typeof data !== "object") {
+      return renderAssistantContent(fallbackContent, hasCode);
+    }
+
+    const sections = [];
+    const title = escapeHtml(data.title || "Assistant Response");
+    const difficulty = escapeHtml(data.difficulty || "medium");
+    const type = escapeHtml(data.type || "explanation");
+    const tags = Array.isArray(data.tags) ? data.tags.filter(Boolean).slice(0, 6) : [];
+    const examples = Array.isArray(data.examples) ? data.examples.filter(Boolean) : [];
+    const quiz = Array.isArray(data.quiz) ? data.quiz.filter(Boolean) : [];
+    const followUp = Array.isArray(data.follow_up) ? data.follow_up.filter(Boolean) : [];
+
+    sections.push(`
+      <div class="structured-header">
+        <h3 class="structured-title">${title}</h3>
+        <span class="meta-pill">${type}</span>
+        <span class="meta-pill">${difficulty}</span>
+      </div>
+    `);
+
+    if (data.content) {
+      sections.push(`
+        <div class="section-card">
+          <h4>Explanation</h4>
+          ${renderAssistantContent(data.content, hasCode)}
+        </div>
+      `);
+    }
+
+    if (examples.length) {
+      sections.push(`
+        <div class="section-card">
+          <h4>Examples</h4>
+          <div class="assistant-content"><ul>${examples.map(item => `<li>${renderRichText(String(item))}</li>`).join("")}</ul></div>
+        </div>
+      `);
+    }
+
+    if (quiz.length) {
+      sections.push(`
+        <div class="section-card">
+          <h4>Practice Quiz</h4>
+          <div class="quiz-grid">
+            ${quiz.map(item => `
+              <div class="quiz-card">
+                <div class="quiz-level">${escapeHtml(item.level || "easy")}</div>
+                <p class="quiz-question">${escapeHtml(item.question || "")}</p>
+                ${(item.options || []).length ? `<ol class="quiz-options">${item.options.map(option => `<li>${escapeHtml(String(option))}</li>`).join("")}</ol>` : ""}
+                ${item.explanation ? `<div class="assistant-content"><p><strong>Why:</strong> ${escapeHtml(item.explanation)}</p></div>` : ""}
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `);
+    }
+
+    if (followUp.length) {
+      sections.push(`
+        <div class="section-card">
+          <h4>Next Steps</h4>
+          <div class="follow-up-row">
+            ${followUp.map(item => `<button type="button" class="follow-up-btn" data-prompt="${escapeHtml(String(item))}" onclick="applyFollowUpFromButton(this)">${escapeHtml(String(item))}</button>`).join("")}
+          </div>
+        </div>
+      `);
+    }
+
+    if (tags.length) {
+      sections.push(`
+        <div class="follow-up-row">
+          ${tags.map(tag => `<span class="meta-pill">${escapeHtml(String(tag))}</span>`).join("")}
+        </div>
+      `);
+    }
+
+    return `<div class="structured-wrap">${sections.join("")}</div>`;
+  }
+
+  function renderUserImageBubble(imageUrl, label = "Uploaded image") {
+    return `
+      <div class="image-bubble-card">
+        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(label)}" />
+        <div class="image-bubble-label">${escapeHtml(label)}</div>
+      </div>
+    `;
+  }
+
+  function appendMessage(role, content, hasCode = false, structured = null, timestamp = null) {
     const placeholder = document.getElementById("placeholder");
     if (placeholder) placeholder.remove();
 
     const chatBox = document.getElementById("chat-box");
     const bubble = document.createElement("div");
     bubble.classList.add("chat-bubble", role === "user" ? "user-bubble" : "assistant-bubble");
+    const repairedStructured = role === "assistant" ? (structured || deriveStructuredFromContent(content)) : null;
+    const effectiveHasCode = hasCode || (typeof content === "string" && content.includes("```"));
 
     const name = role === "user" ? "You" : "Assistant";
     const nameClass = role === "user" ? "bubble-name" : "bubble-name assistant-name";
     const body = role === "user"
       ? `<div class="assistant-content"><p>${escapeHtml(content)}</p></div>`
-      : renderAssistantContent(content, hasCode);
+      : renderStructuredResponse(repairedStructured, content, effectiveHasCode);
 
     bubble.innerHTML = `
       <div class="bubble-meta">
         <span class="${nameClass}">${name}</span>
-        <span class="bubble-time">${nowTime()}</span>
+        <span class="bubble-time">${timestamp || nowTime()}</span>
       </div>
       ${body}
     `;
 
+    chatBox.appendChild(bubble);
+    highlightCodeWithin(bubble);
+    renderLatexWithin(bubble);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function appendImageMessage(imageUrl, label = "Uploaded image", timestamp = null) {
+    const placeholder = document.getElementById("placeholder");
+    if (placeholder) placeholder.remove();
+
+    const chatBox = document.getElementById("chat-box");
+    const bubble = document.createElement("div");
+    bubble.classList.add("chat-bubble", "user-bubble");
+    bubble.innerHTML = `
+      <div class="bubble-meta">
+        <span class="bubble-name">You</span>
+        <span class="bubble-time">${timestamp || nowTime()}</span>
+      </div>
+      ${renderUserImageBubble(imageUrl, label)}
+    `;
     chatBox.appendChild(bubble);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
@@ -590,28 +1481,181 @@
     }
   }
 
+  function applyFollowUp(text) {
+    const input = document.getElementById("user-input");
+    input.value = text;
+    input.focus();
+  }
+
+  function applyFollowUpFromButton(button) {
+    if (!button) return;
+    applyFollowUp(button.dataset.prompt || "");
+  }
+
+  function formatFileSize(bytes) {
+    if (!bytes) return "0 KB";
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  }
+
+  function showPendingImagePreview() {
+    const previewRow = document.getElementById("image-preview-row");
+    if (!pendingImageFile || !pendingImageUrl) {
+      previewRow.classList.add("hidden");
+      previewRow.innerHTML = "";
+      return;
+    }
+
+    previewRow.classList.remove("hidden");
+    previewRow.innerHTML = `
+      <div class="image-preview-card">
+        <img class="image-preview-thumb" src="${escapeHtml(pendingImageUrl)}" alt="Pending upload preview" />
+        <div class="image-preview-copy">
+          <p class="image-preview-title">${escapeHtml(pendingImageFile.name || "Selected image")}</p>
+          <p class="image-preview-meta">${formatFileSize(pendingImageFile.size)} | Ready for AI analysis</p>
+        </div>
+        <div class="preview-actions">
+          <button type="button" class="preview-btn" onclick="sendImageMessage()">Analyze</button>
+          <button type="button" class="preview-btn" onclick="clearPendingImage()">Remove</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function clearPendingImage() {
+    if (pendingImageUrl) {
+      URL.revokeObjectURL(pendingImageUrl);
+    }
+    pendingImageFile = null;
+    pendingImageUrl = "";
+    const input = document.getElementById("image-input");
+    input.value = "";
+    showPendingImagePreview();
+  }
+
+  function onImageSelected(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const validTypes = ["image/jpeg", "image/png"];
+    if (!validTypes.includes(file.type)) {
+      appendMessage("assistant", "Error: Unsupported image type. Use a JPG or PNG image.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      appendMessage("assistant", "Error: Image exceeds the 5MB limit. Upload a smaller image.");
+      event.target.value = "";
+      return;
+    }
+
+    if (pendingImageUrl) {
+      URL.revokeObjectURL(pendingImageUrl);
+    }
+    pendingImageFile = file;
+    pendingImageUrl = URL.createObjectURL(file);
+    showPendingImagePreview();
+  }
+
+  async function sendImageMessage() {
+    if (!pendingImageFile) return;
+
+    const input = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const imageUrl = pendingImageUrl;
+    const imageFile = pendingImageFile;
+    if (!activeSessionId) {
+      await createNewChat(false);
+    }
+
+    input.disabled = true;
+    sendBtn.disabled = true;
+    appendImageMessage(imageUrl, imageFile.name || "Uploaded image");
+    appendTyping();
+
+    const formData = new FormData();
+    formData.append("image", imageFile);
+    formData.append("session_id", String(activeSessionId));
+
+    try {
+      const response = await fetch("/api/ai/image-query/", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCsrfToken()
+        },
+        body: formData
+      });
+      const data = await response.json();
+      removeTyping();
+
+      if (!response.ok) {
+        appendMessage("assistant", `Error: ${data.error || "Image analysis failed."}\n\nSuggestion: ${data.suggestion || "Try clearer image."}`);
+        const previewRow = document.getElementById("image-preview-row");
+        previewRow.classList.remove("hidden");
+        previewRow.innerHTML = `
+          <div class="image-preview-card">
+            <img class="image-preview-thumb" src="${escapeHtml(imageUrl)}" alt="Retry upload preview" />
+            <div class="image-preview-copy">
+              <p class="image-preview-title">${escapeHtml(imageFile.name || "Selected image")}</p>
+              <p class="image-preview-meta">${escapeHtml(data.suggestion || "Try clearer image.")}</p>
+            </div>
+            <div class="preview-actions">
+              <button type="button" class="preview-btn" onclick="sendImageMessage()">Retry</button>
+              <button type="button" class="preview-btn" onclick="clearPendingImage()">Remove</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      clearPendingImage();
+      appendMessage("assistant", data.reply, Boolean(data.has_code), data.structured || null);
+      chatHistory.push({ role: "assistant", content: data.reply });
+      if (data.session) {
+        activeSessionId = data.session.id;
+        updateActiveSessionTitle(data.session);
+      }
+      await fetchSessions();
+    } catch (err) {
+      removeTyping();
+      appendMessage("assistant", "Error: Could not upload the image.\n\nSuggestion: Check your connection and try again.");
+    } finally {
+      input.disabled = false;
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
   async function sendMessage() {
     const input = document.getElementById("user-input");
     const message = input.value.trim();
+    if (pendingImageFile) {
+      await sendImageMessage();
+      return;
+    }
     if (!message) return;
 
     input.value = "";
     input.disabled = true;
     document.getElementById("send-btn").disabled = true;
+    if (!activeSessionId) {
+      await createNewChat(false);
+    }
 
     appendMessage("user", message);
     appendTyping();
 
-    chatHistory.push({ role: "user", content: message });
-
     try {
-      const response = await fetch("/student/chat/", {
+      const response = await fetch(`/student/api/chat/${activeSessionId}/message/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken()
+        },
         body: JSON.stringify({
           message,
-          mode: currentMode,
-          history: chatHistory.slice(0, -1)
+          mode: currentMode
         })
       });
 
@@ -619,19 +1663,36 @@
       removeTyping();
 
       if (data.reply) {
-        appendMessage("assistant", data.reply, Boolean(data.has_code));
+        appendMessage("assistant", data.reply, Boolean(data.has_code), data.structured || null);
+        chatHistory.push({ role: "user", content: message });
         chatHistory.push({ role: "assistant", content: data.reply });
+        if (data.session) {
+          activeSessionId = data.session.id;
+          updateActiveSessionTitle(data.session);
+        }
+        await fetchSessions();
       } else {
         appendMessage("assistant", "Error: " + (data.error || "Unknown error"));
       }
     } catch (err) {
       removeTyping();
-      appendMessage("assistant", "Could not connect. Make sure Ollama is running on port 11434.");
+      appendMessage("assistant", "Could not connect to the AI service. Check your Gemini API key and server logs.");
     } finally {
       input.disabled = false;
       document.getElementById("send-btn").disabled = false;
       input.focus();
     }
   }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const imageInput = document.getElementById("image-input");
+    if (imageInput) {
+      imageInput.addEventListener("change", onImageSelected);
+    }
+    setMode(currentMode);
+    fetchSessions(true).catch(() => {
+      clearChatWindow();
+    });
+  });
 </script>
 {% endblock %}

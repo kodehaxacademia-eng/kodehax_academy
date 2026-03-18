@@ -15,4 +15,7 @@ class PlatformSettingsForm(forms.ModelForm):
             'auto_generate_challenges',
             'daily_challenge_base_points',
             'hint_cost_penalty',
+            'enable_chat_memory',
+            'chat_memory_duration',
+            'max_messages_per_session',
         ]

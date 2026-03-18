@@ -7,6 +7,7 @@
     <title>{% block title %}Student Panel{% endblock %}</title>
     <link rel="icon" type="image/png" href="{% static 'image/image.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>
+    {% block extra_head %}{% endblock %}
     <style>
       :root {
         --bg: #020617;
@@ -185,6 +186,7 @@
                     <a href="{% url 'skill_assessment_profile' %}" class="block rounded-xl px-3 py-2 text-slate-300 transition hover:bg-slate-900 hover:text-white">Skill Profile</a>
                     <a href="{% url 'chat_page' %}" class="block rounded-xl px-3 py-2 text-slate-300 transition hover:bg-slate-900 hover:text-white">AI Assistant</a>
                 </div>
+                {% block workspace_sidebar %}{% endblock %}
             </div>
 
             <div class="mt-auto pt-6">
@@ -224,6 +226,7 @@
                 <div class="grid grid-cols-1 gap-2 text-sm">
                     <a href="{% url 'skill_assessment_profile' %}" class="btn-muted inline-flex min-h-11 items-center justify-center px-4">Skill Profile</a>
                     <a href="{% url 'chat_page' %}" class="btn-muted inline-flex min-h-11 items-center justify-center px-4">AI Assistant</a>
+                    {% block mobile_workspace_sidebar %}{% endblock %}
                     <a href="{% url 'logout' %}" class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-rose-600/90 px-4 font-semibold text-white">Logout</a>
                 </div>
             </div>

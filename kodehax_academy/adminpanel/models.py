@@ -57,6 +57,11 @@ class PlatformSettings(models.Model):
     daily_challenge_base_points = models.IntegerField(default=10)
     hint_cost_penalty = models.IntegerField(default=2)
 
+    # Chat Memory Settings
+    enable_chat_memory = models.BooleanField(default=True)
+    chat_memory_duration = models.IntegerField(default=30)
+    max_messages_per_session = models.IntegerField(default=12)
+
     class Meta:
         verbose_name = "Platform Settings"
         verbose_name_plural = "Platform Settings"

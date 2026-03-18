@@ -13,5 +13,12 @@ urlpatterns = [
     path("profile/", views.student_profile, name="student_profile"),
     path("profile/edit/", views.edit_student_profile, name="edit_student_profile"),
     path('chat/', views.llama_chat, name='ai_chat'),
+    path("api/chat/start/", views.chat_start_api, name="chat_start_api"),
+    path("api/chat/sessions/", views.chat_sessions_api, name="chat_sessions_api"),
+    path("api/chat/<int:session_id>/", views.chat_session_detail_api, name="chat_session_detail_api"),
+    path("api/chat/<int:session_id>/message/", views.chat_session_message_api, name="chat_session_message_api"),
+    path("api/chat/<int:session_id>/rename/", views.chat_session_rename_api, name="chat_session_rename_api"),
+    path("api/chat/<int:session_id>/clear/", views.chat_session_clear_api, name="chat_session_clear_api"),
+    path("chat/image-query/", views.image_query_api, name="student_image_query_api"),
     path('chat-page/', views.chat_page, name='chat_page'),  
 ]

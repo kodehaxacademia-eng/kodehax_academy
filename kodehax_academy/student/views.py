@@ -1,21 +1,37 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.conf import settings
 from django.utils import timezone
+from django.core.paginator import Paginator
+import ast
 from .models import StudentProfile
 import json
-import requests #type: ignore
 import re
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from chat.views import RESPONSE_STYLE_INSTRUCTION, format_ai_reply
+from chat.gemini_client import generate_text
 from daily_challenges.models import DailyChallengeSession, StudentPoints
 from daily_challenges.services import get_today_challenge_set, refresh_challenge_set
 from skill_assessment.models import StudentSkill
+from .models import ChatMessage, ChatSession, ImageQuery
+from .services.gemini_vision import ImageQueryError, upload_image_to_gemini
+from .services.chat_memory import (
+    append_message,
+    build_context_payload,
+    cleanup_expired_sessions,
+    create_chat_session,
+    get_memory_settings,
+    get_valid_messages,
+    get_user_session_or_404,
+)
 from teacher.models import (
     Assignment,
     ClassRoom,
     CodeSubmission,
+    PerformanceRecord,
     QuizAnswer,
     QuizQuestion,
     QuizResult,
@@ -28,19 +44,509 @@ from teacher.services.performance import (
     sync_file_submission_record,
 )
 
-OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
-MODEL = "llama3:latest"
+MODEL = "gemini-flash-latest"
 
 CODE_FENCE_PATTERN = re.compile(r"```[\w+-]*\n[\s\S]*?\n```")
+JSON_BLOCK_PATTERN = re.compile(r"```(?:json)?\s*(\{[\s\S]*\})\s*```", re.IGNORECASE)
+
+STRUCTURED_RESPONSE_TEMPLATE = {
+    "type": "explanation",
+    "title": "",
+    "content": "",
+    "examples": [],
+    "quiz": [],
+    "follow_up": [],
+    "difficulty": "easy",
+    "tags": [],
+}
 
 def build_system_prompt(mode):
     prompts = {
-        "tutor": "You are a helpful AI tutor for students. Answer questions clearly and educationally.",
-        "quiz": "You are a quiz generator. Create multiple choice questions based on the topic given.",
-        "summarize": "You are a lesson summarizer. Summarize the given content in simple, student-friendly language.",
-        "course_qa": "You are a course assistant. Answer only questions related to the course material provided.",
+        "tutor": "You are a personalized AI tutor for students. Teach clearly, adapt difficulty, and guide the next learning step.",
+        "quiz": "You are a quiz engine that generates adaptive, non-repetitive practice questions in multiple difficulty levels.",
+        "summarize": "You are a lesson summarizer that creates revision-friendly notes, key points, and quick recap material.",
+        "course_qa": "You are a course assistant. Answer course-related questions with context awareness and personalized guidance.",
     }
-    return f"{prompts.get(mode, prompts['tutor'])}\n\n{RESPONSE_STYLE_INSTRUCTION}"
+    strict_mode_rules = {
+        "tutor": (
+            "STRICT MODE: Act only as AI Tutor. Teach the concept, explain it, guide the student, and optionally include examples or code.\n"
+            "Do not switch into quiz-only or summarize-only behavior unless it directly supports teaching."
+        ),
+        "course_qa": (
+            "STRICT MODE: Act only as Course Q&A. Answer questions related to the student's course, syllabus, lesson, or academic topic.\n"
+            "If the request is unrelated to course learning, politely redirect the student back to course-focused questions."
+        ),
+        "quiz": (
+            "STRICT MODE: Act only as Quiz Me. Always return quiz-style practice content.\n"
+            "Do not give a plain explanatory answer instead of a quiz. Generate practice questions even if the user asks for explanation."
+        ),
+        "summarize": (
+            "STRICT MODE: Act only as Summarize. Always produce a summary, revision notes, or condensed explanation.\n"
+            "Do not switch into quiz-generation or open-ended tutoring unless it is included as a short add-on after the summary."
+        ),
+    }
+    return (
+        f"{prompts.get(mode, prompts['tutor'])}\n\n"
+        "You are integrated into Kodehax Academy. Preserve the current product behavior while improving it.\n"
+        "Never act like a generic chatbot.\n"
+        f"{strict_mode_rules.get(mode, strict_mode_rules['tutor'])}\n"
+        "The selected tab is authoritative and must control the behavior of the response.\n"
+        "Always adapt using student level, current topic, prior mistakes, and performance context when available.\n"
+        "Keep answers crisp, sharp, and high-signal by default.\n"
+        "If the student struggles, simplify and teach step by step. If the student succeeds, raise difficulty slightly.\n"
+        "When code is involved, include clean code, an explanation, and time/space complexity.\n"
+        "When math or formulas help, write them using standard LaTeX delimiters such as $...$ or $$...$$.\n"
+        "When debugging or reviewing incorrect work, identify whether the issue is conceptual, syntax, or logical.\n"
+        "When summarizing, include key points, revision bullets, and formulas if relevant.\n"
+        "When quizzing, provide varied questions across easy, medium, and hard levels.\n"
+        "Avoid repeating the same examples or questions from the recent conversation.\n\n"
+        f"{RESPONSE_STYLE_INSTRUCTION}"
+    )
+
+
+def _safe_json_load(text):
+    if not text:
+        return {}
+    raw = text.strip()
+    try:
+        parsed = json.loads(raw)
+        return parsed if isinstance(parsed, dict) else {}
+    except json.JSONDecodeError:
+        pass
+
+    block_match = JSON_BLOCK_PATTERN.search(raw)
+    if block_match:
+        try:
+            parsed = json.loads(block_match.group(1))
+            return parsed if isinstance(parsed, dict) else {}
+        except json.JSONDecodeError:
+            pass
+
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return {}
+    try:
+        parsed = json.loads(raw[start : end + 1])
+        return parsed if isinstance(parsed, dict) else {}
+    except json.JSONDecodeError:
+        candidate = raw[start : end + 1]
+        candidate = re.sub(r"\btrue\b", "True", candidate)
+        candidate = re.sub(r"\bfalse\b", "False", candidate)
+        candidate = re.sub(r"\bnull\b", "None", candidate)
+        try:
+            parsed = ast.literal_eval(candidate)
+            return parsed if isinstance(parsed, dict) else {}
+        except (SyntaxError, ValueError):
+            return {}
+
+
+def _coerce_string_list(values, limit=None):
+    if not isinstance(values, list):
+        return []
+    result = []
+    for value in values:
+        text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=True)
+        text = text.strip()
+        if text:
+            result.append(text)
+    if limit is not None:
+        return result[:limit]
+    return result
+
+
+def _coerce_quiz_list(values):
+    if not isinstance(values, list):
+        return []
+    quiz_items = []
+    for item in values:
+        if not isinstance(item, dict):
+            continue
+        options = item.get("options", [])
+        if isinstance(options, dict):
+            options = [f"{key}) {value}" for key, value in options.items()]
+        options = _coerce_string_list(options, limit=6)
+        quiz_items.append({
+            "level": str(item.get("level", "easy")).strip().lower() or "easy",
+            "question": str(item.get("question", "")).strip(),
+            "options": options,
+            "answer": str(item.get("answer", "")).strip(),
+            "explanation": str(item.get("explanation", "")).strip(),
+        })
+    return [item for item in quiz_items if item["question"]][:9]
+
+
+def _normalize_structured_response(payload, mode):
+    data = STRUCTURED_RESPONSE_TEMPLATE.copy()
+    if isinstance(payload, dict):
+        data["type"] = str(payload.get("type", "")).strip().lower() or data["type"]
+        data["title"] = str(payload.get("title", "")).strip()
+        data["content"] = str(payload.get("content", "")).strip()
+        data["examples"] = _coerce_string_list(payload.get("examples", []), limit=6)
+        data["quiz"] = _coerce_quiz_list(payload.get("quiz", []))
+        data["follow_up"] = _coerce_string_list(payload.get("follow_up", []), limit=6)
+        data["difficulty"] = str(payload.get("difficulty", "")).strip().lower() or data["difficulty"]
+        data["tags"] = _coerce_string_list(payload.get("tags", []), limit=8)
+
+    mode_default_type = {
+        "tutor": "explanation",
+        "course_qa": "analysis",
+        "quiz": "quiz",
+        "summarize": "explanation",
+    }
+    if data["type"] not in {"explanation", "quiz", "analysis", "suggestion"}:
+        data["type"] = mode_default_type.get(mode, "explanation")
+    if mode == "quiz":
+        data["type"] = "quiz"
+    elif mode == "course_qa" and data["type"] == "quiz":
+        data["type"] = "analysis"
+    if data["difficulty"] not in {"easy", "medium", "hard"}:
+        data["difficulty"] = "medium"
+    if not data["title"]:
+        default_titles = {
+            "tutor": "Learning Guide",
+            "quiz": "Adaptive Quiz Practice",
+            "summarize": "Quick Summary",
+            "course_qa": "Course Help",
+        }
+        data["title"] = default_titles.get(mode, "Assistant Response")
+    if not data["follow_up"]:
+        follow_up_defaults = {
+            "tutor": [
+                "Want a simpler explanation?",
+                "See a worked example",
+                "Practice this concept",
+            ],
+            "course_qa": [
+                "Ask about another lesson topic",
+                "Check prerequisites for this concept",
+                "Review a related course question",
+            ],
+            "quiz": [
+                "Try another quiz on this topic",
+                "Increase the difficulty",
+                "Focus on weak areas",
+            ],
+            "summarize": [
+                "Turn this into revision notes",
+                "Make it even shorter",
+                "Highlight key formulas",
+            ],
+        }
+        data["follow_up"] = follow_up_defaults.get(mode, [
+            "Try a quiz on this topic",
+            "Want a simpler explanation?",
+            "See a real-world example",
+        ])
+    return data
+
+
+def _structured_to_markdown(data):
+    lines = [f"## {data['title']}"]
+    if data["content"]:
+        lines.extend(["", data["content"]])
+
+    if data["examples"]:
+        lines.extend(["", "### Examples"])
+        lines.extend([f"- {item}" for item in data["examples"]])
+
+    if data["quiz"]:
+        lines.extend(["", "### Quiz"])
+        for item in data["quiz"]:
+            lines.append(f"- **{item['level'].title()}**: {item['question']}")
+            for option in item["options"]:
+                lines.append(f"  {option}")
+            if item["explanation"]:
+                lines.append(f"  Explanation: {item['explanation']}")
+
+    if data["follow_up"]:
+        lines.extend(["", "### Next Steps"])
+        lines.extend([f"- {item}" for item in data["follow_up"]])
+
+    if data["tags"]:
+        lines.extend(["", f"Tags: {', '.join(data['tags'])}"])
+
+    return "\n".join(lines).strip()
+
+
+def _vision_response_to_chat_payload(payload):
+    vision_type = payload.get("type", "notes")
+    title_map = {
+        "code": "Code Analysis",
+        "math": "Math Explanation",
+        "exam": "Exam Solution",
+        "diagram": "Diagram Explanation",
+        "notes": "Notes Summary",
+    }
+    explanation = payload.get("explanation", "").strip()
+    solution = payload.get("solution", "").strip()
+    content_parts = []
+    if explanation:
+        content_parts.append(explanation)
+    if solution:
+        content_parts.extend(["", "### Solution", solution])
+
+    structured = {
+        "type": "analysis" if vision_type in {"code", "exam", "diagram"} else "explanation",
+        "title": title_map.get(vision_type, "Image Analysis"),
+        "content": "\n".join(content_parts).strip(),
+        "examples": [],
+        "quiz": [],
+        "follow_up": payload.get("follow_up", []),
+        "difficulty": "medium",
+        "tags": [vision_type, "image-analysis"],
+    }
+    if payload.get("steps"):
+        structured["examples"] = payload["steps"]
+    if payload.get("mistakes"):
+        structured["examples"] = structured["examples"] + [f"Mistake: {item}" for item in payload["mistakes"]]
+    return structured
+
+
+def _infer_topic_from_message(user_message):
+    lowered = (user_message or "").lower()
+    topic_keywords = [
+        "array", "arrays", "string", "strings", "loop", "loops", "recursion",
+        "sorting", "search", "math", "conditionals", "debugging", "python",
+    ]
+    for keyword in topic_keywords:
+        if keyword in lowered:
+            return keyword
+    return "general"
+
+
+def _student_context_payload(student, user_message, mode):
+    if not getattr(student, "is_authenticated", False):
+        return {
+            "student_level": "Intermediate",
+            "preferred_difficulty": "medium",
+            "current_topic_hint": _infer_topic_from_message(user_message),
+            "current_mode": mode,
+            "weak_topics": [],
+            "strong_topics": [],
+            "medium_topics": [],
+            "recent_average_score": 0,
+            "recent_completion_rate": 0,
+            "recent_on_time_rate": 0,
+            "repeated_struggle": False,
+            "recent_assignments": [],
+            "current_classes": [],
+        }
+
+    skill_profile = StudentSkill.objects.filter(student=student).first()
+    performance = get_student_performance_summary(student)
+    recent_records = (
+        PerformanceRecord.objects.filter(student=student)
+        .exclude(score__isnull=True)
+        .order_by("-submitted_at", "-recorded_at")[:5]
+    )
+    current_classes = list(
+        ClassRoom.objects.filter(students=student).values_list("name", flat=True)[:3]
+    )
+
+    weak_topics = []
+    strong_topics = []
+    medium_topics = []
+    if skill_profile:
+        weak_topics = list((skill_profile.weak_topics or {}).keys())[:5]
+        strong_topics = [str(item) for item in (skill_profile.strong_topics or [])[:5]]
+        medium_topics = [
+            str(item)
+            for item in (skill_profile.assessment_snapshot or {}).get("medium_topics", [])[:5]
+        ]
+
+    recent_scores = [round(float(record.score), 2) for record in recent_records if record.score is not None]
+    average_recent_score = round(sum(recent_scores) / len(recent_scores), 2) if recent_scores else 0
+    repeated_struggle = bool(recent_scores) and average_recent_score < 50
+
+    preferred_difficulty = "medium"
+    student_level = "Intermediate"
+    if skill_profile and skill_profile.skill_level:
+        student_level = skill_profile.skill_level
+    elif performance["summary"]["average_score"] >= 75:
+        student_level = "Advanced"
+    elif performance["summary"]["average_score"] <= 40:
+        student_level = "Beginner"
+
+    normalized_level = student_level.lower()
+    if "beginner" in normalized_level or "basic" in normalized_level:
+        preferred_difficulty = "easy"
+    elif "advanced" in normalized_level or "expert" in normalized_level:
+        preferred_difficulty = "hard"
+
+    return {
+        "student_level": student_level,
+        "preferred_difficulty": preferred_difficulty,
+        "current_topic_hint": _infer_topic_from_message(user_message),
+        "current_mode": mode,
+        "weak_topics": weak_topics,
+        "strong_topics": strong_topics,
+        "medium_topics": medium_topics,
+        "recent_average_score": performance["summary"]["average_score"],
+        "recent_completion_rate": performance["summary"]["completion_percentage"],
+        "recent_on_time_rate": performance["summary"]["on_time_submission_rate"],
+        "repeated_struggle": repeated_struggle,
+        "recent_assignments": [record.assignment_title for record in recent_records if record.assignment_title][:5],
+        "current_classes": current_classes,
+    }
+
+
+def _session_payload(session):
+    messages = list(session.messages.order_by("-created_at", "-id")[:1])
+    latest_message = messages[0] if messages else None
+    preview = ""
+    if latest_message:
+        preview = (latest_message.content or "").strip()
+        if preview.startswith("## "):
+            preview = preview.splitlines()[0].replace("##", "").strip()
+        elif preview.startswith("{") and '"title"' in preview:
+            try:
+                parsed = _safe_json_load(preview)
+                preview = parsed.get("title") or parsed.get("content") or preview
+            except Exception:
+                pass
+        preview = preview.replace("\n", " ")[:90].strip()
+    return {
+        "id": session.id,
+        "title": session.title or "New Chat",
+        "created_at": session.created_at.isoformat(),
+        "updated_at": session.updated_at.isoformat(),
+        "expires_at": session.expires_at.isoformat() if session.expires_at else None,
+        "is_active": session.is_active,
+        "is_expired": session.is_expired,
+        "last_message_preview": preview,
+        "last_message_role": latest_message.role if latest_message else "",
+    }
+
+
+def _message_payload(message):
+    return {
+        "id": message.id,
+        "role": message.role,
+        "content": message.content,
+        "created_at": message.created_at.isoformat(),
+    }
+
+
+def _build_gemini_prompt(mode, history, user_message, student_context, memory_context=None):
+    transcript_lines = []
+    for item in history:
+        if not isinstance(item, dict):
+            continue
+        role = str(item.get("role", "user")).strip().lower()
+        content = str(item.get("content", "")).strip()
+        if not content:
+            continue
+        if role not in {"user", "assistant"}:
+            role = "user"
+        transcript_lines.append(f"{role.title()}: {content}")
+
+    transcript = "\n".join(transcript_lines) if transcript_lines else "No prior conversation."
+    history_examples = []
+    for item in history:
+        if not isinstance(item, dict):
+            continue
+        role = str(item.get("role", "user")).strip().lower()
+        content = str(item.get("content", "")).strip()
+        if role == "assistant" and content:
+            history_examples.append(content[:240])
+
+    recent_response_patterns = history_examples[-3:] if history_examples else []
+    mode_requirements = {
+        "tutor": "Prioritize explanation, examples, and targeted next steps.",
+        "course_qa": "Keep answers course-focused and add clarification prompts when context is missing.",
+        "quiz": "Return exactly three quiz items: easy, medium, and hard. Avoid duplicate concepts.",
+        "summarize": "Include key points, bullet-style revision notes, and formulas if relevant.",
+    }
+    direct_intent = {
+        "tutor": "Primary objective: teach the student's requested topic as a tutor.",
+        "course_qa": "Primary objective: answer the student's question strictly as course-related Q&A.",
+        "quiz": "Primary objective: convert the student's topic into quiz-style practice content.",
+        "summarize": "Primary objective: summarize the student's provided topic or request into compact study material.",
+    }
+    return (
+        f"{build_system_prompt(mode)}\n\n"
+        "Return a single valid JSON object only. No markdown wrapper. No prose outside JSON.\n"
+        "The JSON schema is:\n"
+        "{\n"
+        '  "type": "explanation | quiz | analysis | suggestion",\n'
+        '  "title": "Short heading",\n'
+        '  "content": "Main explanation",\n'
+        '  "examples": ["..."],\n'
+        '  "quiz": [\n'
+        '    {"level": "easy | medium | hard", "question": "...", "options": ["..."], "answer": "...", "explanation": "..."}\n'
+        "  ],\n"
+        '  "follow_up": ["..."],\n'
+        '  "difficulty": "easy | medium | hard",\n'
+        '  "tags": ["..."]\n'
+        "}\n\n"
+        "Rules:\n"
+        "- Always fill every top-level field.\n"
+        f"- {direct_intent.get(mode, direct_intent['tutor'])}\n"
+        "- follow_up must contain 3 to 4 short actionable suggestions.\n"
+        "- If code is needed, include it inside content using fenced code blocks.\n"
+        "- Prefer concise, high-signal wording over long filler.\n"
+        "- Keep most answers compact unless the question clearly needs depth.\n"
+        "- Start with the direct answer before extra detail.\n"
+        "- If analyzing mistakes, classify them as conceptual, syntax, or logical and explain why.\n"
+        "- If the user seems to be struggling, simplify and break the idea into smaller steps.\n"
+        "- If performance suggests strong understanding, increase challenge slightly.\n"
+        "- Keep output modular so the UI can render sections.\n"
+        "- If the topic is mathematical, include LaTeX only where it improves clarity.\n"
+        f"- Mode requirement: {mode_requirements.get(mode, mode_requirements['tutor'])}\n"
+        "- Do not blend behaviors across tabs unless it is a very small supporting addition.\n\n"
+        "Student context:\n"
+        f"{json.dumps(student_context, ensure_ascii=True)}\n\n"
+        "Session memory context:\n"
+        f"{json.dumps(memory_context or {}, ensure_ascii=True)}\n\n"
+        "Conversation so far:\n"
+        f"{transcript}\n\n"
+        "Recent assistant response patterns to avoid repeating too closely:\n"
+        f"{json.dumps(recent_response_patterns, ensure_ascii=True)}\n\n"
+        "Latest user message:\n"
+        f"User: {user_message}\n\n"
+        "Reply as the assistant."
+    )
+
+
+def _run_text_chat(user, user_message, mode, history, memory_context=None):
+    student_context = _student_context_payload(user, user_message, mode)
+    prompt = _build_gemini_prompt(mode, history, user_message, student_context, memory_context=memory_context)
+    raw_response = generate_text(
+        "gemini-2.5-flash",
+        prompt,
+        config={"response_mime_type": "application/json"},
+    )
+    parsed = _safe_json_load(raw_response)
+    if not parsed:
+        parsed = {
+            "type": "quiz" if mode == "quiz" else "explanation",
+            "title": "Assistant Response",
+            "content": raw_response.strip(),
+            "examples": [],
+            "quiz": [],
+            "follow_up": [
+                "Try a quiz on this topic",
+                "Want a simpler explanation?",
+                "See a real-world example",
+            ],
+            "difficulty": student_context["preferred_difficulty"],
+            "tags": [mode, student_context["current_topic_hint"]],
+        }
+    structured = _normalize_structured_response(parsed, mode)
+    reply = format_ai_reply(_structured_to_markdown(structured))
+    if not reply or not structured["content"]:
+        raise ValueError("Gemini returned an empty response.")
+    return {
+        "reply": reply,
+        "has_code": bool(CODE_FENCE_PATTERN.search(reply)),
+        "structured": structured,
+        "context": {
+            "student_level": student_context["student_level"],
+            "difficulty": structured["difficulty"],
+            "weak_topics": student_context["weak_topics"],
+        },
+    }
 
 @csrf_exempt
 def llama_chat(request):
@@ -58,32 +564,226 @@ def llama_chat(request):
     if not user_message:
         return JsonResponse({"error": "Message is required"}, status=400)
 
-    messages = [{"role": "system", "content": build_system_prompt(mode)}]
-    messages += history
-    messages.append({"role": "user", "content": user_message})
-
     try:
-        response = requests.post(OLLAMA_URL, json={
-            "model": MODEL,
-            "messages": messages,
-            "stream": False
-        }, timeout=60)
-        data = response.json()
-        reply = format_ai_reply(data["message"]["content"])
-        has_code = bool(CODE_FENCE_PATTERN.search(reply))
-        return JsonResponse({"reply": reply, "has_code": has_code})
-    
-    except requests.exceptions.ConnectionError as e:
-        return JsonResponse({"error": f"ConnectionError: {str(e)}"}, status=500)
-    except requests.exceptions.Timeout as e:
-        return JsonResponse({"error": f"Timeout: {str(e)}"}, status=500)
-    except KeyError as e:
-        return JsonResponse({"error": f"KeyError - unexpected response: {str(e)}", "raw": data}, status=500)
+        return JsonResponse(_run_text_chat(request.user, user_message, mode, history))
     except Exception as e:
-        return JsonResponse({"error": f"Unknown error: {type(e).__name__}: {str(e)}"}, status=500)
+        return JsonResponse({"error": f"Gemini error: {type(e).__name__}: {str(e)}"}, status=500)
 
 def chat_page(request):
-    return render(request, 'student/chat.html')
+    cleanup_expired_sessions(delete=False)
+    return render(request, 'student/chat.html', {
+        "memory_settings": get_memory_settings(),
+    })
+
+
+@login_required
+@require_POST
+def image_query_api(request):
+    uploaded_image = request.FILES.get("image")
+    session_id = request.POST.get("session_id")
+    if not uploaded_image:
+        return JsonResponse(
+            {"error": "No image was uploaded.", "suggestion": "Upload a JPG or PNG image."},
+            status=400,
+        )
+
+    try:
+        ai_payload = upload_image_to_gemini(uploaded_image)
+    except ImageQueryError as exc:
+        return JsonResponse({"error": exc.message, "suggestion": exc.suggestion}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"error": f"Unexpected error: {type(exc).__name__}", "suggestion": "Try a clearer image."},
+            status=500,
+        )
+
+    session = None
+    if session_id:
+        try:
+            session = get_user_session_or_404(request.user, session_id)
+        except ChatSession.DoesNotExist:
+            return JsonResponse({"error": "Session not found.", "suggestion": "Start a new chat and try again."}, status=404)
+
+    image_query = ImageQuery.objects.create(
+        user=request.user,
+        image=uploaded_image,
+        extracted_text=ai_payload.get("detected_content", ""),
+        ai_response=ai_payload,
+    )
+    structured = _vision_response_to_chat_payload(ai_payload)
+    reply = format_ai_reply(_structured_to_markdown(structured))
+    if session:
+        append_message(session, ChatMessage.ROLE_USER, f"[Uploaded image] {uploaded_image.name}")
+        append_message(session, ChatMessage.ROLE_ASSISTANT, reply)
+    return JsonResponse(
+        {
+            "reply": reply,
+            "has_code": bool(CODE_FENCE_PATTERN.search(reply)),
+            "structured": structured,
+            "session": _session_payload(session) if session else None,
+            "image_query": {
+                "id": image_query.id,
+                "image_url": image_query.image.url,
+                "created_at": image_query.created_at.isoformat(),
+                "detected_content": ai_payload.get("detected_content", ""),
+                "raw": ai_payload,
+            },
+        },
+        status=201,
+    )
+
+
+@login_required
+@require_POST
+def chat_start_api(request):
+    try:
+        body = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        body = {}
+    first_message = str(body.get("message", "")).strip()
+    session = create_chat_session(request.user, first_message=first_message)
+    if first_message:
+        append_message(session, ChatMessage.ROLE_USER, first_message)
+    return JsonResponse({
+        "session": _session_payload(session),
+        "memory": get_memory_settings(),
+    }, status=201)
+
+
+@login_required
+def chat_sessions_api(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "GET method required"}, status=405)
+
+    cleanup_expired_sessions(delete=False)
+    page_number = request.GET.get("page", "1")
+    page_obj = Paginator(
+        ChatSession.objects.filter(
+            user=request.user,
+            is_active=True,
+            expires_at__gt=timezone.now(),
+        ).order_by("-updated_at"),
+        20,
+    ).get_page(page_number)
+    return JsonResponse({
+        "sessions": [_session_payload(session) for session in page_obj.object_list],
+        "pagination": {
+            "page": page_obj.number,
+            "pages": page_obj.paginator.num_pages,
+            "has_next": page_obj.has_next(),
+            "has_previous": page_obj.has_previous(),
+        },
+        "memory": get_memory_settings(),
+    })
+
+
+@login_required
+def chat_session_detail_api(request, session_id):
+    try:
+        session = get_user_session_or_404(request.user, session_id)
+    except ChatSession.DoesNotExist:
+        return JsonResponse({"error": "Session not found."}, status=404)
+
+    if request.method == "GET":
+        valid_messages = get_valid_messages(session)
+        return JsonResponse({
+            "session": _session_payload(session),
+            "messages": [_message_payload(message) for message in valid_messages],
+            "memory": get_memory_settings(),
+        })
+
+    if request.method == "DELETE":
+        session.is_active = False
+        session.save(update_fields=["is_active", "updated_at"])
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"error": "Unsupported method."}, status=405)
+
+
+@login_required
+@require_POST
+def chat_session_message_api(request, session_id):
+    try:
+        session = get_user_session_or_404(request.user, session_id)
+    except ChatSession.DoesNotExist:
+        return JsonResponse({"error": "Session not found."}, status=404)
+
+    try:
+        body = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    user_message = str(body.get("message", "")).strip()
+    mode = body.get("mode", "tutor")
+    if not user_message:
+        return JsonResponse({"error": "Message is required"}, status=400)
+
+    valid_messages = list(get_valid_messages(session))
+    history = [{"role": item.role, "content": item.content} for item in valid_messages]
+    memory_context = build_context_payload(
+        session,
+        _student_context_payload(request.user, user_message, mode),
+    )
+
+    if not session.title:
+        session.title = user_message[:255]
+        session.save(update_fields=["title", "updated_at"])
+
+    append_message(session, ChatMessage.ROLE_USER, user_message)
+
+    try:
+        ai_payload = _run_text_chat(
+            request.user,
+            user_message,
+            mode,
+            history,
+            memory_context=memory_context,
+        )
+    except Exception as exc:
+        return JsonResponse({"error": f"Gemini error: {type(exc).__name__}: {str(exc)}"}, status=500)
+
+    assistant_message = append_message(session, ChatMessage.ROLE_ASSISTANT, ai_payload["reply"])
+    return JsonResponse({
+        **ai_payload,
+        "session": _session_payload(session),
+        "message": _message_payload(assistant_message),
+        "memory": get_memory_settings(),
+    })
+
+
+@login_required
+@require_POST
+def chat_session_rename_api(request, session_id):
+    try:
+        session = get_user_session_or_404(request.user, session_id)
+    except ChatSession.DoesNotExist:
+        return JsonResponse({"error": "Session not found."}, status=404)
+
+    try:
+        body = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    new_title = str(body.get("title", "")).strip()
+    if not new_title:
+        return JsonResponse({"error": "Title is required."}, status=400)
+    session.title = new_title[:255]
+    session.save(update_fields=["title", "updated_at"])
+    return JsonResponse({"session": _session_payload(session)})
+
+
+@login_required
+@require_POST
+def chat_session_clear_api(request, session_id):
+    try:
+        session = get_user_session_or_404(request.user, session_id)
+    except ChatSession.DoesNotExist:
+        return JsonResponse({"error": "Session not found."}, status=404)
+
+    session.messages.all().delete()
+    session.updated_at = timezone.now()
+    session.save(update_fields=["updated_at"])
+    return JsonResponse({"success": True, "session": _session_payload(session)})
 
 
 def _ensure_student(request):

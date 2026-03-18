@@ -5,12 +5,9 @@ import os
 import re
 from typing import Any
 
-import google.generativeai as genai
-
 from django.conf import settings
 from teacher.models import Assignment, CodeSubmission, QuizAnswer, QuizResult, Submission
-
-genai.configure(api_key=settings.GEMINI_API_KEY)
+from chat.gemini_client import generate_text
 
 
 def clamp_score(score: float, max_score: float) -> float:
@@ -60,9 +57,7 @@ def _read_text_file(file_path: str, char_limit: int = 6000) -> str:
 
 def _ai_grade(prompt: str, max_score: float) -> tuple[float, str]:
     try:
-        genai_model = genai.GenerativeModel("gemini-flash-latest")
-        response = genai_model.generate_content(prompt)
-        content = response.text.strip()
+        content = generate_text("gemini-2.5-flash", prompt).strip()
     except Exception as exc:  # noqa: BLE001
         return 0.0, f"AI grading failed: {exc}"
 
@@ -161,9 +156,7 @@ def grade_code_submission_ai(code_submission: CodeSubmission) -> CodeSubmission:
         f"Student code:\n{code_submission.code}"
     )
     try:
-        genai_model = genai.GenerativeModel("gemini-flash-latest")
-        response = genai_model.generate_content(prompt)
-        raw_feedback = response.text.strip()
+        raw_feedback = generate_text("gemini-2.5-flash", prompt).strip()
     except Exception as exc:  # noqa: BLE001
         raw_feedback = f"AI grading failed: {exc}"
 

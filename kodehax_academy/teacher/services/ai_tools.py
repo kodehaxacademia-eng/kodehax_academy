@@ -1,10 +1,6 @@
 import re
 
-import google.generativeai as genai
-
-from django.conf import settings
-
-genai.configure(api_key=settings.GEMINI_API_KEY)
+from chat.gemini_client import generate_text
 
 
 def generate_quiz(topic):
@@ -42,9 +38,7 @@ CRITICAL: Do NOT generate anything else other than these 5 multiple choice quest
 """
 
     try:
-        model = genai.GenerativeModel("gemini-flash-latest")
-        response = model.generate_content(prompt)
-        return response.text
+        return generate_text("gemini-2.5-flash", prompt)
     except Exception as exc:
         print(f"Error generating quiz: {exc}")
         return ""
@@ -69,9 +63,7 @@ Rules:
 """
 
     try:
-        model = genai.GenerativeModel("gemini-flash-latest")
-        response = model.generate_content(prompt)
-        return response.text
+        return generate_text("gemini-2.5-flash", prompt)
     except Exception as exc:
         print(f"Error generating notes: {exc}")
         return ""
@@ -112,9 +104,7 @@ CRITICAL: Provide ONLY the coding problem details. Do NOT output MCQs or notes.
 """
 
     try:
-        model = genai.GenerativeModel("gemini-flash-latest")
-        response = model.generate_content(prompt)
-        return response.text
+        return generate_text("gemini-2.5-flash", prompt)
     except Exception as exc:
         print(f"Error generating coding assignment: {exc}")
         return ""

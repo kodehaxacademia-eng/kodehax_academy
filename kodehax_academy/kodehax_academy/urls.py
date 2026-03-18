@@ -18,6 +18,15 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from student.views import (
+    chat_session_clear_api,
+    chat_session_detail_api,
+    chat_session_message_api,
+    chat_session_rename_api,
+    chat_sessions_api,
+    chat_start_api,
+    image_query_api,
+)
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -26,6 +35,13 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('admin-panel/', include('adminpanel.urls')),
+    path("api/chat/start/", chat_start_api, name="api_chat_start"),
+    path("api/chat/sessions/", chat_sessions_api, name="api_chat_sessions"),
+    path("api/chat/<int:session_id>/", chat_session_detail_api, name="api_chat_session_detail"),
+    path("api/chat/<int:session_id>/message/", chat_session_message_api, name="api_chat_session_message"),
+    path("api/chat/<int:session_id>/rename/", chat_session_rename_api, name="api_chat_session_rename"),
+    path("api/chat/<int:session_id>/clear/", chat_session_clear_api, name="api_chat_session_clear"),
+    path("api/ai/image-query/", image_query_api, name="api_image_query"),
     path('', include('accounts.urls')),
     path('', include('users.urls')),
     path('student/daily-challenges/', include('daily_challenges.urls')),

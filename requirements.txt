@@ -22,3 +22,5 @@ requests-oauthlib==2.0.0
 requests-toolbelt==1.0.0
 whitenoise==6.10.0
 gunicorn==23.0.0
+dj-database-url==2.1.0
+psycopg2-binary==2.9.9

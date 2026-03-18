@@ -13,29 +13,12 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-def _load_env_file():
-    env_candidates = (
-        BASE_DIR.parent / ".env",
-        BASE_DIR / ".env",
-    )
-    for env_path in env_candidates:
-        if not env_path.exists():
-            continue
-        for line in env_path.read_text().splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
-        break
-
-
-_load_env_file()
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production

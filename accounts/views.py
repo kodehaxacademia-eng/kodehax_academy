@@ -107,7 +107,10 @@ def register(request):
     form = StudentRegistrationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = form.save()
-        send_verification_email(request, user)
+        try:
+            send_verification_email(request, user)
+        except (OSError, BadHeaderError, Exception):
+            pass
         return redirect("registration_success")
     return _render(request, "accounts/register.html", {"form": form, "page_title": "Student registration"})
 
@@ -311,7 +314,10 @@ def forgot_password(request):
         email = form.cleaned_data["email"]
         user = User.objects.filter(email__iexact=email).first()
         if user:
-            send_password_reset_email(request, user)
+            try:
+                send_password_reset_email(request, user)
+            except (OSError, BadHeaderError, Exception):
+                pass
         messages.success(request, "If that email exists in our system, a password reset link has been sent.")
         return redirect("forgot_password")
     return _render(request, "accounts/forgot_password.html", {"form": form})
@@ -370,8 +376,11 @@ def send_profile_password_reset(request):
     if request.method != "POST":
         return redirect("student_profile" if request.user.role == "student" else "teacher_profile")
 
-    send_password_reset_email(request, request.user)
-    messages.success(request, "A password reset link has been sent to your email address.")
+    try:
+        send_password_reset_email(request, request.user)
+        messages.success(request, "A password reset link has been sent to your email address.")
+    except (OSError, BadHeaderError, Exception):
+        messages.error(request, "We couldn't send the email right now. Please try again later.")
     return redirect("student_profile" if request.user.role == "student" else "teacher_profile")
 
 
